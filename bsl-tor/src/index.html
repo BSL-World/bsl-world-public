@@ -1,39 +1,246 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BSL Tor Installer</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: black;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-  <body>
-    <main class="container">
-      <h1>Welcome to Tauri</h1>
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
 
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-      <p>Click on the Tauri logo to learn more about the framework</p>
+    .installer-panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      width: 500px;
+      max-height: 80vh;
+      background: rgba(10, 10, 20, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid rgba(4, 76, 208, 0.3);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+      padding: 2rem;
+      color: #e0e0e0;
+      box-sizing: border-box;
+    }
 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
-    </main>
-  </body>
+    h2 {
+      margin-top: 0;
+      color: #044CD0;
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #a0a0a0;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.7rem;
+      background: #044CD0;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: #0339a0;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background: #444;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #aaa;
+      text-align: center;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="space"></canvas>
+
+  <div class="installer-panel">
+    <h2>BSL Tor</h2>
+    <div class="subtitle">Beautiful Sober Life</div>
+    <p>
+      Tor service is installed. Please, paste your bridge lines below to update the configuration.
+    </p>
+    <textarea id="bridges" placeholder="Paste bridge lines here..."></textarea>
+    <button id="action-btn">Update Bridges</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const { invoke } = window.__TAURI__.core;
+
+    // Starfield background
+    const canvas = document.getElementById('space');
+    const ctx = canvas.getContext('2d');
+
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    });
+
+    const stars = [];
+    const numStars = 250;
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * w - w / 2,
+        y: Math.random() * h - h / 2,
+        z: Math.random() * w,
+        prevZ: null
+      });
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(0, 0, w, h);
+
+      for (let star of stars) {
+        star.prevZ = star.z;
+        star.z -= 8;
+
+        if (star.z <= 0) {
+          star.x = Math.random() * w - w / 2;
+          star.y = Math.random() * h - h / 2;
+          star.z = w;
+          star.prevZ = w;
+        }
+
+        const sx = (star.x / star.z) * w + w / 2;
+        const sy = (star.y / star.z) * h + h / 2;
+        const px = (star.x / star.prevZ) * w + w / 2;
+        const py = (star.y / star.prevZ) * h + h / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(sx, sy);
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // UI Logic
+    const btn = document.getElementById('action-btn');
+    const statusDiv = document.getElementById('status');
+    const bridgesTextarea = document.getElementById('bridges');
+
+    let lastSavedBridges = ''; // Track what was last saved
+
+    function switchToFinish() {
+      btn.textContent = 'Finish';
+      btn.disabled = false;
+    }
+
+    function switchToUpdate() {
+      btn.textContent = 'Update Bridges';
+      btn.disabled = false;
+    }
+
+    // If user modifies the textarea, switch back to Update mode
+    bridgesTextarea.addEventListener('input', () => {
+      if (btn.textContent === 'Finish' && bridgesTextarea.value.trim() !== lastSavedBridges) {
+        switchToUpdate();
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      if (btn.textContent === 'Finish') {
+        // Close the window
+        try {
+          await invoke('close_window');
+        } catch (e) {
+          statusDiv.textContent = 'Error closing window: ' + e;
+        }
+        return;
+      }
+
+      // Otherwise, it's "Update Bridges"
+      const bridges = bridgesTextarea.value.trim();
+      if (!bridges) {
+        statusDiv.textContent = 'Error: no bridges provided.';
+        return;
+      }
+
+      btn.disabled = true;
+      statusDiv.textContent = 'Updating bridges...';
+      try {
+        await invoke('update_bridges', { bridges });
+        statusDiv.textContent = 'Success! Bridges updated.';
+        lastSavedBridges = bridges; // Remember what we just saved
+        switchToFinish();
+      } catch (e) {
+        statusDiv.textContent = 'Update failed: ' + e;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
 </html>
