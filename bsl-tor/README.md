@@ -12,11 +12,11 @@ Back in the early 2000s, I stumbled upon the Tor Browser in a weekly tech magazi
 
 So I asked DeepSeek — was it even possible? And if so, how? DeepSeek confirmed my hope and gave me a clear, working path: download the Tor Expert Bundle, place it on the disk, and use `sc create` to register `tor.exe` as a Windows service. The bundle already includes the `torrc` configuration file, so I just had to fill it with actual bridge lines obtained from a Telegram bot.
 
-The service ran, the proxy worked. Suddenly, the blocked Telegram was alive again, and any browser configured to use the Tor proxy could freely open any "sanctioned" website. But explaining this whole process to friends who are light-years away from IT — *"Find the file called torrc, open it in Notepad, paste these specific bridge lines inside..."* — that was a genuine nightmare.
+The service ran, the proxy worked. As a result, the blocked Telegram was alive again, and any browser configured to use the Tor proxy could freely open any "sanctioned" website. But explaining this whole process to friends who are light-years away from IT — *"Open a command prompt as administrator, run this `sc create` command with a bunch of parameters, find the file called torrc, open it in Notepad, paste these specific bridge lines inside..."* — that was a genuine nightmare.
 
 That’s how BSL Tor was born — a clean, architecture-first installer that deploys Tor as a background Windows service and gives you a gorgeous, starfield-themed window to easily manage your bridges. The program features a user-friendly GUI that makes adding new bridges straightforward — no need to worry about the correct file format or manually adding the word "Bridge" to each line.
 
-Built with Tauri + Rust by a non-programmer who just wanted to solve a real problem.
+Built with Tauri + Rust by a non-programmer — just a system administrator who didn't even know what Tauri or Electron were. Someone who simply wanted to solve a real problem.
 
 ---
 
