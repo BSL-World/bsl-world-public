@@ -1,6 +1,6 @@
 [package]
 name = "bsl-tor"
-version = "0.4.6"
+version = "0.4.7"
 description = "BSL Tor Installer"
 authors = ["BSL-World.ru"]
 edition = "2021"
