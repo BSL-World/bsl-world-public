@@ -3,6 +3,7 @@
 **A native Windows installer that deploys the Tor Expert Bundle as a silent system service, complete with pluggable transports and a simple, beautiful GUI for bridge management.**
 
 ---
+> **Note:** Pre-built releases are no longer available. Read more: [BSL-Tor-DISCONTINUED.md](BSL-Tor-DISCONTINUED.md)
 
 ## My Story
 
