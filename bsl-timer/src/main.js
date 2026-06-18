@@ -433,3 +433,19 @@ opacitySlider.addEventListener('input', () => {
     const val = parseInt(opacitySlider.value) / 100;
     appContainer.style.opacity = val;
 });
+// ---- Custom window controls ----
+const closeBtn = document.getElementById('close-btn');
+const minimizeBtn = document.getElementById('minimize-btn');
+const maximizeBtn = document.getElementById('maximize-btn');
+
+closeBtn.addEventListener('click', () => {
+    win.close();
+});
+
+minimizeBtn.addEventListener('click', () => {
+    win.minimize();
+});
+
+maximizeBtn.addEventListener('click', () => {
+    win.toggleMaximize();
+});
