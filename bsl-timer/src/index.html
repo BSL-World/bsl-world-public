@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSL-Timer</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #1e1e2f;
+            color: white;
+        }
+        /* Each timer card */
+        .timer {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+        }
+        /* Timer display */
+        .timer-display {
+            font-size: 3em;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        /* Buttons and inputs */
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        input {
+            font-size: 1.2em;
+            width: 80px;
+            text-align: center;
+        }
+        /* Repeat options row */
+        .repeat-options {
+            margin-top: 10px;
+        }
+        .repeat-options label {
+            margin-right: 10px;
+        }
+        .repeat-options input {
+            width: 60px;
+        }
+        /* Disabled button style */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Overdue (expired) display */
+        .timer-display.overdue {
+            color: red;
+        }
+        .timer-card.overdue {
+            border: 2px solid red;
+        }
+        /* Container for multiple timers */
+        #timers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        /* Toolbar with Add button */
+        .toolbar {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>BSL-Timer</h1>
+    <div class="toolbar">
+        <button id="addTimerBtn">+ Add timer</button>
+        <button id="toggleAlwaysOnTop">📌 On Top</button>
+        <button id="toggleOpacity">🔽 Opacity</button>
+        <input type="range" id="opacitySlider" min="20" max="100" value="100" style="width: 80px; vertical-align: middle;">
+    </div>
+    <div id="timers-container"></div>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
