@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 // ---- Context Menu (custom right-click) ----
@@ -448,4 +449,13 @@ minimizeBtn.addEventListener('click', () => {
 
 maximizeBtn.addEventListener('click', () => {
     win.toggleMaximize();
+});
+
+// ---- Open settings window ----
+document.getElementById('open-settings').addEventListener('click', async () => {
+    try {
+        await invoke('open_settings_window');
+    } catch (error) {
+        console.error('Failed to open settings window:', error);
+    }
 });
