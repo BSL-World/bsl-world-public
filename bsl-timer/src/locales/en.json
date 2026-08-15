@@ -1,0 +1,42 @@
+{
+  "localeName": "English",
+  "app": {
+    "title": "BSL-Timer"
+  },
+  "timer": {
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "restart": "Restart",
+    "overdue": "Overdue",
+    "invalidDuration": "Enter a duration greater than zero"
+  },
+  "toolbar": {
+    "alwaysOnTop": "Always on top",
+    "settings": "Settings"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "ok": "Ok",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "colorScheme": "Color scheme",
+    "ok": "Ok",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "theme": {
+    "green": "Green",
+    "blue": "Blue",
+    "tan": "Tan LCD",
+    "purple": "Purple"
+  }
+}

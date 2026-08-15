@@ -1,0 +1,42 @@
+{
+  "localeName": "Русский",
+  "app": {
+    "title": "BSL-Таймер"
+  },
+  "timer": {
+    "hours": "Часы",
+    "minutes": "Минуты",
+    "seconds": "Секунды",
+    "start": "Старт",
+    "pause": "Пауза",
+    "resume": "Продолжить",
+    "stop": "Стоп",
+    "restart": "Заново",
+    "overdue": "Просра̵очено",
+    "invalidDuration": "Укажите время больше нуля"
+  },
+  "toolbar": {
+    "alwaysOnTop": "Поверх остальных окон",
+    "settings": "Настройки"
+  },
+  "window": {
+    "minimize": "Свернуть",
+    "ok": "Ok",
+    "apply": "Применить",
+    "cancel": "Отмена"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "colorScheme": "Цветовая схема",
+    "ok": "Ok",
+    "apply": "Применить",
+    "cancel": "Отмена"
+  },
+  "theme": {
+    "green": "Зелёная",
+    "blue": "Синяя",
+    "tan": "Бежевый LCD",
+    "purple": "Фиолетовая"
+  }
+}
