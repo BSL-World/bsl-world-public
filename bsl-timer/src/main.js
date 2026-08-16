@@ -80,6 +80,32 @@ function updateDurationFromInputs() {
   timer.setDuration(readDuration());
 }
 
+function prepareSignal() {
+  void signalPlayer.prepare().catch((error) => {
+    console.error('Failed to prepare timer signal:', error);
+  });
+}
+
+function startTimer() {
+  if (timer.getSnapshot().state !== TimerState.IDLE) {
+    return;
+  }
+
+  const durationMs = readDuration();
+
+  if (durationMs <= 0) {
+    validationMessage.hidden = false;
+    return;
+  }
+
+  validationMessage.hidden = true;
+  normalizeDurationInputs(durationMs);
+  timer.setDuration(durationMs);
+
+  prepareSignal();
+  timer.start();
+}
+
 function renderTimer(snapshot) {
   const isOverdue = snapshot.state === TimerState.OVERDUE;
   const isIdle = snapshot.state === TimerState.IDLE;
@@ -120,6 +146,10 @@ function refreshLocalizedContent() {
   input.addEventListener('input', updateDurationFromInputs);
 
   input.addEventListener('change', () => {
+    if (timer.getSnapshot().state !== TimerState.IDLE) {
+      return;
+    }
+
     const durationMs = readDuration();
     normalizeDurationInputs(durationMs);
     timer.setDuration(durationMs);
@@ -127,26 +157,13 @@ function refreshLocalizedContent() {
 
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-      startButton.click();
+      event.preventDefault();
+      startTimer();
     }
   });
 });
 
-startButton.addEventListener('click', async () => {
-  const durationMs = readDuration();
-
-  if (durationMs <= 0) {
-    validationMessage.hidden = false;
-    return;
-  }
-
-  validationMessage.hidden = true;
-  normalizeDurationInputs(durationMs);
-  timer.setDuration(durationMs);
-
-  await signalPlayer.prepare();
-  timer.start();
-});
+startButton.addEventListener('click', startTimer);
 
 pauseButton.addEventListener('click', () => {
   const { state } = timer.getSnapshot();
@@ -166,11 +183,11 @@ stopButton.addEventListener('click', () => {
   timer.reset();
 });
 
-restartButton.addEventListener('click', async () => {
+restartButton.addEventListener('click', () => {
   signalPlayer.stop();
   timer.reset();
 
-  await signalPlayer.prepare();
+  prepareSignal();
   timer.start();
 });
 
