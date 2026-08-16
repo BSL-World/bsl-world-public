@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Restored the main window position between application launches.
+
 ## [0.2.0-beta.3] - 2026-08-16
 
 ### Added
