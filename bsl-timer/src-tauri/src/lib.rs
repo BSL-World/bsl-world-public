@@ -1,5 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tauri::Manager;
+use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
 #[tauri::command]
@@ -60,6 +61,12 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(StateFlags::POSITION)
+                .with_filter(|label| label == "main")
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![greet, open_settings_window])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
