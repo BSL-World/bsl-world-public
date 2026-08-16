@@ -1,109 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #1e1e2f;
-            color: #ffffff;
-            padding: 24px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        h2 {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            color: #a6e3ff;
-        }
-        .setting-group {
-            background: #2a2a3f;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-        .setting-group label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 6px;
-            color: #cdd6f4;
-        }
-        select,
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 8px 12px;
-            background: #1e1e2f;
-            border: 1px solid #45475a;
-            border-radius: 6px;
-            color: #ffffff;
-            font-size: 14px;
-        }
-        select:focus,
-        input:focus {
-            outline: none;
-            border-color: #89b4fa;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        #close-settings {
-            background: #45475a;
-            color: #ffffff;
-            align-self: flex-start;
-            margin-top: auto;
-        }
-        #close-settings:hover {
-            background: #585b70;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-    <h2>⚙️ Settings</h2>
 
-    <div class="setting-group">
-        <label for="lang">Language</label>
-        <select id="lang">
-            <option value="en">English</option>
-            <option value="ru">Русский</option>
-        </select>
-    </div>
+<body class="settings-body">
+    <main class="settings-page">
+        <header class="settings-header">
+            <span class="settings-icon" aria-hidden="true">
+                ⚙
+            </span>
 
-    <div class="setting-group">
-        <label for="theme">Theme</label>
-        <select id="theme">
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-        </select>
-    </div>
+            <h1 data-i18n="settings.title"></h1>
+        </header>
 
-    <div class="setting-group">
-        <label for="sound">Sound device</label>
-        <input type="text" id="sound" placeholder="Default" />
-    </div>
+        <section class="settings-card">
+            <label
+                for="language-select"
+                data-i18n="settings.language"
+            ></label>
 
-    <button id="close-settings">Close</button>
+            <select id="language-select"></select>
+        </section>
 
-    <script type="module">
-    import { getCurrentWindow } from '@tauri-apps/api/window';
+        <section class="settings-card">
+            <label
+                for="theme-select"
+                data-i18n="settings.colorScheme"
+            ></label>
 
-    document.getElementById('close-settings').addEventListener('click', async () => {
-        await getCurrentWindow().close();
-    });
-</script>
+            <select id="theme-select"></select>
+        </section>
+
+        <footer class="settings-footer">
+            <button
+                id="ok-settings-btn"
+                class="control-button primary-button"
+                type="button"
+                data-i18n="settings.ok"
+            ></button>
+
+            <button
+                id="cancel-settings-btn"
+                class="control-button"
+                type="button"
+                data-i18n="settings.cancel"
+            ></button>
+
+            <button
+                id="apply-settings-btn"
+                class="control-button"
+                type="button"
+                data-i18n="settings.apply"
+                disabled
+            ></button>
+        </footer>
+    </main>
+
+    <script type="module" src="/settings.js"></script>
 </body>
+
 </html>

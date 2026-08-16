@@ -1,13 +1,25 @@
+import { fileURLToPath, URL } from 'node:url';
+
 import { defineConfig } from 'vite';
+
+const mainEntry = fileURLToPath(
+  new URL('./src/index.html', import.meta.url)
+);
+
+const settingsEntry = fileURLToPath(
+  new URL('./src/settings.html', import.meta.url)
+);
 
 export default defineConfig({
   root: 'src',
-  input: {
-    main: 'index.html',
-    settings: 'settings.html'
-  },
   build: {
     outDir: '../dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rolldownOptions: {
+      input: {
+        main: mainEntry,
+        settings: settingsEntry
+      }
+    }
   }
 });

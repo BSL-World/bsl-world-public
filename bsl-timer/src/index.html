@@ -1,116 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSL-Timer</title>
-    <style>
-        /* Global styles */
-        body {
-            font-family: sans-serif;
-            padding: 20px;
-            background: #1e1e2f;
-            color: white;
-        }
-        /* Each timer card */
-        .timer {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 8px;
-        }
-        /* Timer display */
-        .timer-display {
-            font-size: 3em;
-            font-family: monospace;
-            margin: 10px 0;
-        }
-        /* Buttons and inputs */
-        button {
-            margin: 5px;
-            padding: 8px 15px;
-            font-size: 1em;
-            cursor: pointer;
-        }
-        input {
-            font-size: 1.2em;
-            width: 80px;
-            text-align: center;
-        }
-        /* Repeat options row */
-        .repeat-options {
-            margin-top: 10px;
-        }
-        .repeat-options label {
-            margin-right: 10px;
-        }
-        .repeat-options input {
-            width: 60px;
-        }
-        /* Disabled button style */
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        /* Overdue (expired) display */
-        .timer-display.overdue {
-            color: red;
-        }
-        .timer-card.overdue {
-            border: 2px solid red;
-        }
-        /* Container for multiple timers */
-        #timers-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        /* Toolbar with Add button */
-        .toolbar {
-            margin-bottom: 20px;
-        }
-        html, body {
-            background: transparent !important;
-        }
-        #app {
-            background: transparent;
-        }
-        #titlebar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 32px;
-            background: rgba(0, 0, 0, 0.6);
-            -webkit-app-region: drag;
-            user-select: none;
-        }
-        #drag-region {
-            flex: 1;
-            height: 100%;
-            -webkit-app-region: drag;
-        }
-    </style>
+    <title></title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
-    <div id="app">
-        <div id="titlebar">
-            <div id="drag-region" style="flex: 1; -webkit-app-region: drag; cursor: default;"></div>
-            <div id="window-controls">
-                <button id="minimize-btn" title="Minimize">_</button>
-                <button id="maximize-btn" title="Maximize">☐</button>
-                <button id="close-btn" title="Close">✕</button>
+    <div id="app" class="app-shell">
+        <header class="titlebar">
+            <div class="titlebar-drag-region" data-tauri-drag-region>
+                <span class="app-title" data-tauri-drag-region data-i18n="app.title"></span>
             </div>
-        </div>
-        <h1>BSL-Timer</h1>
-        <div class="toolbar">
-            <button id="addTimerBtn">+ Add timer</button>
-            <button id="toggleAlwaysOnTop">📌 On Top</button>
-            <button id="open-settings" title="Settings">⚙️</button>
-            <button id="toggleOpacity">🔽 Opacity</button>
-            <input type="range" id="opacitySlider" min="20" max="100" value="100" style="width: 80px; vertical-align: middle;">
-        </div>
-        <div id="timers-container"></div>
-        <script type="module" src="/main.js"></script>
+
+            <div class="titlebar-actions">
+                <button id="always-on-top-btn" class="titlebar-button" type="button" aria-pressed="false"
+                    data-i18n-title="toolbar.alwaysOnTop" data-i18n-aria-label="toolbar.alwaysOnTop">
+                    <span aria-hidden="true">📌</span>
+                </button>
+
+                <button id="settings-btn" class="titlebar-button" type="button" data-i18n-title="toolbar.settings"
+                    data-i18n-aria-label="toolbar.settings">
+                    <span aria-hidden="true">⚙</span>
+                </button>
+
+                <button id="minimize-btn" class="titlebar-button" type="button" data-i18n-title="window.minimize"
+                    data-i18n-aria-label="window.minimize">
+                    <span aria-hidden="true">−</span>
+                </button>
+
+                <button id="close-btn" class="titlebar-button close-button" type="button" data-i18n-title="window.close"
+                    data-i18n-aria-label="window.close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="timer-panel">
+            <div id="timer-status" class="timer-status" hidden>
+                <span data-i18n="timer.overdue"></span>
+            </div>
+
+            <div id="timer-display" class="timer-display" role="timer" aria-live="polite">
+                00:10:00
+            </div>
+
+            <div id="duration-inputs" class="duration-inputs">
+                <label class="duration-field">
+                    <span data-i18n="timer.hours"></span>
+                    <input id="hours-input" type="number" min="0" value="0" inputmode="numeric"
+                        data-i18n-aria-label="timer.hours">
+                </label>
+
+                <span class="duration-separator">:</span>
+
+                <label class="duration-field">
+                    <span data-i18n="timer.minutes"></span>
+                    <input id="minutes-input" type="number" min="0" max="59" value="10" inputmode="numeric"
+                        data-i18n-aria-label="timer.minutes">
+                </label>
+
+                <span class="duration-separator">:</span>
+
+                <label class="duration-field">
+                    <span data-i18n="timer.seconds"></span>
+                    <input id="seconds-input" type="number" min="0" max="59" value="0" inputmode="numeric"
+                        data-i18n-aria-label="timer.seconds">
+                </label>
+            </div>
+
+            <div id="validation-message" class="validation-message" data-i18n="timer.invalidDuration" hidden></div>
+
+            <div class="timer-controls">
+                <button id="start-btn" class="control-button primary-button" type="button"
+                    data-i18n="timer.start"></button>
+
+                <button id="pause-btn" class="control-button" type="button" data-i18n="timer.pause" hidden></button>
+
+                <button id="stop-btn" class="control-button" type="button" data-i18n="timer.stop" hidden></button>
+
+                <button id="restart-btn" class="control-button" type="button" data-i18n="timer.restart" hidden></button>
+            </div>
+        </main>
     </div>
+
+    <script type="module" src="/main.js"></script>
 </body>
+
 </html>
