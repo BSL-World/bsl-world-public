@@ -29,6 +29,9 @@
     "title": "Settings",
     "language": "Language",
     "colorScheme": "Color scheme",
+    "appearance": "Appearance",
+    "windowTransparency": "Window transparency",
+    "displayBrightness": "Display brightness",
     "ok": "Ok",
     "apply": "Apply",
     "cancel": "Cancel"

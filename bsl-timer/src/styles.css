@@ -4,6 +4,8 @@
   --theme-rgb: 11 219 4;
   --timer-active-color: var(--theme-color);
   --timer-overdue-color: #fa0206;
+  --window-surface-alpha: 0.78;
+  --display-brightness: 1;
   font-family:
     Inter,
     "Segoe UI",
@@ -38,8 +40,8 @@
 :root[data-theme="purple"] .app-shell {
   background: linear-gradient(
     145deg,
-    rgb(54 28 82 / 92%),
-    rgb(13 10 22 / 88%)
+    rgb(54 28 82 / var(--window-surface-alpha)),
+    rgb(13 10 22 / var(--window-surface-alpha))
   );
 }
 
@@ -88,7 +90,7 @@ button {
     linear-gradient(
       145deg,
       rgb(var(--theme-rgb) / 8%),
-      rgba(12, 16, 25, 0.78)
+      rgb(12 16 25 / var(--window-surface-alpha))
     );
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #f4f7fb;
@@ -191,6 +193,7 @@ button {
 
 .timer-display {
   color: var(--timer-active-color);
+  filter: brightness(var(--display-brightness));
   font-family: "DSEG7 Classic", Consolas, monospace;
   font-size: 41px;
   font-variant-numeric: tabular-nums;
@@ -199,7 +202,9 @@ button {
   line-height: 1.05;
   text-align: center;
   text-shadow: 0 0 10px rgb(var(--theme-rgb) / 42%);
-  transition: color 180ms ease;
+  transition:
+    color 180ms ease,
+    filter 120ms ease;
 }
 
 .timer-panel.is-overdue .timer-display,
@@ -340,7 +345,7 @@ button {
 .settings-page {
   display: flex;
   min-height: 100vh;
-  padding: 20px;
+  padding: 20px 20px 24px;
   flex-direction: column;
   gap: 14px;
 }
@@ -376,6 +381,13 @@ button {
   color: #c9cad6;
 }
 
+.settings-card h2 {
+  margin: 0;
+  color: var(--theme-color-strong);
+  font-size: 16px;
+  font-weight: 600;
+}
+
 .settings-card select {
   width: 100%;
   padding: 11px 12px;
@@ -390,6 +402,40 @@ button {
   border-color: var(--theme-color);
   outline: none;
   box-shadow: 0 0 0 3px rgb(var(--theme-rgb) / 20%);
+}
+
+.appearance-settings-card {
+  gap: 14px;
+}
+
+.range-setting {
+  display: grid;
+  gap: 8px;
+}
+
+.range-setting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.range-setting output {
+  min-width: 52px;
+  padding: 3px 7px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 6px;
+  background: rgb(0 0 0 / 18%);
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.range-setting input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--theme-color);
+  cursor: pointer;
 }
 
 .settings-footer {
@@ -408,7 +454,11 @@ button {
 }
 
 :root[data-theme="tan"] .app-shell {
-  background: linear-gradient(145deg, #e8e7d6, #cfceb6);
+  background: linear-gradient(
+    145deg,
+    rgb(232 231 214 / var(--window-surface-alpha)),
+    rgb(207 206 182 / var(--window-surface-alpha))
+  );
   border-color: #aaa99b;
   color: #4a4a48;
 }
@@ -492,6 +542,16 @@ button {
 
 :root[data-theme="tan"] .settings-card label {
   color: rgb(52 52 50 / 88%);
+}
+
+:root[data-theme="tan"] .settings-card h2 {
+  color: #343432;
+}
+
+:root[data-theme="tan"] .range-setting output {
+  border-color: rgb(112 112 110 / 30%);
+  background: rgb(112 112 110 / 12%);
+  color: #343432;
 }
 
 :root[data-theme="tan"] .settings-card select {

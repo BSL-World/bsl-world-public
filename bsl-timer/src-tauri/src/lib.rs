@@ -9,6 +9,18 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
+fn set_main_window_transparency(app: tauri::AppHandle, transparency: u8) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+
+    let normalized_transparency = transparency.min(90);
+    let alpha = (((100 - normalized_transparency) as f64 / 100.0) * 255.0).round() as u8;
+
+    apply_blur(&window, Some((18, 18, 18, alpha))).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
         let _ = window.show();
@@ -32,13 +44,14 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
         tauri::WebviewUrl::App("settings.html".into()),
     )
     .title("Settings")
-    .inner_size(460.0, 480.0)
+    .inner_size(460.0, 640.0)
     .resizable(false)
-    .visible(true)
-    .focused(true)
+    .visible(false)
+    .focused(false)
     .decorations(true)
     .skip_taskbar(false)
-    .always_on_top(false);
+    .always_on_top(false)
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(30.0, 30.0));
 
     builder = match settings_position {
         Some((x, y)) => builder.position(x, y),
@@ -48,11 +61,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     let settings_window = builder.build();
 
     match settings_window {
-        Ok(window) => {
-            let _ = window.show();
-            let _ = window.set_focus();
-            Ok(())
-        }
+        Ok(_) => Ok(()),
         Err(error) => Err(error.to_string()),
     }
 }
@@ -67,7 +76,11 @@ pub fn run() {
                 .with_filter(|label| label == "main")
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![greet, open_settings_window])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            open_settings_window,
+            set_main_window_transparency
+        ])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
 

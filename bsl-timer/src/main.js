@@ -1,5 +1,6 @@
 import '@fontsource/dseg7-classic/700.css';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import {
@@ -21,6 +22,13 @@ import {
   applyTheme,
   THEME_STORAGE_KEY
 } from './theme.js';
+
+import {
+  APPEARANCE_PREVIEW_EVENT,
+  APPEARANCE_STORAGE_KEY,
+  applyAppearance,
+  getAppearance
+} from './appearance.js';
 
 const appWindow = getCurrentWindow();
 const signalPlayer = new SignalPlayer();
@@ -250,10 +258,22 @@ window.addEventListener('storage', (event) => {
   ) {
     applyTheme(event.newValue);
   }
+
+  if (
+    event.key === APPEARANCE_STORAGE_KEY
+    && event.newValue
+  ) {
+    void applyAppearance(getAppearance());
+  }
+});
+
+await listen(APPEARANCE_PREVIEW_EVENT, (event) => {
+  void applyAppearance(event.payload);
 });
 
 document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
+await applyAppearance(getAppearance());
 refreshLocalizedContent();
 timer.setDuration(readDuration());
