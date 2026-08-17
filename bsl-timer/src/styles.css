@@ -1,3 +1,12 @@
+@font-face {
+  font-family: "DSEG7 Classic";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("./assets/fonts/dseg7-classic/dseg7-classic-latin-700-normal.woff2")
+    format("woff2");
+}
+
 :root {
   --theme-color: #0bdb04;
   --theme-color-strong: #37ff31;

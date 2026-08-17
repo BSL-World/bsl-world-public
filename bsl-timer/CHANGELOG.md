@@ -7,6 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Versioned event instance model for future timer tabs and event types.
+- Session storage abstraction for restoring event instances.
+- Automated tests for timer state restoration and session persistence.
+
+### Changed
+
+- Added timer engine state export and restoration support.
+- Made all color themes officially available in the Free edition.
+
+### Fixed
+
+- Prevented the fallback timer font from flashing during application startup
+  by preloading the locally bundled DSEG7 Classic font.
+
 ## [0.2.0-beta.4] - 2026-08-17
 
 ### Added

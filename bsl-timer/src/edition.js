@@ -11,7 +11,7 @@ const capabilities = Object.freeze({
     systemSounds: false,
     customSounds: false,
     presets: false,
-    themes: false
+    themes: true
   }),
   [Edition.PRO]: Object.freeze({
     maxTimers: Number.POSITIVE_INFINITY,
