@@ -29,6 +29,9 @@
     "title": "Настройки",
     "language": "Язык",
     "colorScheme": "Цветовая схема",
+    "appearance": "Внешний вид",
+    "windowTransparency": "Прозрачность окна",
+    "displayBrightness": "Яркость дисплея",
     "ok": "Ok",
     "apply": "Применить",
     "cancel": "Отмена"

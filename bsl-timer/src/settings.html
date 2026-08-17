@@ -36,6 +36,54 @@
             <select id="theme-select"></select>
         </section>
 
+        <section class="settings-card appearance-settings-card">
+            <h2 data-i18n="settings.appearance"></h2>
+
+            <div class="range-setting">
+                <div class="range-setting-header">
+                    <label
+                        for="window-transparency-input"
+                        data-i18n="settings.windowTransparency"
+                    ></label>
+
+                    <output
+                        id="window-transparency-value"
+                        for="window-transparency-input"
+                    ></output>
+                </div>
+
+                <input
+                    id="window-transparency-input"
+                    type="range"
+                    min="0"
+                    max="90"
+                    step="1"
+                >
+            </div>
+
+            <div class="range-setting">
+                <div class="range-setting-header">
+                    <label
+                        for="display-brightness-input"
+                        data-i18n="settings.displayBrightness"
+                    ></label>
+
+                    <output
+                        id="display-brightness-value"
+                        for="display-brightness-input"
+                    ></output>
+                </div>
+
+                <input
+                    id="display-brightness-input"
+                    type="range"
+                    min="50"
+                    max="150"
+                    step="1"
+                >
+            </div>
+        </section>
+
         <footer class="settings-footer">
             <button
                 id="ok-settings-btn"

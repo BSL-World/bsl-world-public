@@ -7,9 +7,31 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.0-beta.4] - 2026-08-17
+
 ### Added
 
-- Restored the main window position between application launches.
+- Window transparency control with live preview.
+- Timer display brightness control with live preview.
+- Persistent appearance settings.
+- Restoration of the main window position between application launches.
+- Restoration of the Settings window position between openings and
+  application launches.
+
+### Changed
+
+- Increased the maximum window transparency to 90 percent.
+- Kept the Settings window inside the nearest monitor work area.
+- Added a safe margin between the Settings window, screen edges, and taskbar.
+- Applied the saved color theme before the first interface render.
+
+### Fixed
+
+- Fixed Ok and Cancel buttons not closing the Settings window.
+- Fixed the native close button not closing the Settings window.
+- Fixed Settings controls touching or being clipped by the lower window edge.
+- Fixed the Settings window opening partially outside the visible screen area.
+- Fixed the default Green theme briefly flashing during application startup.
 
 ## [0.2.0-beta.3] - 2026-08-16
 
