@@ -91,6 +91,7 @@ button {
 }
 
 .app-shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -165,6 +166,203 @@ button {
 .close-button:hover {
   background: #c42b3a;
   color: #ffffff;
+}
+
+.timer-tabs-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: none;
+  gap: 3px;
+  align-items: flex-end;
+  height: 30px;
+  padding: 4px 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 11, 18, 0.28);
+}
+
+.timer-tab-list {
+  display: flex;
+  flex: 0 1 auto;
+  gap: 3px;
+  min-width: 0;
+  max-width: calc(100% - 31px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.timer-tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+.timer-tabs-bar.has-overflow .timer-tab-list {
+  max-width: calc(100% - 70px);
+}
+
+.tab-scroll-button {
+  display: grid;
+  width: 18px;
+  height: 25px;
+  flex: none;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.tab-scroll-button:hover:not(:disabled) {
+  background: rgb(var(--theme-rgb) / 16%);
+  color: var(--theme-color-strong);
+}
+
+.tab-scroll-button:disabled {
+  opacity: 0.24;
+  cursor: default;
+}
+
+.timer-tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 82px;
+  max-width: 138px;
+  height: 25px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.timer-tab.is-active {
+  border-color: rgb(var(--theme-rgb) / 44%);
+  background: rgb(var(--theme-rgb) / 14%);
+  color: #ffffff;
+}
+
+.timer-tab-select {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  height: 24px;
+  padding: 0 7px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.timer-tab-select::before {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.24);
+  content: "";
+}
+
+.timer-tab.is-running .timer-tab-select::before {
+  background: var(--theme-color-strong);
+  box-shadow: 0 0 6px rgb(var(--theme-rgb) / 70%);
+}
+
+.timer-tab.is-paused .timer-tab-select::before {
+  background: #ffca5c;
+}
+
+.timer-tab.is-overdue .timer-tab-select::before {
+  background: var(--timer-overdue-color);
+  box-shadow: 0 0 6px rgb(250 2 6 / 70%);
+}
+
+.timer-tab-label {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timer-tab-name-input {
+  width: 94px;
+  min-width: 0;
+  height: 18px;
+  margin: 0 4px 0 7px;
+  padding: 0 4px;
+  border: 1px solid var(--theme-color);
+  border-radius: 4px;
+  outline: none;
+  background: rgba(5, 8, 14, 0.78);
+  color: #ffffff;
+  font-size: 10px;
+}
+
+.timer-tab-close {
+  width: 20px;
+  height: 24px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.timer-tab-close:hover {
+  background: rgba(196, 43, 58, 0.82);
+  color: #ffffff;
+}
+
+.add-timer-button {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: none;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.add-timer-button:hover:not(.is-locked) {
+  background: rgb(var(--theme-rgb) / 16%);
+  color: var(--theme-color-strong);
+}
+
+.add-timer-button.is-locked {
+  opacity: 0.34;
+  cursor: help;
+}
+
+.tab-notice {
+  position: absolute;
+  top: 31px;
+  right: 6px;
+  left: 6px;
+  z-index: 5;
+  padding: 7px 9px;
+  border: 1px solid rgb(var(--theme-rgb) / 38%);
+  border-radius: 7px;
+  background: rgba(10, 13, 21, 0.96);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.34);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 10px;
+  text-align: center;
 }
 
 .timer-panel {
@@ -339,6 +537,91 @@ button {
   background: rgb(var(--theme-rgb) / 38%);
 }
 
+.danger-button {
+  border-color: rgba(255, 93, 107, 0.72);
+  background: rgba(196, 43, 58, 0.34);
+}
+
+.danger-button:hover:not(:disabled) {
+  border-color: #ff7a87;
+  background: rgba(196, 43, 58, 0.58);
+}
+
+.dialog-backdrop {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  inset: 0;
+  padding: 12px;
+  place-items: center;
+  background: rgba(4, 6, 11, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.confirmation-dialog {
+  width: 100%;
+  max-width: 310px;
+  padding: 12px;
+  border: 1px solid rgb(var(--theme-rgb) / 48%);
+  border-radius: 10px;
+  background: rgba(18, 22, 32, 0.98);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.52);
+}
+
+.confirmation-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.confirmation-dialog h2 {
+  margin: 0;
+  color: var(--theme-color-strong);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.confirmation-dialog p {
+  margin: 10px 0 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.confirmation-dialog-x {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.64);
+  cursor: pointer;
+}
+
+.confirmation-dialog-x:hover {
+  background: #c42b3a;
+  color: #ffffff;
+}
+
+.confirmation-dialog-actions {
+  display: flex;
+  gap: 7px;
+  justify-content: flex-end;
+}
+
+.confirmation-dialog-actions .control-button {
+  min-width: 76px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
 .settings-body {
   min-height: 100vh;
   background:
@@ -353,33 +636,48 @@ button {
 
 .settings-page {
   display: flex;
-  min-height: 100vh;
-  padding: 20px 20px 24px;
+  height: 100vh;
+  min-height: 0;
+  padding: 16px 16px 12px;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.settings-content {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  padding-right: 4px;
+  flex-direction: column;
+  gap: 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: var(--theme-color) rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
 }
 
 .settings-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .settings-header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--theme-color-strong);
 }
 
 .settings-icon {
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .settings-card {
   display: grid;
-  gap: 8px;
-  padding: 14px;
+  gap: 7px;
+  padding: 11px;
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 14px;
   background: rgb(255 255 255 / 6%);
@@ -414,7 +712,7 @@ button {
 }
 
 .appearance-settings-card {
-  gap: 14px;
+  gap: 11px;
 }
 
 .range-setting {
@@ -447,11 +745,73 @@ button {
   cursor: pointer;
 }
 
+.range-control {
+  position: relative;
+  padding-bottom: 18px;
+}
+
+.range-control input[type="range"] {
+  display: block;
+}
+
+.range-default-marker {
+  position: absolute;
+  bottom: 0;
+  left: var(--default-position);
+  padding: 7px 3px 0;
+  transform: translateX(-50%);
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 9px;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.range-default-marker::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 6px;
+  background: var(--theme-color-strong);
+  content: "";
+}
+
+.range-default-marker:hover,
+.range-default-marker:focus-visible {
+  color: var(--theme-color-strong);
+}
+
 .settings-footer {
   display: flex;
+  flex: none;
   gap: 8px;
   justify-content: flex-end;
-  margin-top: auto;
+  margin-top: 0;
+  padding-top: 9px;
+  border-top: 1px solid rgb(255 255 255 / 9%);
+  background: #171827;
+}
+
+.behavior-settings-card {
+  gap: 9px;
+}
+
+.checkbox-setting {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.checkbox-setting input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin: 1px 0 0;
+  accent-color: var(--theme-color);
 }
 
 .settings-footer .control-button {
@@ -475,6 +835,40 @@ button {
 :root[data-theme="tan"] .titlebar {
   background: rgb(170 170 159 / 32%);
   border-bottom-color: rgb(112 112 110 / 24%);
+}
+
+:root[data-theme="tan"] .timer-tabs-bar {
+  border-bottom-color: rgb(112 112 110 / 24%);
+  background: rgb(170 170 159 / 18%);
+}
+
+:root[data-theme="tan"] .timer-tab,
+:root[data-theme="tan"] .add-timer-button,
+:root[data-theme="tan"] .tab-scroll-button {
+  border-color: rgb(112 112 110 / 28%);
+  background: rgb(232 231 214 / 32%);
+  color: rgb(52 52 50 / 72%);
+}
+
+:root[data-theme="tan"] .timer-tab.is-active {
+  border-color: rgb(77 77 75 / 48%);
+  background: rgb(112 112 110 / 16%);
+  color: #343432;
+}
+
+:root[data-theme="tan"] .timer-tab-name-input {
+  background: #e8e7d6;
+  color: #343432;
+}
+
+:root[data-theme="tan"] .timer-tab-close {
+  color: rgb(52 52 50 / 56%);
+}
+
+:root[data-theme="tan"] .tab-notice {
+  border-color: rgb(112 112 110 / 42%);
+  background: rgba(232, 231, 214, 0.98);
+  color: #343432;
 }
 
 :root[data-theme="tan"] .app-title,
@@ -530,6 +924,28 @@ button {
   color: #343432;
 }
 
+:root[data-theme="tan"] .dialog-backdrop {
+  background: rgba(52, 52, 50, 0.42);
+}
+
+:root[data-theme="tan"] .confirmation-dialog {
+  border-color: rgb(112 112 110 / 48%);
+  background: rgba(232, 231, 214, 0.98);
+}
+
+:root[data-theme="tan"] .confirmation-dialog h2,
+:root[data-theme="tan"] .confirmation-dialog p {
+  color: #343432;
+}
+
+:root[data-theme="tan"] .confirmation-dialog-x {
+  color: rgb(52 52 50 / 72%);
+}
+
+:root[data-theme="tan"] .range-default-marker {
+  color: rgb(52 52 50 / 68%);
+}
+
 :root[data-theme="tan"] .control-button:hover:not(:disabled) {
   border-color: rgb(74 74 72 / 48%);
   background: rgb(112 112 110 / 20%);
@@ -538,6 +954,11 @@ button {
 :root[data-theme="tan"] .settings-body {
   background: linear-gradient(145deg, #e8e7d6, #cfceb6);
   color: #343432;
+}
+
+:root[data-theme="tan"] .settings-footer {
+  border-top-color: rgb(112 112 110 / 24%);
+  background: #cfceb6;
 }
 
 :root[data-theme="tan"] .settings-header h1 {

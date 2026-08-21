@@ -24,11 +24,21 @@ import {
 import {
   APPEARANCE_PREVIEW_EVENT,
   APPEARANCE_STORAGE_KEY,
+  DEFAULT_DISPLAY_BRIGHTNESS,
+  DEFAULT_WINDOW_TRANSPARENCY,
   appearanceEquals,
   getAppearance,
   normalizeAppearance,
   saveAppearance
 } from './appearance.js';
+
+import {
+  BEHAVIOR_STORAGE_KEY,
+  behaviorEquals,
+  getBehavior,
+  normalizeBehavior,
+  saveBehavior
+} from './behavior.js';
 
 const settingsWindow = getCurrentWindow();
 const SETTINGS_POSITION_STORAGE_KEY =
@@ -53,6 +63,18 @@ const displayBrightnessInput =
 const displayBrightnessValue =
   document.getElementById('display-brightness-value');
 
+const windowTransparencyDefaultButton =
+  document.getElementById('window-transparency-default-btn');
+
+const displayBrightnessDefaultButton =
+  document.getElementById('display-brightness-default-btn');
+
+const confirmCloseActiveInput =
+  document.getElementById('confirm-close-active-input');
+
+const startupTimerActionSelect =
+  document.getElementById('startup-timer-action-select');
+
 const okButton =
   document.getElementById('ok-settings-btn');
 
@@ -66,6 +88,8 @@ let pendingLocale = getLocale();
 let pendingTheme = getTheme();
 let committedAppearance = getAppearance();
 let pendingAppearance = { ...committedAppearance };
+let committedBehavior = getBehavior();
+let pendingBehavior = { ...committedBehavior };
 let previewTimeoutId = null;
 let isClosing = false;
 
@@ -245,6 +269,13 @@ function updateAppearanceControls() {
     `${pendingAppearance.displayBrightness}%`;
 }
 
+function updateBehaviorControls() {
+  confirmCloseActiveInput.checked =
+    pendingBehavior.confirmCloseWithActiveTimers;
+  startupTimerActionSelect.value =
+    pendingBehavior.startupTimerAction;
+}
+
 function updateApplyButton() {
   applyButton.disabled =
     pendingLocale === getLocale()
@@ -252,7 +283,8 @@ function updateApplyButton() {
     && appearanceEquals(
       pendingAppearance,
       committedAppearance
-    );
+    )
+    && behaviorEquals(pendingBehavior, committedBehavior);
 }
 
 async function updateInterface() {
@@ -303,18 +335,32 @@ function readAppearanceControls() {
   scheduleAppearancePreview();
 }
 
+function restoreAppearanceDefault(property, value) {
+  pendingAppearance = normalizeAppearance({
+    ...pendingAppearance,
+    [property]: value
+  });
+
+  updateAppearanceControls();
+  updateApplyButton();
+  scheduleAppearancePreview();
+}
+
 async function applyPendingSettings() {
   setLocale(pendingLocale);
   setTheme(pendingTheme);
 
   committedAppearance = saveAppearance(pendingAppearance);
   pendingAppearance = { ...committedAppearance };
+  committedBehavior = saveBehavior(pendingBehavior);
+  pendingBehavior = { ...committedBehavior };
 
   await emitAppearancePreview(committedAppearance);
 
   populateLanguageSelect();
   populateThemeSelect();
   updateAppearanceControls();
+  updateBehaviorControls();
   updateApplyButton();
   await updateInterface();
 }
@@ -358,6 +404,36 @@ displayBrightnessInput.addEventListener(
   'input',
   readAppearanceControls
 );
+
+windowTransparencyDefaultButton.addEventListener('click', () => {
+  restoreAppearanceDefault(
+    'windowTransparency',
+    DEFAULT_WINDOW_TRANSPARENCY
+  );
+});
+
+displayBrightnessDefaultButton.addEventListener('click', () => {
+  restoreAppearanceDefault(
+    'displayBrightness',
+    DEFAULT_DISPLAY_BRIGHTNESS
+  );
+});
+
+confirmCloseActiveInput.addEventListener('change', () => {
+  pendingBehavior = normalizeBehavior({
+    ...pendingBehavior,
+    confirmCloseWithActiveTimers: confirmCloseActiveInput.checked
+  });
+  updateApplyButton();
+});
+
+startupTimerActionSelect.addEventListener('change', () => {
+  pendingBehavior = normalizeBehavior({
+    ...pendingBehavior,
+    startupTimerAction: startupTimerActionSelect.value
+  });
+  updateApplyButton();
+});
 
 okButton.addEventListener('click', async () => {
   await applyPendingSettings();
@@ -405,12 +481,21 @@ window.addEventListener('storage', async (event) => {
     updateAppearanceControls();
     updateApplyButton();
   }
+
+  if (event.key === BEHAVIOR_STORAGE_KEY) {
+    committedBehavior = getBehavior();
+    pendingBehavior = { ...committedBehavior };
+
+    updateBehaviorControls();
+    updateApplyButton();
+  }
 });
 
 applyTheme();
 populateLanguageSelect();
 populateThemeSelect();
 updateAppearanceControls();
+updateBehaviorControls();
 updateApplyButton();
 await updateInterface();
 await prepareSettingsWindow();

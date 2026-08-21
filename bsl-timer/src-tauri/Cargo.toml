@@ -1,6 +1,6 @@
 [package]
 name = "bsl-timer"
-version = "0.2.0-beta.4"
+version = "0.3.0-beta.1"
 description = "BSL-Timer: countdown timers, interval signals, alarms, date events"
 authors = ["Alexander Vasilyev (bsl-world.ru)"]
 edition = "2021"

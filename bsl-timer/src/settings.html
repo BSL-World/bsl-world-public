@@ -10,79 +10,81 @@
 
 <body class="settings-body">
     <main class="settings-page">
-        <header class="settings-header">
-            <span class="settings-icon" aria-hidden="true">
-                ⚙
-            </span>
+        <div class="settings-content">
+            <header class="settings-header">
+                <span class="settings-icon" aria-hidden="true">
+                    ⚙
+                </span>
 
-            <h1 data-i18n="settings.title"></h1>
-        </header>
+                <h1 data-i18n="settings.title"></h1>
+            </header>
 
-        <section class="settings-card">
-            <label
-                for="language-select"
-                data-i18n="settings.language"
-            ></label>
+            <section class="settings-card">
+                <label for="language-select" data-i18n="settings.language"></label>
 
-            <select id="language-select"></select>
-        </section>
+                <select id="language-select"></select>
+            </section>
 
-        <section class="settings-card">
-            <label
-                for="theme-select"
-                data-i18n="settings.colorScheme"
-            ></label>
+            <section class="settings-card">
+                <label for="theme-select" data-i18n="settings.colorScheme"></label>
 
-            <select id="theme-select"></select>
-        </section>
+                <select id="theme-select"></select>
+            </section>
 
-        <section class="settings-card appearance-settings-card">
-            <h2 data-i18n="settings.appearance"></h2>
+            <section class="settings-card appearance-settings-card">
+                <h2 data-i18n="settings.appearance"></h2>
 
-            <div class="range-setting">
-                <div class="range-setting-header">
-                    <label
-                        for="window-transparency-input"
-                        data-i18n="settings.windowTransparency"
-                    ></label>
+                <div class="range-setting">
+                    <div class="range-setting-header">
+                        <label for="window-transparency-input"
+                            data-i18n="settings.windowTransparency"></label>
 
-                    <output
-                        id="window-transparency-value"
-                        for="window-transparency-input"
-                    ></output>
+                        <output id="window-transparency-value" for="window-transparency-input"></output>
+                    </div>
+
+                    <div class="range-control">
+                        <input id="window-transparency-input" type="range" min="0" max="90" step="1">
+
+                        <button id="window-transparency-default-btn" class="range-default-marker" type="button"
+                            style="--default-position: 55.5556%;" data-i18n="settings.default"
+                            data-i18n-title="settings.restoreDefault"></button>
+                    </div>
                 </div>
 
-                <input
-                    id="window-transparency-input"
-                    type="range"
-                    min="0"
-                    max="90"
-                    step="1"
-                >
-            </div>
+                <div class="range-setting">
+                    <div class="range-setting-header">
+                        <label for="display-brightness-input" data-i18n="settings.displayBrightness"></label>
 
-            <div class="range-setting">
-                <div class="range-setting-header">
-                    <label
-                        for="display-brightness-input"
-                        data-i18n="settings.displayBrightness"
-                    ></label>
+                        <output id="display-brightness-value" for="display-brightness-input"></output>
+                    </div>
 
-                    <output
-                        id="display-brightness-value"
-                        for="display-brightness-input"
-                    ></output>
+                    <div class="range-control">
+                        <input id="display-brightness-input" type="range" min="50" max="150" step="1">
+
+                        <button id="display-brightness-default-btn" class="range-default-marker" type="button"
+                            style="--default-position: 50%;" data-i18n="settings.default"
+                            data-i18n-title="settings.restoreDefault"></button>
+                    </div>
                 </div>
+            </section>
 
-                <input
-                    id="display-brightness-input"
-                    type="range"
-                    min="50"
-                    max="150"
-                    step="1"
-                >
-            </div>
-        </section>
+            <section class="settings-card behavior-settings-card">
+                <h2 data-i18n="settings.timerBehavior"></h2>
+
+                <label class="checkbox-setting">
+                    <input id="confirm-close-active-input" type="checkbox">
+                    <span data-i18n="settings.confirmCloseActive"></span>
+                </label>
+
+                <label for="startup-timer-action-select" data-i18n="settings.startupTimerAction"></label>
+
+                <select id="startup-timer-action-select">
+                    <option value="ask" data-i18n="settings.startupAsk"></option>
+                    <option value="resume" data-i18n="settings.startupResume"></option>
+                    <option value="reset" data-i18n="settings.startupReset"></option>
+                </select>
+            </section>
+        </div>
 
         <footer class="settings-footer">
             <button

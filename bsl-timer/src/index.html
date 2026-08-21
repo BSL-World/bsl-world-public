@@ -44,6 +44,26 @@
             </div>
         </header>
 
+        <nav class="timer-tabs-bar" data-i18n-aria-label="tabs.list">
+            <button id="scroll-tabs-left-btn" class="tab-scroll-button" type="button" hidden
+                data-i18n-title="tabs.scrollLeft" data-i18n-aria-label="tabs.scrollLeft">
+                <span aria-hidden="true">◀</span>
+            </button>
+
+            <div id="timer-tab-list" class="timer-tab-list" role="tablist"></div>
+
+            <button id="scroll-tabs-right-btn" class="tab-scroll-button" type="button" hidden
+                data-i18n-title="tabs.scrollRight" data-i18n-aria-label="tabs.scrollRight">
+                <span aria-hidden="true">▶</span>
+            </button>
+
+            <button id="add-timer-btn" class="add-timer-button" type="button">
+                <span aria-hidden="true">+</span>
+            </button>
+
+            <div id="tab-notice" class="tab-notice" role="status" hidden></div>
+        </nav>
+
         <main class="timer-panel">
             <div id="timer-status" class="timer-status" hidden>
                 <span data-i18n="timer.overdue"></span>
@@ -90,6 +110,28 @@
                 <button id="restart-btn" class="control-button" type="button" data-i18n="timer.restart" hidden></button>
             </div>
         </main>
+
+        <div id="confirmation-dialog-backdrop" class="dialog-backdrop" hidden>
+            <section class="confirmation-dialog" role="dialog" aria-modal="true"
+                aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-message">
+                <header class="confirmation-dialog-header">
+                    <h2 id="confirmation-dialog-title"></h2>
+
+                    <button id="confirmation-dialog-x-btn" class="confirmation-dialog-x" type="button"
+                        data-i18n-title="window.close" data-i18n-aria-label="window.close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </header>
+
+                <p id="confirmation-dialog-message"></p>
+
+                <footer class="confirmation-dialog-actions">
+                    <button id="confirmation-secondary-btn" class="control-button" type="button"></button>
+
+                    <button id="confirmation-primary-btn" class="control-button" type="button"></button>
+                </footer>
+            </section>
+        </div>
     </div>
 
     <script type="module" src="/main.js"></script>

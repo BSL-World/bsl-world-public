@@ -24,7 +24,17 @@ const capabilities = Object.freeze({
   })
 });
 
-let currentEdition = Edition.FREE;
+function getInitialEdition() {
+  if (
+    import.meta.env.VITE_BSL_EDITION === Edition.PRO
+  ) {
+    return Edition.PRO;
+  }
+
+  return Edition.FREE;
+}
+
+let currentEdition = getInitialEdition();
 
 export function getEdition() {
   return currentEdition;
