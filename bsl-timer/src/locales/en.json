@@ -19,8 +19,22 @@
     "alwaysOnTop": "Always on top",
     "settings": "Settings"
   },
+  "tabs": {
+    "list": "Timers",
+    "defaultName": "Timer",
+    "add": "Add timer",
+    "rename": "Rename timer",
+    "close": "Close timer",
+    "confirmCloseTitle": "Close timer?",
+    "confirmClose": "Close {name}? Its current timer state will be lost.",
+    "confirmCloseAction": "Close",
+    "scrollLeft": "Scroll tabs left",
+    "scrollRight": "Scroll tabs right",
+    "proLimit": "Multiple timers are available in BSL-Timer Pro."
+  },
   "window": {
     "minimize": "Minimize",
+    "close": "Close",
     "ok": "Ok",
     "apply": "Apply",
     "cancel": "Cancel"
@@ -32,6 +46,14 @@
     "appearance": "Appearance",
     "windowTransparency": "Window transparency",
     "displayBrightness": "Display brightness",
+    "default": "Default",
+    "restoreDefault": "Restore default value",
+    "timerBehavior": "Timer behavior",
+    "confirmCloseActive": "Confirm closing the application with active timers",
+    "startupTimerAction": "On startup with active timers",
+    "startupAsk": "Ask",
+    "startupResume": "Resume automatically",
+    "startupReset": "Reset automatically",
     "ok": "Ok",
     "apply": "Apply",
     "cancel": "Cancel"
@@ -41,5 +63,14 @@
     "blue": "Blue",
     "tan": "Tan LCD",
     "purple": "Purple"
+  },
+  "behavior": {
+    "closeTitle": "Close BSL-Timer?",
+    "closeMessage": "One or more timers are still active. Close the application?",
+    "closeAction": "Close",
+    "restoreTitle": "Active timers found",
+    "restoreMessage": "Some timers were active when BSL-Timer closed. Resume them with the elapsed time included?",
+    "resumeAction": "Resume",
+    "resetAction": "Reset"
   }
 }

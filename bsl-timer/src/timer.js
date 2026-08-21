@@ -5,15 +5,41 @@ export const TimerState = Object.freeze({
   OVERDUE: 'overdue'
 });
 
+export const TIMER_STATE_VERSION = 1;
+
+function normalizeMilliseconds(value, fallback = 0) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.max(0, number);
+}
+
+function isTimerState(value) {
+  return Object.values(TimerState).includes(value);
+}
+
 export class TimerEngine {
   constructor({
     onUpdate = () => {},
     onExpire = () => {},
-    tickRateMs = 200
+    tickRateMs = 200,
+    now = () => Date.now(),
+    scheduleInterval = (callback, delay) => (
+      globalThis.setInterval(callback, delay)
+    ),
+    cancelInterval = (intervalId) => (
+      globalThis.clearInterval(intervalId)
+    )
   } = {}) {
     this.onUpdate = onUpdate;
     this.onExpire = onExpire;
     this.tickRateMs = tickRateMs;
+    this.now = now;
+    this.scheduleInterval = scheduleInterval;
+    this.cancelInterval = cancelInterval;
 
     this.durationMs = 0;
     this.remainingMs = 0;
@@ -27,7 +53,7 @@ export class TimerEngine {
   setDuration(durationMs) {
     this.stopLoop();
 
-    this.durationMs = Math.max(0, Number(durationMs) || 0);
+    this.durationMs = normalizeMilliseconds(durationMs);
     this.remainingMs = this.durationMs;
     this.overdueMs = 0;
     this.endTimestamp = null;
@@ -50,7 +76,7 @@ export class TimerEngine {
       return false;
     }
 
-    this.endTimestamp = Date.now() + this.remainingMs;
+    this.endTimestamp = this.now() + this.remainingMs;
     this.state = TimerState.RUNNING;
     this.startLoop();
     this.tick();
@@ -65,7 +91,7 @@ export class TimerEngine {
 
     this.remainingMs = Math.max(
       0,
-      this.endTimestamp - Date.now()
+      this.endTimestamp - this.now()
     );
 
     if (this.remainingMs <= 0) {
@@ -89,7 +115,7 @@ export class TimerEngine {
       return false;
     }
 
-    this.endTimestamp = Date.now() + this.remainingMs;
+    this.endTimestamp = this.now() + this.remainingMs;
     this.state = TimerState.RUNNING;
     this.startLoop();
     this.tick();
@@ -118,14 +144,91 @@ export class TimerEngine {
       state: this.state,
       durationMs: this.durationMs,
       remainingMs: this.remainingMs,
-      overdueMs: this.overdueMs
+      overdueMs: this.overdueMs,
+      endTimestamp: this.endTimestamp
     };
+  }
+
+  exportState() {
+    this.syncWithClock({
+      emitExpiration: false,
+      emitUpdate: false
+    });
+
+    return {
+      version: TIMER_STATE_VERSION,
+      state: this.state,
+      durationMs: this.durationMs,
+      remainingMs: this.remainingMs,
+      overdueMs: this.overdueMs,
+      endTimestamp: this.endTimestamp
+    };
+  }
+
+  restoreState(persistedState, {
+    notifyIfExpired = false
+  } = {}) {
+    if (
+      !persistedState
+      || typeof persistedState !== 'object'
+      || !isTimerState(persistedState.state)
+    ) {
+      return false;
+    }
+
+    this.stopLoop();
+
+    this.durationMs = normalizeMilliseconds(
+      persistedState.durationMs
+    );
+    this.remainingMs = normalizeMilliseconds(
+      persistedState.remainingMs,
+      this.durationMs
+    );
+    this.overdueMs = normalizeMilliseconds(
+      persistedState.overdueMs
+    );
+    this.endTimestamp = persistedState.endTimestamp !== null
+      && persistedState.endTimestamp !== undefined
+      && Number.isFinite(Number(persistedState.endTimestamp))
+      ? Number(persistedState.endTimestamp)
+      : null;
+    this.state = persistedState.state;
+    this.expirationEmitted = false;
+
+    if (
+      this.state === TimerState.RUNNING
+      || this.state === TimerState.OVERDUE
+    ) {
+      if (this.endTimestamp === null) {
+        this.state = TimerState.PAUSED;
+        this.overdueMs = 0;
+        this.emitUpdate();
+        return true;
+      }
+
+      const isExpired = this.endTimestamp <= this.now();
+      this.expirationEmitted = isExpired && !notifyIfExpired;
+      this.startLoop();
+      this.tick();
+      return true;
+    }
+
+    this.endTimestamp = null;
+    this.overdueMs = 0;
+
+    if (this.state === TimerState.IDLE) {
+      this.remainingMs = this.durationMs;
+    }
+
+    this.emitUpdate();
+    return true;
   }
 
   startLoop() {
     this.stopLoop();
 
-    this.intervalId = window.setInterval(
+    this.intervalId = this.scheduleInterval(
       () => this.tick(),
       this.tickRateMs
     );
@@ -133,12 +236,19 @@ export class TimerEngine {
 
   stopLoop() {
     if (this.intervalId !== null) {
-      window.clearInterval(this.intervalId);
+      this.cancelInterval(this.intervalId);
       this.intervalId = null;
     }
   }
 
   tick() {
+    this.syncWithClock();
+  }
+
+  syncWithClock({
+    emitExpiration = true,
+    emitUpdate = true
+  } = {}) {
     if (
       this.state !== TimerState.RUNNING
       && this.state !== TimerState.OVERDUE
@@ -146,7 +256,7 @@ export class TimerEngine {
       return;
     }
 
-    const differenceMs = this.endTimestamp - Date.now();
+    const differenceMs = this.endTimestamp - this.now();
 
     if (differenceMs > 0) {
       this.remainingMs = differenceMs;
@@ -157,13 +267,15 @@ export class TimerEngine {
       this.overdueMs = Math.abs(differenceMs);
       this.state = TimerState.OVERDUE;
 
-      if (!this.expirationEmitted) {
+      if (!this.expirationEmitted && emitExpiration) {
         this.expirationEmitted = true;
         this.onExpire(this.getSnapshot());
       }
     }
 
-    this.emitUpdate();
+    if (emitUpdate) {
+      this.emitUpdate();
+    }
   }
 
   emitUpdate() {

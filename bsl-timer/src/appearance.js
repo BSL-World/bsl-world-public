@@ -10,10 +10,12 @@ export const WINDOW_TRANSPARENCY_MIN = 0;
 export const WINDOW_TRANSPARENCY_MAX = 90;
 export const DISPLAY_BRIGHTNESS_MIN = 50;
 export const DISPLAY_BRIGHTNESS_MAX = 150;
+export const DEFAULT_WINDOW_TRANSPARENCY = 50;
+export const DEFAULT_DISPLAY_BRIGHTNESS = 100;
 
 const DEFAULT_APPEARANCE = Object.freeze({
-  windowTransparency: 50,
-  displayBrightness: 100
+  windowTransparency: DEFAULT_WINDOW_TRANSPARENCY,
+  displayBrightness: DEFAULT_DISPLAY_BRIGHTNESS
 });
 
 let appliedWindowTransparency = null;

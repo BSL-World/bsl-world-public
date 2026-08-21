@@ -11,7 +11,7 @@ const capabilities = Object.freeze({
     systemSounds: false,
     customSounds: false,
     presets: false,
-    themes: false
+    themes: true
   }),
   [Edition.PRO]: Object.freeze({
     maxTimers: Number.POSITIVE_INFINITY,
@@ -24,7 +24,17 @@ const capabilities = Object.freeze({
   })
 });
 
-let currentEdition = Edition.FREE;
+function getInitialEdition() {
+  if (
+    import.meta.env.VITE_BSL_EDITION === Edition.PRO
+  ) {
+    return Edition.PRO;
+  }
+
+  return Edition.FREE;
+}
+
+let currentEdition = getInitialEdition();
 
 export function getEdition() {
   return currentEdition;

@@ -1,12 +1,13 @@
 {
   "name": "bsl-timer",
   "private": true,
-  "version": "0.2.0-beta.4",
+  "version": "0.3.0-beta.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --test",
     "tauri-dev": "tauri dev",
     "tauri": "tauri"
   },

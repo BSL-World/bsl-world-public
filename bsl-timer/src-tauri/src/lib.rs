@@ -21,6 +21,15 @@ fn set_main_window_transparency(app: tauri::AppHandle, transparency: u8) -> Resu
 }
 
 #[tauri::command]
+fn close_settings_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("settings") {
+        window.destroy().map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
         let _ = window.show();
@@ -78,6 +87,7 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             greet,
+            close_settings_window,
             open_settings_window,
             set_main_window_transparency
         ])

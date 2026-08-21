@@ -7,6 +7,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-08-21
+
+### Added
+
+- Versioned event instance model for future timer tabs and event types.
+- Session storage abstraction for restoring event instances.
+- Automated tests for timer state restoration and session persistence.
+- Working timer tabs with independent countdown state.
+- Inline timer tab naming and renaming.
+- Timer tab restoration between application launches.
+- Free edition messaging for the single-timer limit.
+- Default markers and reset actions for appearance controls.
+- Localized in-app confirmation for closing an active timer tab.
+- Overflow navigation controls for long timer tab lists.
+- Configurable confirmation before closing active timers.
+- Configurable Ask, Resume, and Reset behavior for active timers at startup.
+- Explicit edition selection for Free and Pro release builds.
+
+### Changed
+
+- Added timer engine state export and restoration support.
+- Made all color themes officially available in the Free edition.
+- Increased the main window height to accommodate the timer tab bar.
+- Focused the Start button after confirming a timer tab name.
+- Kept Settings actions visible while its content scrolls independently.
+
+### Fixed
+
+- Prevented the fallback timer font from flashing during application startup
+  by preloading the locally bundled DSEG7 Classic font.
+- Replaced the clipped browser confirmation shown when closing an active tab.
+- Fixed Settings actions being clipped after adding appearance defaults.
+- Closed the Settings window together with the confirmed application exit.
+
 ## [0.2.0-beta.4] - 2026-08-17
 
 ### Added

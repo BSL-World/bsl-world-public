@@ -19,8 +19,22 @@
     "alwaysOnTop": "Поверх остальных окон",
     "settings": "Настройки"
   },
+  "tabs": {
+    "list": "Таймеры",
+    "defaultName": "Таймер",
+    "add": "Добавить таймер",
+    "rename": "Переименовать таймер",
+    "close": "Закрыть таймер",
+    "confirmCloseTitle": "Закрыть таймер?",
+    "confirmClose": "Закрыть {name}? Текущее состояние таймера будет потеряно.",
+    "confirmCloseAction": "Закрыть",
+    "scrollLeft": "Прокрутить вкладки влево",
+    "scrollRight": "Прокрутить вкладки вправо",
+    "proLimit": "Несколько таймеров доступны в BSL-Timer Pro."
+  },
   "window": {
     "minimize": "Свернуть",
+    "close": "Закрыть",
     "ok": "Ok",
     "apply": "Применить",
     "cancel": "Отмена"
@@ -32,6 +46,14 @@
     "appearance": "Внешний вид",
     "windowTransparency": "Прозрачность окна",
     "displayBrightness": "Яркость дисплея",
+    "default": "По умолчанию",
+    "restoreDefault": "Вернуть значение по умолчанию",
+    "timerBehavior": "Поведение таймеров",
+    "confirmCloseActive": "Подтверждать закрытие приложения с активными таймерами",
+    "startupTimerAction": "При запуске с активными таймерами",
+    "startupAsk": "Спрашивать",
+    "startupResume": "Возобновлять автоматически",
+    "startupReset": "Сбрасывать автоматически",
     "ok": "Ok",
     "apply": "Применить",
     "cancel": "Отмена"
@@ -41,5 +63,14 @@
     "blue": "Синяя",
     "tan": "Бежевый LCD",
     "purple": "Фиолетовая"
+  },
+  "behavior": {
+    "closeTitle": "Закрыть BSL-Timer?",
+    "closeMessage": "Один или несколько таймеров всё ещё активны. Закрыть приложение?",
+    "closeAction": "Закрыть",
+    "restoreTitle": "Найдены активные таймеры",
+    "restoreMessage": "При закрытии BSL-Timer некоторые таймеры были активны. Возобновить их с учётом прошедшего времени?",
+    "resumeAction": "Возобновить",
+    "resetAction": "Сбросить"
   }
 }
