@@ -34,6 +34,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   nearest monitor work area or behind the Windows taskbar.
 - Preserved the last coordinates of auxiliary windows even when they were
   closed partially or completely outside the visible screen area.
+- Restored the Always on Top state between application launches.
 - Prevented About content, its native title, and the Ok button from being
   clipped by the window bounds.
 

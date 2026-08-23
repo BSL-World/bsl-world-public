@@ -38,6 +38,7 @@ import {
 } from './behavior.js';
 import { prepareWindowPosition } from './window-position.js';
 
+const ALWAYS_ON_TOP_STORAGE_KEY = 'bsl-timer.always-on-top';
 const appWindow = getCurrentWindow();
 try {
   await prepareWindowPosition(appWindow);
@@ -85,7 +86,8 @@ const confirmationPrimaryButton =
 const alwaysOnTopButton =
   document.getElementById('always-on-top-btn');
 
-let isAlwaysOnTop = false;
+let isAlwaysOnTop =
+  localStorage.getItem(ALWAYS_ON_TOP_STORAGE_KEY) === 'true';
 let editingEventId = null;
 let noticeTimeoutId = null;
 let confirmationResolver = null;
@@ -106,6 +108,16 @@ const workspace = new TimerWorkspace({
     void signalPlayer.playDefault();
   }
 });
+
+try {
+  await appWindow.setAlwaysOnTop(isAlwaysOnTop);
+  alwaysOnTopButton.setAttribute(
+    'aria-pressed',
+    String(isAlwaysOnTop)
+  );
+} catch (error) {
+  console.error('Failed to restore always-on-top state:', error);
+}
 
 function getActiveTimer() {
   return workspace.getActiveEngine();
@@ -806,6 +818,10 @@ alwaysOnTopButton.addEventListener('click', async () => {
   try {
     await appWindow.setAlwaysOnTop(nextState);
     isAlwaysOnTop = nextState;
+    localStorage.setItem(
+      ALWAYS_ON_TOP_STORAGE_KEY,
+      String(isAlwaysOnTop)
+    );
 
     alwaysOnTopButton.setAttribute(
       'aria-pressed',

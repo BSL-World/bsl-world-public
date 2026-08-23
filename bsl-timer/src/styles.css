@@ -35,16 +35,16 @@
 }
 
 :root[data-theme="neon-cyan"] {
-  --theme-color: #00f5d4;
-  --theme-color-strong: #65fff0;
-  --theme-rgb: 0 245 212;
+  --theme-color: #00eaff;
+  --theme-color-strong: #7af7ff;
+  --theme-rgb: 0 234 255;
 }
 
 :root[data-theme="neon-cyan"] .app-shell {
   background: linear-gradient(
     145deg,
-    rgb(4 54 61 / var(--window-surface-alpha)),
-    rgb(4 10 20 / var(--window-surface-alpha))
+    rgb(0 43 71 / var(--window-surface-alpha)),
+    rgb(3 9 24 / var(--window-surface-alpha))
   );
 }
 
@@ -53,10 +53,17 @@
   background:
     radial-gradient(
       circle at top left,
-      rgb(0 245 212 / 19%),
+      rgb(0 190 255 / 23%),
       transparent 54%
     ),
-    #101724;
+    #0c1527;
+}
+
+:root[data-theme="neon-cyan"] .timer-panel:not(.is-overdue) .timer-display {
+  text-shadow:
+    0 0 5px rgb(0 234 255 / 88%),
+    0 0 14px rgb(0 190 255 / 66%),
+    0 0 26px rgb(0 120 255 / 38%);
 }
 
 :root[data-theme="tan"] {
