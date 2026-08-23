@@ -7,6 +7,50 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-23
+
+### Added
+
+- About window with the application version, edition, author information,
+  and links to BSL-World.ru, the BSL-Timer product page, and GitHub.
+- Neon Cyan color theme with matching main, Settings, and About window
+  styling.
+- Shared position restoration and work-area validation for all application
+  windows.
+- Complete keyboard navigation for timer controls and confirmation dialogs
+  using arrow keys, Tab, Shift+Tab, Enter, and Space.
+- State-aware Alt+S, Alt+P, and Alt+R timer shortcuts that work independently
+  of the active keyboard layout.
+- Keyboard shortcut hints and accessibility metadata for timer actions.
+
+### Changed
+
+- Replaced Resume with Restore in startup recovery dialogs to distinguish
+  session restoration from resuming a paused timer.
+- Refined the About icon, window size, initial offset, and link layout.
+- Made auxiliary windows independently draggable and position-aware.
+- Removed separate taskbar buttons for the Settings and About windows.
+- Moved keyboard focus to the relevant timer action when the application
+  opens or the timer state changes.
+
+### Fixed
+
+- Focused and restored the existing main window when BSL-Timer is launched
+  while another instance is already running.
+- Prevented the main, Settings, and About windows from reopening outside the
+  nearest monitor work area or behind the Windows taskbar.
+- Preserved the last coordinates of auxiliary windows even when they were
+  closed partially or completely outside the visible screen area.
+- Restored the Always on Top state between application launches.
+- Prevented About content, its native title, and the Ok button from being
+  clipped by the window bounds.
+- Fixed the Start button appearing selected at launch without receiving
+  actual keyboard focus.
+- Fixed timer controls losing keyboard focus after starting, stopping, or
+  reaching the overdue state.
+- Fixed Enter activating the primary confirmation action instead of the
+  currently focused button.
+
 ## [0.3.0-beta.1] - 2026-08-21
 
 ### Added

@@ -12,6 +12,10 @@ const supportedThemes = Object.freeze([
     nameKey: 'theme.blue'
   }),
   Object.freeze({
+    code: 'neon-cyan',
+    nameKey: 'theme.neonCyan'
+  }),
+  Object.freeze({
     code: 'tan',
     nameKey: 'theme.tan'
   }),

@@ -10,6 +10,10 @@ const settingsEntry = fileURLToPath(
   new URL('./src/settings.html', import.meta.url)
 );
 
+const aboutEntry = fileURLToPath(
+  new URL('./src/about.html', import.meta.url)
+);
+
 export default defineConfig({
   root: 'src',
   build: {
@@ -18,7 +22,8 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         main: mainEntry,
-        settings: settingsEntry
+        settings: settingsEntry,
+        about: aboutEntry
       }
     }
   }

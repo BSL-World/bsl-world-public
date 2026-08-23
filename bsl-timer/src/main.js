@@ -36,8 +36,16 @@ import {
   StartupTimerAction,
   getBehavior
 } from './behavior.js';
+import { prepareWindowPosition } from './window-position.js';
 
+const ALWAYS_ON_TOP_STORAGE_KEY = 'bsl-timer.always-on-top';
 const appWindow = getCurrentWindow();
+try {
+  await prepareWindowPosition(appWindow);
+} catch (error) {
+  console.error('Failed to keep the main window inside the work area:', error);
+}
+
 const signalPlayer = new SignalPlayer();
 
 const timerTabList = document.getElementById('timer-tab-list');
@@ -61,6 +69,7 @@ const startButton = document.getElementById('start-btn');
 const pauseButton = document.getElementById('pause-btn');
 const stopButton = document.getElementById('stop-btn');
 const restartButton = document.getElementById('restart-btn');
+const timerControls = document.querySelector('.timer-controls');
 
 const confirmationDialogBackdrop =
   document.getElementById('confirmation-dialog-backdrop');
@@ -78,7 +87,8 @@ const confirmationPrimaryButton =
 const alwaysOnTopButton =
   document.getElementById('always-on-top-btn');
 
-let isAlwaysOnTop = false;
+let isAlwaysOnTop =
+  localStorage.getItem(ALWAYS_ON_TOP_STORAGE_KEY) === 'true';
 let editingEventId = null;
 let noticeTimeoutId = null;
 let confirmationResolver = null;
@@ -99,6 +109,16 @@ const workspace = new TimerWorkspace({
     void signalPlayer.playDefault();
   }
 });
+
+try {
+  await appWindow.setAlwaysOnTop(isAlwaysOnTop);
+  alwaysOnTopButton.setAttribute(
+    'aria-pressed',
+    String(isAlwaysOnTop)
+  );
+} catch (error) {
+  console.error('Failed to restore always-on-top state:', error);
+}
 
 function getActiveTimer() {
   return workspace.getActiveEngine();
@@ -162,9 +182,69 @@ function startTimer() {
   prepareSignal();
   timer.start();
   workspace.save();
+  requestAnimationFrame(focusActiveTimerControl);
+}
+
+function toggleTimerPause() {
+  const timer = getActiveTimer();
+
+  if (!timer) {
+    return;
+  }
+
+  const { state } = timer.getSnapshot();
+
+  if (state === TimerState.RUNNING) {
+    timer.pause();
+    workspace.save();
+    requestAnimationFrame(focusActiveTimerControl);
+    return;
+  }
+
+  if (state === TimerState.PAUSED) {
+    timer.resume();
+    workspace.save();
+    requestAnimationFrame(focusActiveTimerControl);
+  }
+}
+
+function stopTimer() {
+  const timer = getActiveTimer();
+
+  if (!timer || timer.getSnapshot().state === TimerState.IDLE) {
+    return;
+  }
+
+  signalPlayer.stop();
+  timer.reset();
+  workspace.save();
+  requestAnimationFrame(focusActiveTimerControl);
+}
+
+function restartTimer() {
+  const timer = getActiveTimer();
+
+  if (!timer || timer.getSnapshot().state === TimerState.IDLE) {
+    return;
+  }
+
+  signalPlayer.stop();
+  timer.reset();
+  prepareSignal();
+  timer.start();
+  workspace.save();
+  requestAnimationFrame(focusActiveTimerControl);
+}
+
+function updateTimerShortcutHints() {
+  startButton.title = `${t('timer.start')} (Alt+S)`;
+  pauseButton.title = `${pauseButton.textContent} (Alt+P)`;
+  stopButton.title = `${t('timer.stop')} (Alt+S)`;
+  restartButton.title = `${t('timer.restart')} (Alt+R)`;
 }
 
 function renderTimer(snapshot) {
+  const previouslyFocusedElement = document.activeElement;
   const isOverdue = snapshot.state === TimerState.OVERDUE;
   const isIdle = snapshot.state === TimerState.IDLE;
   const isPaused = snapshot.state === TimerState.PAUSED;
@@ -188,6 +268,15 @@ function renderTimer(snapshot) {
   pauseButton.textContent = isPaused
     ? t('timer.resume')
     : t('timer.pause');
+  updateTimerShortcutHints();
+
+  if (
+    [startButton, pauseButton, stopButton, restartButton]
+      .includes(previouslyFocusedElement)
+    && previouslyFocusedElement.hidden
+  ) {
+    requestAnimationFrame(focusActiveTimerControl);
+  }
 }
 
 function renderActiveTimer() {
@@ -201,6 +290,37 @@ function renderActiveTimer() {
   validationMessage.hidden = true;
   normalizeDurationInputs(snapshot.durationMs);
   renderTimer(snapshot);
+}
+
+function focusActiveTimerControl() {
+  if (!confirmationDialogBackdrop.hidden || editingEventId) {
+    return;
+  }
+
+  const timer = getActiveTimer();
+
+  if (!timer) {
+    return;
+  }
+
+  const { state } = timer.getSnapshot();
+  let targetButton = startButton;
+
+  if (state === TimerState.RUNNING || state === TimerState.PAUSED) {
+    targetButton = pauseButton;
+  } else if (state === TimerState.OVERDUE) {
+    targetButton = stopButton;
+  }
+
+  if (!targetButton.hidden && !targetButton.disabled) {
+    targetButton.focus({ preventScroll: true });
+  }
+}
+
+function focusInitialTimerControl() {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(focusActiveTimerControl);
+  });
 }
 
 function getDefaultTimerName() {
@@ -594,6 +714,12 @@ async function requestApplicationClose() {
     console.error('Failed to close the settings window:', error);
   }
 
+  try {
+    await invoke('close_about_window');
+  } catch (error) {
+    console.error('Failed to close the About window:', error);
+  }
+
   workspace.save();
   workspace.destroy();
   signalPlayer.stop();
@@ -615,14 +741,14 @@ async function shouldResetStoredActiveTimers() {
     return false;
   }
 
-  const shouldResume = await requestConfirmation({
+  const shouldRestore = await requestConfirmation({
     titleKey: 'behavior.restoreTitle',
     messageKey: 'behavior.restoreMessage',
-    primaryKey: 'behavior.resumeAction',
+    primaryKey: 'behavior.restoreAction',
     secondaryKey: 'behavior.resetAction'
   });
 
-  return !shouldResume;
+  return !shouldRestore;
 }
 
 function refreshLocalizedContent() {
@@ -662,37 +788,86 @@ function refreshLocalizedContent() {
 });
 
 startButton.addEventListener('click', startTimer);
+pauseButton.addEventListener('click', toggleTimerPause);
+stopButton.addEventListener('click', stopTimer);
+restartButton.addEventListener('click', restartTimer);
 
-pauseButton.addEventListener('click', () => {
-  const timer = getActiveTimer();
-  const { state } = timer.getSnapshot();
+startButton.setAttribute('aria-keyshortcuts', 'Alt+S');
+pauseButton.setAttribute('aria-keyshortcuts', 'Alt+P');
+stopButton.setAttribute('aria-keyshortcuts', 'Alt+S');
+restartButton.setAttribute('aria-keyshortcuts', 'Alt+R');
 
-  if (state === TimerState.RUNNING) {
-    timer.pause();
-    workspace.save();
+document.addEventListener('keydown', (event) => {
+  if (
+    !event.altKey
+    || event.ctrlKey
+    || event.metaKey
+    || event.shiftKey
+    || event.repeat
+    || !confirmationDialogBackdrop.hidden
+  ) {
     return;
   }
 
-  if (state === TimerState.PAUSED) {
-    timer.resume();
-    workspace.save();
+  const timer = getActiveTimer();
+
+  if (!timer) {
+    return;
+  }
+
+  const { state } = timer.getSnapshot();
+
+  if (event.code === 'KeyS') {
+    event.preventDefault();
+
+    if (state === TimerState.IDLE) {
+      startTimer();
+    } else {
+      stopTimer();
+    }
+
+    return;
+  }
+
+  if (
+    event.code === 'KeyP'
+    && (state === TimerState.RUNNING || state === TimerState.PAUSED)
+  ) {
+    event.preventDefault();
+    toggleTimerPause();
+    return;
+  }
+
+  if (event.code === 'KeyR' && state !== TimerState.IDLE) {
+    event.preventDefault();
+    restartTimer();
   }
 });
 
-stopButton.addEventListener('click', () => {
-  signalPlayer.stop();
-  getActiveTimer().reset();
-  workspace.save();
-});
+timerControls.addEventListener('keydown', (event) => {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+    return;
+  }
 
-restartButton.addEventListener('click', () => {
-  signalPlayer.stop();
-  const timer = getActiveTimer();
+  const visibleButtons = [
+    startButton,
+    pauseButton,
+    stopButton,
+    restartButton
+  ].filter((button) => !button.hidden && !button.disabled);
+  const currentIndex = visibleButtons.indexOf(document.activeElement);
 
-  timer.reset();
-  prepareSignal();
-  timer.start();
-  workspace.save();
+  if (currentIndex === -1 || visibleButtons.length < 2) {
+    return;
+  }
+
+  const direction = event.key === 'ArrowLeft' ? -1 : 1;
+  const nextIndex = (
+    currentIndex + direction + visibleButtons.length
+  ) % visibleButtons.length;
+
+  event.preventDefault();
+  visibleButtons[nextIndex].focus({ preventScroll: true });
 });
 
 confirmationDialogXButton.addEventListener('click', () => {
@@ -714,6 +889,27 @@ confirmationDialogBackdrop.addEventListener('click', (event) => {
 });
 
 confirmationDialogBackdrop.addEventListener('keydown', (event) => {
+  if (
+    event.key === 'ArrowLeft' ||
+    event.key === 'ArrowUp' ||
+    event.key === 'ArrowRight' ||
+    event.key === 'ArrowDown'
+  ) {
+    const actionButtons = [
+      confirmationSecondaryButton,
+      confirmationPrimaryButton
+    ].sort((leftButton, rightButton) => (
+      leftButton.getBoundingClientRect().left -
+      rightButton.getBoundingClientRect().left
+    ));
+    const selectLeftButton =
+      event.key === 'ArrowLeft' || event.key === 'ArrowUp';
+
+    event.preventDefault();
+    actionButtons[selectLeftButton ? 0 : actionButtons.length - 1].focus();
+    return;
+  }
+
   if (event.key === 'Tab') {
     const focusableElements = [
       confirmationDialogXButton,
@@ -740,8 +936,16 @@ confirmationDialogBackdrop.addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Enter') {
-    event.preventDefault();
-    settleConfirmation(true);
+    const activeElement = document.activeElement;
+
+    if (
+      activeElement === confirmationDialogXButton ||
+      activeElement === confirmationSecondaryButton ||
+      activeElement === confirmationPrimaryButton
+    ) {
+      event.preventDefault();
+      activeElement.click();
+    }
   }
 });
 
@@ -793,6 +997,10 @@ alwaysOnTopButton.addEventListener('click', async () => {
   try {
     await appWindow.setAlwaysOnTop(nextState);
     isAlwaysOnTop = nextState;
+    localStorage.setItem(
+      ALWAYS_ON_TOP_STORAGE_KEY,
+      String(isAlwaysOnTop)
+    );
 
     alwaysOnTopButton.setAttribute(
       'aria-pressed',
@@ -810,6 +1018,16 @@ document
       await invoke('open_settings_window');
     } catch (error) {
       console.error('Failed to open settings window:', error);
+    }
+  });
+
+document
+  .getElementById('about-btn')
+  .addEventListener('click', async () => {
+    try {
+      await invoke('open_about_window');
+    } catch (error) {
+      console.error('Failed to open the About window:', error);
     }
   });
 
@@ -883,3 +1101,4 @@ const resetActiveTimers = await shouldResetStoredActiveTimers();
 
 workspace.load({ resetActiveTimers });
 refreshLocalizedContent();
+focusInitialTimerControl();

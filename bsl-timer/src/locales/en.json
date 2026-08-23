@@ -17,7 +17,8 @@
   },
   "toolbar": {
     "alwaysOnTop": "Always on top",
-    "settings": "Settings"
+    "settings": "Settings",
+    "about": "About BSL-Timer"
   },
   "tabs": {
     "list": "Timers",
@@ -52,7 +53,7 @@
     "confirmCloseActive": "Confirm closing the application with active timers",
     "startupTimerAction": "On startup with active timers",
     "startupAsk": "Ask",
-    "startupResume": "Resume automatically",
+    "startupResume": "Restore automatically",
     "startupReset": "Reset automatically",
     "ok": "Ok",
     "apply": "Apply",
@@ -61,6 +62,7 @@
   "theme": {
     "green": "Green",
     "blue": "Blue",
+    "neonCyan": "Neon Cyan",
     "tan": "Tan LCD",
     "purple": "Purple"
   },
@@ -69,8 +71,16 @@
     "closeMessage": "One or more timers are still active. Close the application?",
     "closeAction": "Close",
     "restoreTitle": "Active timers found",
-    "restoreMessage": "Some timers were active when BSL-Timer closed. Resume them with the elapsed time included?",
-    "resumeAction": "Resume",
+    "restoreMessage": "Some timers were active when BSL-Timer closed. Restore their saved state? Running timers will account for the elapsed time.",
+    "restoreAction": "Restore",
     "resetAction": "Reset"
+  },
+  "about": {
+    "windowTitle": "About BSL-Timer",
+    "version": "Version",
+    "authorPrefix": "Alexander Vasiliev is a systems engineer and creator of ",
+    "authorSuffix": ". BSL-Timer was created for everyday tasks in collaboration with artificial intelligence.",
+    "github": "GitHub",
+    "productPage": "BSL-Timer page"
   }
 }

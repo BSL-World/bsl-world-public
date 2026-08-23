@@ -1,9 +1,5 @@
 import { emitTo } from '@tauri-apps/api/event';
-import {
-  availableMonitors,
-  getCurrentWindow,
-  PhysicalPosition
-} from '@tauri-apps/api/window';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import {
   applyTranslations,
@@ -39,9 +35,13 @@ import {
   normalizeBehavior,
   saveBehavior
 } from './behavior.js';
+import {
+  migrateLegacyWindowPosition,
+  prepareAuxiliaryWindow
+} from './window-position.js';
 
 const settingsWindow = getCurrentWindow();
-const SETTINGS_POSITION_STORAGE_KEY =
+const LEGACY_SETTINGS_POSITION_STORAGE_KEY =
   'bsl-timer.settings-window-position';
 const SETTINGS_WINDOW_MARGIN = 30;
 
@@ -92,138 +92,6 @@ let committedBehavior = getBehavior();
 let pendingBehavior = { ...committedBehavior };
 let previewTimeoutId = null;
 let isClosing = false;
-
-function loadSettingsWindowPosition() {
-  try {
-    const savedPosition = JSON.parse(
-      localStorage.getItem(SETTINGS_POSITION_STORAGE_KEY)
-    );
-
-    if (
-      Number.isFinite(savedPosition?.x)
-      && Number.isFinite(savedPosition?.y)
-    ) {
-      return savedPosition;
-    }
-  } catch (error) {
-    console.error(
-      'Failed to load the settings window position:',
-      error
-    );
-  }
-
-  return null;
-}
-
-function savePosition(position) {
-  localStorage.setItem(
-    SETTINGS_POSITION_STORAGE_KEY,
-    JSON.stringify({
-      x: Math.round(position.x),
-      y: Math.round(position.y)
-    })
-  );
-}
-
-async function saveSettingsWindowPosition() {
-  try {
-    savePosition(await settingsWindow.outerPosition());
-  } catch (error) {
-    console.error(
-      'Failed to save the settings window position:',
-      error
-    );
-  }
-}
-
-function clamp(value, minimum, maximum) {
-  return Math.min(Math.max(value, minimum), maximum);
-}
-
-function distanceToWorkArea(position, workArea) {
-  const left = workArea.position.x;
-  const top = workArea.position.y;
-  const right = left + workArea.size.width;
-  const bottom = top + workArea.size.height;
-  const nearestX = clamp(position.x, left, right);
-  const nearestY = clamp(position.y, top, bottom);
-  const distanceX = position.x - nearestX;
-  const distanceY = position.y - nearestY;
-
-  return (distanceX ** 2) + (distanceY ** 2);
-}
-
-function findNearestMonitor(position, monitors) {
-  return monitors.reduce((nearestMonitor, monitor) => {
-    if (!nearestMonitor) {
-      return monitor;
-    }
-
-    const nearestDistance = distanceToWorkArea(
-      position,
-      nearestMonitor.workArea
-    );
-    const candidateDistance = distanceToWorkArea(
-      position,
-      monitor.workArea
-    );
-
-    return candidateDistance < nearestDistance
-      ? monitor
-      : nearestMonitor;
-  }, null);
-}
-
-async function prepareSettingsWindow() {
-  try {
-    const fallbackPosition = await settingsWindow.outerPosition();
-    const windowSize = await settingsWindow.outerSize();
-    const savedPosition = loadSettingsWindowPosition();
-    const requestedPosition = savedPosition ?? fallbackPosition;
-    const monitor = findNearestMonitor(
-      requestedPosition,
-      await availableMonitors()
-    );
-
-    if (monitor) {
-      const margin = Math.round(
-        SETTINGS_WINDOW_MARGIN * monitor.scaleFactor
-      );
-      const workArea = monitor.workArea;
-      const minimumX = workArea.position.x + margin;
-      const minimumY = workArea.position.y + margin;
-      const maximumX = Math.max(
-        minimumX,
-        workArea.position.x
-          + workArea.size.width
-          - windowSize.width
-          - margin
-      );
-      const maximumY = Math.max(
-        minimumY,
-        workArea.position.y
-          + workArea.size.height
-          - windowSize.height
-          - margin
-      );
-      const safePosition = new PhysicalPosition(
-        clamp(requestedPosition.x, minimumX, maximumX),
-        clamp(requestedPosition.y, minimumY, maximumY)
-      );
-
-      await settingsWindow.setPosition(safePosition);
-      savePosition(safePosition);
-    }
-  } catch (error) {
-    console.error(
-      'Failed to restore the settings window position:',
-      error
-    );
-  } finally {
-    await settingsWindow.show();
-    await settingsWindow.setFocus();
-  }
-}
 
 function populateLanguageSelect() {
   languageSelect.replaceChildren();
@@ -371,7 +239,6 @@ async function closeSettings() {
   }
 
   isClosing = true;
-  await saveSettingsWindowPosition();
   await settingsWindow.destroy();
 }
 
@@ -498,4 +365,11 @@ updateAppearanceControls();
 updateBehaviorControls();
 updateApplyButton();
 await updateInterface();
-await prepareSettingsWindow();
+await migrateLegacyWindowPosition(
+  settingsWindow,
+  LEGACY_SETTINGS_POSITION_STORAGE_KEY
+);
+await prepareAuxiliaryWindow(
+  settingsWindow,
+  SETTINGS_WINDOW_MARGIN
+);
