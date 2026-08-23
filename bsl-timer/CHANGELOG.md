@@ -7,6 +7,28 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Complete keyboard navigation for timer controls and confirmation dialogs
+  using arrow keys, Tab, Shift+Tab, Enter, and Space.
+- State-aware Alt+S, Alt+P, and Alt+R timer shortcuts that work independently
+  of the active keyboard layout.
+- Keyboard shortcut hints and accessibility metadata for timer actions.
+
+### Changed
+
+- Moved keyboard focus to the relevant timer action when the application
+  opens or the timer state changes.
+
+### Fixed
+
+- Fixed the Start button appearing selected at launch without receiving
+  actual keyboard focus.
+- Fixed timer controls losing keyboard focus after starting, stopping, or
+  reaching the overdue state.
+- Fixed Enter activating the primary confirmation action instead of the
+  currently focused button.
+
 ## [0.3.0-beta.2] - 2026-08-23
 
 ### Added
