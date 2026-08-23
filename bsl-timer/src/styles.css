@@ -34,6 +34,31 @@
   --theme-rgb: 22 140 255;
 }
 
+:root[data-theme="neon-cyan"] {
+  --theme-color: #00f5d4;
+  --theme-color-strong: #65fff0;
+  --theme-rgb: 0 245 212;
+}
+
+:root[data-theme="neon-cyan"] .app-shell {
+  background: linear-gradient(
+    145deg,
+    rgb(4 54 61 / var(--window-surface-alpha)),
+    rgb(4 10 20 / var(--window-surface-alpha))
+  );
+}
+
+:root[data-theme="neon-cyan"] .settings-body,
+:root[data-theme="neon-cyan"] .about-window-body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgb(0 245 212 / 19%),
+      transparent 54%
+    ),
+    #101724;
+}
+
 :root[data-theme="tan"] {
   --theme-color: #4d4d4b;
   --theme-color-strong: #30302f;
@@ -161,6 +186,22 @@ button {
 .titlebar-button[aria-pressed="true"] {
   background: rgb(var(--theme-rgb) / 20%);
   color: var(--theme-color-strong);
+}
+
+.about-titlebar-icon {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-color);
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 16px;
+  text-shadow: 0 0 0.4px #ffffff;
 }
 
 .close-button:hover {
@@ -622,6 +663,123 @@ button {
   font-size: 11px;
 }
 
+.about-window-body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgb(var(--theme-rgb) / 14%),
+      transparent 54%
+    ),
+    #171827;
+  color: #f5f5f7;
+}
+
+.about-page {
+  display: flex;
+  height: 100vh;
+  padding: 16px 16px 16px;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.about-page-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.about-brand-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-color);
+  box-shadow: 0 0 16px rgb(var(--theme-rgb) / 32%);
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 30px;
+  text-shadow: 0 0 0.5px #ffffff;
+}
+
+.about-heading {
+  min-width: 0;
+}
+
+.about-heading h1 {
+  margin: 0;
+  color: var(--theme-color-strong);
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.about-product-details {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.about-author-card {
+  padding: 11px 12px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 11px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.about-author-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.about-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-color-strong);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.about-link:hover,
+.about-link:focus-visible {
+  color: #ffffff;
+}
+
+.about-window-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.about-window-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.about-window-footer .control-button {
+  min-width: 84px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
 .settings-body {
   min-height: 100vh;
   background:
@@ -935,6 +1093,29 @@ button {
 
 :root[data-theme="tan"] .confirmation-dialog h2,
 :root[data-theme="tan"] .confirmation-dialog p {
+  color: #343432;
+}
+
+:root[data-theme="tan"] .about-product-details {
+  color: rgb(52 52 50 / 66%);
+}
+
+:root[data-theme="tan"] .about-link:hover,
+:root[data-theme="tan"] .about-link:focus-visible {
+  color: #232321;
+}
+
+:root[data-theme="tan"] .about-window-body {
+  background: linear-gradient(145deg, #e8e7d6, #cfceb6);
+  color: #343432;
+}
+
+:root[data-theme="tan"] .about-author-card {
+  border-color: rgb(112 112 110 / 28%);
+  background: rgb(232 231 214 / 42%);
+}
+
+:root[data-theme="tan"] .about-author-card p {
   color: #343432;
 }
 

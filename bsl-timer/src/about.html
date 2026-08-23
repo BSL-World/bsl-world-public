@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About BSL-Timer</title>
+    <script>
+        document.documentElement.dataset.theme =
+            localStorage.getItem('bsl-timer.theme') || 'green';
+    </script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body class="about-window-body">
+    <main class="about-page">
+        <header class="about-page-header">
+            <span class="about-brand-icon" aria-hidden="true">i</span>
+
+            <div class="about-heading">
+                <h1>BSL-Timer</h1>
+
+                <div class="about-product-details">
+                    <span data-i18n="about.version"></span>
+                    <span id="about-version">—</span>
+                    <span aria-hidden="true">·</span>
+                    <span id="about-edition">Free</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="about-author-card">
+            <p>
+                <span data-i18n="about.authorPrefix"></span>
+                <button class="about-link" type="button"
+                    data-url="https://bsl-world.ru/">BSL-World.ru</button><span
+                    data-i18n="about.authorSuffix"></span>
+            </p>
+        </section>
+
+        <div class="about-window-links">
+            <button class="about-link" type="button"
+                data-url="https://github.com/BSL-World/bsl-world-public/tree/main/bsl-timer"
+                data-i18n="about.github"></button>
+
+            <button class="about-link" type="button"
+                data-url="https://bsl-world.ru/soft/bsl-timer"
+                data-i18n="about.productPage"></button>
+        </div>
+
+        <footer class="about-window-footer">
+            <button id="about-ok-btn" class="control-button primary-button" type="button"
+                data-i18n="window.ok"></button>
+        </footer>
+    </main>
+
+    <script type="module" src="/about.js"></script>
+</body>
+
+</html>

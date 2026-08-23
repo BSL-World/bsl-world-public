@@ -7,6 +7,36 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.3.0-beta.2] - 2026-08-23
+
+### Added
+
+- About window with the application version, edition, author information,
+  and links to BSL-World.ru, the BSL-Timer product page, and GitHub.
+- Neon Cyan color theme with matching main, Settings, and About window
+  styling.
+- Shared position restoration and work-area validation for all application
+  windows.
+
+### Changed
+
+- Replaced Resume with Restore in startup recovery dialogs to distinguish
+  session restoration from resuming a paused timer.
+- Refined the About icon, window size, initial offset, and link layout.
+- Made auxiliary windows independently draggable and position-aware.
+- Removed separate taskbar buttons for the Settings and About windows.
+
+### Fixed
+
+- Focused and restored the existing main window when BSL-Timer is launched
+  while another instance is already running.
+- Prevented the main, Settings, and About windows from reopening outside the
+  nearest monitor work area or behind the Windows taskbar.
+- Preserved the last coordinates of auxiliary windows even when they were
+  closed partially or completely outside the visible screen area.
+- Prevented About content, its native title, and the Ok button from being
+  clipped by the window bounds.
+
 ## [0.3.0-beta.1] - 2026-08-21
 
 ### Added

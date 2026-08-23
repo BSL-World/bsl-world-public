@@ -36,8 +36,15 @@ import {
   StartupTimerAction,
   getBehavior
 } from './behavior.js';
+import { prepareWindowPosition } from './window-position.js';
 
 const appWindow = getCurrentWindow();
+try {
+  await prepareWindowPosition(appWindow);
+} catch (error) {
+  console.error('Failed to keep the main window inside the work area:', error);
+}
+
 const signalPlayer = new SignalPlayer();
 
 const timerTabList = document.getElementById('timer-tab-list');
@@ -594,6 +601,12 @@ async function requestApplicationClose() {
     console.error('Failed to close the settings window:', error);
   }
 
+  try {
+    await invoke('close_about_window');
+  } catch (error) {
+    console.error('Failed to close the About window:', error);
+  }
+
   workspace.save();
   workspace.destroy();
   signalPlayer.stop();
@@ -810,6 +823,16 @@ document
       await invoke('open_settings_window');
     } catch (error) {
       console.error('Failed to open settings window:', error);
+    }
+  });
+
+document
+  .getElementById('about-btn')
+  .addEventListener('click', async () => {
+    try {
+      await invoke('open_about_window');
+    } catch (error) {
+      console.error('Failed to open the About window:', error);
     }
   });
 

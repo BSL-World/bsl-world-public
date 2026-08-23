@@ -30,6 +30,20 @@ fn close_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn close_about_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("about") {
+        window.destroy().map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
         let _ = window.show();
@@ -58,7 +72,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .visible(false)
     .focused(false)
     .decorations(true)
-    .skip_taskbar(false)
+    .skip_taskbar(true)
     .always_on_top(false)
     .prevent_overflow_with_margin(tauri::LogicalSize::new(30.0, 30.0));
 
@@ -75,6 +89,51 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     }
 }
 
+#[tauri::command]
+async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("about") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+        return Ok(());
+    }
+
+    let about_position = app.get_webview_window("main").and_then(|window| {
+        let scale_factor = window.scale_factor().ok()?;
+        let position = window
+            .outer_position()
+            .ok()?
+            .to_logical::<f64>(scale_factor);
+
+        Some((position.x + 60.0, position.y + 40.0))
+    });
+
+    let mut builder = tauri::WebviewWindowBuilder::new(
+        &app,
+        "about",
+        tauri::WebviewUrl::App("about.html".into()),
+    )
+    .title("About BSL-Timer")
+    .inner_size(360.0, 285.0)
+    .resizable(false)
+    .visible(false)
+    .focused(false)
+    .decorations(true)
+    .skip_taskbar(true)
+    .always_on_top(false)
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(20.0, 20.0));
+
+    builder = match about_position {
+        Some((x, y)) => builder.position(x, y),
+        None => builder.center(),
+    };
+
+    builder
+        .build()
+        .map(|_| ())
+        .map_err(|error| error.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -89,12 +148,14 @@ pub fn run() {
         .plugin(
             tauri_plugin_window_state::Builder::default()
                 .with_state_flags(StateFlags::POSITION)
-                .with_filter(|label| label == "main")
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
             greet,
+            close_about_window,
             close_settings_window,
+            get_app_version,
+            open_about_window,
             open_settings_window,
             set_main_window_transparency
         ])
