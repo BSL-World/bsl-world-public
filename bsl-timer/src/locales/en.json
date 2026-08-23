@@ -52,7 +52,7 @@
     "confirmCloseActive": "Confirm closing the application with active timers",
     "startupTimerAction": "On startup with active timers",
     "startupAsk": "Ask",
-    "startupResume": "Resume automatically",
+    "startupResume": "Restore automatically",
     "startupReset": "Reset automatically",
     "ok": "Ok",
     "apply": "Apply",
@@ -69,8 +69,8 @@
     "closeMessage": "One or more timers are still active. Close the application?",
     "closeAction": "Close",
     "restoreTitle": "Active timers found",
-    "restoreMessage": "Some timers were active when BSL-Timer closed. Resume them with the elapsed time included?",
-    "resumeAction": "Resume",
+    "restoreMessage": "Some timers were active when BSL-Timer closed. Restore their saved state? Running timers will account for the elapsed time.",
+    "restoreAction": "Restore",
     "resetAction": "Reset"
   }
 }

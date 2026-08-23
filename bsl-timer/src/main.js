@@ -615,14 +615,14 @@ async function shouldResetStoredActiveTimers() {
     return false;
   }
 
-  const shouldResume = await requestConfirmation({
+  const shouldRestore = await requestConfirmation({
     titleKey: 'behavior.restoreTitle',
     messageKey: 'behavior.restoreMessage',
-    primaryKey: 'behavior.resumeAction',
+    primaryKey: 'behavior.restoreAction',
     secondaryKey: 'behavior.resetAction'
   });
 
-  return !shouldResume;
+  return !shouldRestore;
 }
 
 function refreshLocalizedContent() {
