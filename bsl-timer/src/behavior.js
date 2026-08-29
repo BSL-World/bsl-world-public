@@ -14,6 +14,7 @@ export const StartupTimerAction = Object.freeze({
 export const DEFAULT_BEHAVIOR = Object.freeze({
   closeButtonAction: CloseButtonAction.MINIMIZE_TO_TRAY,
   confirmCloseWithActiveTimers: true,
+  pulseTrayIconOnOverdue: false,
   startupTimerAction: StartupTimerAction.ASK
 });
 
@@ -34,6 +35,8 @@ export function normalizeBehavior(behavior = {}) {
       : DEFAULT_BEHAVIOR.closeButtonAction,
     confirmCloseWithActiveTimers:
       behavior.confirmCloseWithActiveTimers !== false,
+    pulseTrayIconOnOverdue:
+      behavior.pulseTrayIconOnOverdue === true,
     startupTimerAction: isStartupTimerAction(
       behavior.startupTimerAction
     )
@@ -81,6 +84,8 @@ export function behaviorEquals(first, second) {
     === normalizedSecond.closeButtonAction
     && normalizedFirst.confirmCloseWithActiveTimers
     === normalizedSecond.confirmCloseWithActiveTimers
+    && normalizedFirst.pulseTrayIconOnOverdue
+    === normalizedSecond.pulseTrayIconOnOverdue
     && normalizedFirst.startupTimerAction
     === normalizedSecond.startupTimerAction;
 }

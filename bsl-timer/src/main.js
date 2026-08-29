@@ -33,6 +33,7 @@ import {
 } from './appearance.js';
 
 import {
+  BEHAVIOR_STORAGE_KEY,
   CloseButtonAction,
   StartupTimerAction,
   getBehavior
@@ -96,6 +97,7 @@ let confirmationResolver = null;
 let confirmationConfig = null;
 let confirmationPreviousFocus = null;
 let isClosingApplication = false;
+let trayIconVisualKey = null;
 
 const workspace = new TimerWorkspace({
   onUpdate: (eventId, snapshot) => {
@@ -104,6 +106,8 @@ const workspace = new TimerWorkspace({
     if (eventId === workspace.activeEventId) {
       renderTimer(snapshot);
     }
+
+    void refreshTrayIcon();
   },
   onExpire: () => {
     workspace.save();
@@ -123,6 +127,57 @@ try {
 
 function getActiveTimer() {
   return workspace.getActiveEngine();
+}
+
+function parseHexColor(value) {
+  const match = /^#([0-9a-f]{6})$/i.exec(value.trim());
+
+  if (!match) {
+    return null;
+  }
+
+  return [
+    Number.parseInt(match[1].slice(0, 2), 16),
+    Number.parseInt(match[1].slice(2, 4), 16),
+    Number.parseInt(match[1].slice(4, 6), 16)
+  ];
+}
+
+function hasOverdueTimers() {
+  return workspace.getEvents().some((eventInstance) => (
+    workspace.getEngine(eventInstance.id)?.getSnapshot().state
+      === TimerState.OVERDUE
+  ));
+}
+
+async function refreshTrayIcon() {
+  const style = getComputedStyle(document.documentElement);
+  const colorValue = style.getPropertyValue(
+    hasOverdueTimers()
+      ? '--timer-overdue-color'
+      : '--theme-color'
+  ).trim();
+  const color = parseHexColor(colorValue);
+  const overdue = hasOverdueTimers();
+  const pulseEnabled = getBehavior().pulseTrayIconOnOverdue;
+  const visualKey = `${colorValue}:${overdue}:${pulseEnabled}`;
+
+  if (!color || visualKey === trayIconVisualKey) {
+    return;
+  }
+
+  trayIconVisualKey = visualKey;
+
+  try {
+    await invoke('update_tray_icon', {
+      color,
+      overdue,
+      pulseEnabled
+    });
+  } catch (error) {
+    trayIconVisualKey = null;
+    console.error('Failed to update tray icon:', error);
+  }
 }
 
 function readDuration() {
@@ -674,6 +729,7 @@ async function closeTimerTab(eventId) {
   workspace.removeEvent(eventId);
   renderTabs();
   renderActiveTimer();
+  void refreshTrayIcon();
 }
 
 function showTabNotice(message) {
@@ -1091,6 +1147,7 @@ window.addEventListener('storage', (event) => {
     && event.newValue
   ) {
     applyTheme(event.newValue);
+    void refreshTrayIcon();
   }
 
   if (
@@ -1098,6 +1155,13 @@ window.addEventListener('storage', (event) => {
     && event.newValue
   ) {
     void applyAppearance(getAppearance());
+  }
+
+  if (
+    event.key === BEHAVIOR_STORAGE_KEY
+    && event.newValue
+  ) {
+    void refreshTrayIcon();
   }
 });
 
@@ -1137,4 +1201,5 @@ const resetActiveTimers = await shouldResetStoredActiveTimers();
 
 workspace.load({ resetActiveTimers });
 refreshLocalizedContent();
+void refreshTrayIcon();
 focusInitialTimerControl();

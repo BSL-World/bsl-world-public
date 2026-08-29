@@ -54,6 +54,7 @@
     "closeToTray": "Minimize to tray",
     "closeExit": "Exit application",
     "confirmCloseActive": "Confirm exit with active timers",
+    "pulseTrayOverdue": "Pulse tray icon on overdue",
     "startupTimerAction": "On startup with active timers",
     "startupAsk": "Ask",
     "startupResume": "Restore automatically",

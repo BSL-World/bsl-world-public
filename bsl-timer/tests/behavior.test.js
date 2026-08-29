@@ -34,12 +34,14 @@ test('saves and restores timer behavior', () => {
   saveBehavior({
     closeButtonAction: CloseButtonAction.EXIT,
     confirmCloseWithActiveTimers: false,
+    pulseTrayIconOnOverdue: true,
     startupTimerAction: StartupTimerAction.RESET
   }, storage);
 
   assert.deepEqual(getBehavior(storage), {
     closeButtonAction: CloseButtonAction.EXIT,
     confirmCloseWithActiveTimers: false,
+    pulseTrayIconOnOverdue: true,
     startupTimerAction: StartupTimerAction.RESET
   });
 });

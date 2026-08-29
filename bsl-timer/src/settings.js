@@ -72,6 +72,9 @@ const displayBrightnessDefaultButton =
 const confirmCloseActiveInput =
   document.getElementById('confirm-close-active-input');
 
+const pulseTrayOverdueInput =
+  document.getElementById('pulse-tray-overdue-input');
+
 const closeButtonActionSelect =
   document.getElementById('close-button-action-select');
 
@@ -145,6 +148,8 @@ function updateBehaviorControls() {
     pendingBehavior.closeButtonAction;
   confirmCloseActiveInput.checked =
     pendingBehavior.confirmCloseWithActiveTimers;
+  pulseTrayOverdueInput.checked =
+    pendingBehavior.pulseTrayIconOnOverdue;
   startupTimerActionSelect.value =
     pendingBehavior.startupTimerAction;
 }
@@ -295,6 +300,14 @@ confirmCloseActiveInput.addEventListener('change', () => {
   pendingBehavior = normalizeBehavior({
     ...pendingBehavior,
     confirmCloseWithActiveTimers: confirmCloseActiveInput.checked
+  });
+  updateApplyButton();
+});
+
+pulseTrayOverdueInput.addEventListener('change', () => {
+  pendingBehavior = normalizeBehavior({
+    ...pendingBehavior,
+    pulseTrayIconOnOverdue: pulseTrayOverdueInput.checked
   });
   updateApplyButton();
 });
