@@ -33,6 +33,7 @@ import {
 } from './appearance.js';
 
 import {
+  CloseButtonAction,
   StartupTimerAction,
   getBehavior
 } from './behavior.js';
@@ -685,16 +686,26 @@ function showTabNotice(message) {
   }, 2800);
 }
 
-async function requestApplicationClose() {
+async function requestApplicationClose({
+  showForConfirmation = false
+} = {}) {
   if (isClosingApplication) {
     return;
   }
 
   const behavior = getBehavior();
+  const needsConfirmation =
+    behavior.confirmCloseWithActiveTimers
+    && workspace.hasActiveTimers();
+
+  if (needsConfirmation && showForConfirmation) {
+    await appWindow.show();
+    await appWindow.unminimize();
+    await appWindow.setFocus();
+  }
 
   if (
-    behavior.confirmCloseWithActiveTimers
-    && workspace.hasActiveTimers()
+    needsConfirmation
     && !await requestConfirmation({
       titleKey: 'behavior.closeTitle',
       messageKey: 'behavior.closeMessage',
@@ -723,7 +734,26 @@ async function requestApplicationClose() {
   workspace.save();
   workspace.destroy();
   signalPlayer.stop();
-  await appWindow.close();
+
+  try {
+    await invoke('exit_application');
+  } catch (error) {
+    isClosingApplication = false;
+    console.error('Failed to exit the application:', error);
+  }
+}
+
+async function requestMainWindowClose() {
+  if (
+    getBehavior().closeButtonAction
+    === CloseButtonAction.MINIMIZE_TO_TRAY
+  ) {
+    workspace.save();
+    await appWindow.hide();
+    return;
+  }
+
+  await requestApplicationClose();
 }
 
 async function shouldResetStoredActiveTimers() {
@@ -1040,7 +1070,7 @@ document
 document
   .getElementById('close-btn')
   .addEventListener('click', () => {
-    void requestApplicationClose();
+    void requestMainWindowClose();
   });
 
 window.addEventListener(
@@ -1083,7 +1113,13 @@ await appWindow.onCloseRequested((event) => {
   }
 
   event.preventDefault();
-  void requestApplicationClose();
+  void requestMainWindowClose();
+});
+
+await listen('tray-exit-requested', () => {
+  void requestApplicationClose({
+    showForConfirmation: true
+  });
 });
 
 await listen(APPEARANCE_PREVIEW_EVENT, (event) => {

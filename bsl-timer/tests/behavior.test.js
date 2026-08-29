@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  CloseButtonAction,
   DEFAULT_BEHAVIOR,
   StartupTimerAction,
   getBehavior,
@@ -31,11 +32,13 @@ test('saves and restores timer behavior', () => {
   const storage = createMemoryStorage();
 
   saveBehavior({
+    closeButtonAction: CloseButtonAction.EXIT,
     confirmCloseWithActiveTimers: false,
     startupTimerAction: StartupTimerAction.RESET
   }, storage);
 
   assert.deepEqual(getBehavior(storage), {
+    closeButtonAction: CloseButtonAction.EXIT,
     confirmCloseWithActiveTimers: false,
     startupTimerAction: StartupTimerAction.RESET
   });

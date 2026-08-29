@@ -72,6 +72,9 @@ const displayBrightnessDefaultButton =
 const confirmCloseActiveInput =
   document.getElementById('confirm-close-active-input');
 
+const closeButtonActionSelect =
+  document.getElementById('close-button-action-select');
+
 const startupTimerActionSelect =
   document.getElementById('startup-timer-action-select');
 
@@ -138,6 +141,8 @@ function updateAppearanceControls() {
 }
 
 function updateBehaviorControls() {
+  closeButtonActionSelect.value =
+    pendingBehavior.closeButtonAction;
   confirmCloseActiveInput.checked =
     pendingBehavior.confirmCloseWithActiveTimers;
   startupTimerActionSelect.value =
@@ -290,6 +295,14 @@ confirmCloseActiveInput.addEventListener('change', () => {
   pendingBehavior = normalizeBehavior({
     ...pendingBehavior,
     confirmCloseWithActiveTimers: confirmCloseActiveInput.checked
+  });
+  updateApplyButton();
+});
+
+closeButtonActionSelect.addEventListener('change', () => {
+  pendingBehavior = normalizeBehavior({
+    ...pendingBehavior,
+    closeButtonAction: closeButtonActionSelect.value
   });
   updateApplyButton();
 });

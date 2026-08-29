@@ -1,7 +1,34 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tauri::Manager;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Emitter, Manager,
+};
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
+
+fn show_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
+fn toggle_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let is_visible = window.is_visible().unwrap_or(false);
+        let is_minimized = window.is_minimized().unwrap_or(false);
+
+        if is_visible && !is_minimized {
+            let _ = window.hide();
+        } else {
+            let _ = window.show();
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+        }
+    }
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -41,6 +68,11 @@ fn close_about_window(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[tauri::command]
+fn exit_application(app: tauri::AppHandle) {
+    app.exit(0);
 }
 
 #[tauri::command]
@@ -138,11 +170,7 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.unminimize();
-                let _ = window.set_focus();
-            }
+            show_main_window(app);
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(
@@ -154,6 +182,7 @@ pub fn run() {
             greet,
             close_about_window,
             close_settings_window,
+            exit_application,
             get_app_version,
             open_about_window,
             open_settings_window,
@@ -162,12 +191,51 @@ pub fn run() {
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
 
+            let open_item =
+                MenuItem::with_id(app, "open", "Open BSL-Timer", true, None::<&str>)?;
+            let exit_item = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;
+            let tray_menu = Menu::with_items(app, &[&open_item, &exit_item])?;
+
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .tooltip("BSL-Timer")
+                .menu(&tray_menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "open" => show_main_window(app),
+                    "exit" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("tray-exit-requested", ());
+                        }
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        toggle_main_window(tray.app_handle());
+                    }
+                })
+                .build(app)?;
+
             #[cfg(target_os = "windows")]
             {
                 let _ = apply_blur(&window, Some((18, 18, 18, 125)));
             }
 
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if window.label() == "main" {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

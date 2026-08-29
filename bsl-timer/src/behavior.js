@@ -1,5 +1,10 @@
 export const BEHAVIOR_STORAGE_KEY = 'bsl-timer.behavior';
 
+export const CloseButtonAction = Object.freeze({
+  MINIMIZE_TO_TRAY: 'minimize-to-tray',
+  EXIT: 'exit'
+});
+
 export const StartupTimerAction = Object.freeze({
   ASK: 'ask',
   RESUME: 'resume',
@@ -7,9 +12,14 @@ export const StartupTimerAction = Object.freeze({
 });
 
 export const DEFAULT_BEHAVIOR = Object.freeze({
+  closeButtonAction: CloseButtonAction.MINIMIZE_TO_TRAY,
   confirmCloseWithActiveTimers: true,
   startupTimerAction: StartupTimerAction.ASK
 });
+
+function isCloseButtonAction(value) {
+  return Object.values(CloseButtonAction).includes(value);
+}
 
 function isStartupTimerAction(value) {
   return Object.values(StartupTimerAction).includes(value);
@@ -17,6 +27,11 @@ function isStartupTimerAction(value) {
 
 export function normalizeBehavior(behavior = {}) {
   return {
+    closeButtonAction: isCloseButtonAction(
+      behavior.closeButtonAction
+    )
+      ? behavior.closeButtonAction
+      : DEFAULT_BEHAVIOR.closeButtonAction,
     confirmCloseWithActiveTimers:
       behavior.confirmCloseWithActiveTimers !== false,
     startupTimerAction: isStartupTimerAction(
@@ -62,7 +77,9 @@ export function behaviorEquals(first, second) {
   const normalizedFirst = normalizeBehavior(first);
   const normalizedSecond = normalizeBehavior(second);
 
-  return normalizedFirst.confirmCloseWithActiveTimers
+  return normalizedFirst.closeButtonAction
+    === normalizedSecond.closeButtonAction
+    && normalizedFirst.confirmCloseWithActiveTimers
     === normalizedSecond.confirmCloseWithActiveTimers
     && normalizedFirst.startupTimerAction
     === normalizedSecond.startupTimerAction;
