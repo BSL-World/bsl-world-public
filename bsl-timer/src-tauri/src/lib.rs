@@ -1,6 +1,9 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, Mutex,
+    },
     thread,
     time::Duration,
 };
@@ -8,13 +11,39 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager,
+    Emitter, Manager, PhysicalPosition,
 };
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
 const TRAY_ICON_ID: &str = "main-tray";
+const TRAY_PREVIEW_LABEL: &str = "tray-preview";
+const TRAY_PREVIEW_DELAY_MS: u64 = 350;
+const TRAY_PREVIEW_HIDE_DELAY_MS: u64 = 600;
+const TRAY_PREVIEW_FADE_MS: u64 = 260;
+const TRAY_PREVIEW_WIDTH: f64 = 340.0;
+const TRAY_PREVIEW_HEIGHT: f64 = 150.0;
 const PULSE_LEVELS: [u8; 8] = [100, 92, 84, 76, 68, 76, 84, 92];
+
+#[derive(Clone, Default)]
+struct TrayPreviewState(Arc<AtomicU64>);
+
+#[derive(Clone, Copy)]
+struct TrayBounds {
+    left: f64,
+    top: f64,
+    right: f64,
+    bottom: f64,
+}
+
+impl TrayBounds {
+    fn contains(self, position: PhysicalPosition<f64>) -> bool {
+        position.x >= self.left
+            && position.x <= self.right
+            && position.y >= self.top
+            && position.y <= self.bottom
+    }
+}
 
 #[derive(Clone)]
 struct TrayVisualState(Arc<Mutex<TrayVisual>>);
@@ -153,6 +182,185 @@ fn toggle_main_window(app: &tauri::AppHandle) {
             let _ = window.set_focus();
         }
     }
+}
+
+fn hide_tray_preview(app: &tauri::AppHandle, state: &TrayPreviewState) {
+    state.0.fetch_add(1, Ordering::SeqCst);
+
+    if let Some(window) = app.get_webview_window(TRAY_PREVIEW_LABEL) {
+        let _ = window.hide();
+    }
+}
+
+fn tray_preview_position(
+    app: &tauri::AppHandle,
+    cursor: PhysicalPosition<f64>,
+) -> PhysicalPosition<i32> {
+    let monitor = app.monitor_from_point(cursor.x, cursor.y).ok().flatten();
+    let scale_factor = monitor
+        .as_ref()
+        .map(|monitor| monitor.scale_factor())
+        .unwrap_or(1.0);
+    let preview_width = TRAY_PREVIEW_WIDTH * scale_factor;
+    let preview_height = TRAY_PREVIEW_HEIGHT * scale_factor;
+    let mut x = cursor.x - preview_width / 2.0;
+    let mut y = cursor.y - preview_height - 24.0;
+
+    if let Some(monitor) = monitor {
+        let work_area = monitor.work_area();
+        let left = f64::from(work_area.position.x);
+        let top = f64::from(work_area.position.y);
+        let right = left + f64::from(work_area.size.width);
+        let bottom = top + f64::from(work_area.size.height);
+        let horizontal_margin = 8.0 * scale_factor;
+        let vertical_margin = 8.0 * scale_factor;
+
+        if cursor.y < top + f64::from(work_area.size.height) / 2.0 {
+            y = cursor.y + 24.0;
+        }
+
+        x = x.clamp(
+            left + horizontal_margin,
+            (right - preview_width - horizontal_margin).max(left + horizontal_margin),
+        );
+        y = y.clamp(
+            top + vertical_margin,
+            (bottom - preview_height - vertical_margin).max(top + vertical_margin),
+        );
+    }
+
+    PhysicalPosition::new(x.round() as i32, y.round() as i32)
+}
+
+fn tray_bounds(
+    app: &tauri::AppHandle,
+    cursor: PhysicalPosition<f64>,
+    rect: tauri::Rect,
+) -> TrayBounds {
+    let scale_factor = app
+        .monitor_from_point(cursor.x, cursor.y)
+        .ok()
+        .flatten()
+        .map(|monitor| monitor.scale_factor())
+        .unwrap_or(1.0);
+    let position = rect.position.to_physical::<i32>(scale_factor);
+    let size = rect.size.to_physical::<u32>(scale_factor);
+    let margin = 3.0 * scale_factor;
+
+    TrayBounds {
+        left: f64::from(position.x) - margin,
+        top: f64::from(position.y) - margin,
+        right: f64::from(position.x) + f64::from(size.width) + margin,
+        bottom: f64::from(position.y) + f64::from(size.height) + margin,
+    }
+}
+
+fn schedule_tray_preview(
+    app: &tauri::AppHandle,
+    state: &TrayPreviewState,
+    cursor: PhysicalPosition<f64>,
+    rect: tauri::Rect,
+) {
+    let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
+    let generation_state = state.clone();
+    let preview_app = app.clone();
+    let preview_position = tray_preview_position(app, cursor);
+    let hover_bounds = tray_bounds(app, cursor, rect);
+
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.emit("tray-preview-requested", ());
+    }
+
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(TRAY_PREVIEW_DELAY_MS));
+
+        if generation_state.0.load(Ordering::SeqCst) != generation {
+            return;
+        }
+
+        if preview_app
+            .cursor_position()
+            .map(|position| !hover_bounds.contains(position))
+            .unwrap_or(false)
+        {
+            return;
+        }
+
+        let main_thread_state = generation_state.clone();
+        let main_thread_app = preview_app.clone();
+
+        let _ = preview_app.run_on_main_thread(move || {
+            if main_thread_state.0.load(Ordering::SeqCst) != generation {
+                return;
+            }
+
+            if let Some(window) = main_thread_app.get_webview_window(TRAY_PREVIEW_LABEL) {
+                let _ = window.emit("tray-preview-show", ());
+                let _ = window.set_position(preview_position);
+                let _ = window.show();
+            }
+        });
+
+        loop {
+            thread::sleep(Duration::from_millis(100));
+
+            if generation_state.0.load(Ordering::SeqCst) != generation {
+                return;
+            }
+
+            let Ok(cursor_position) = preview_app.cursor_position() else {
+                continue;
+            };
+
+            if hover_bounds.contains(cursor_position) {
+                continue;
+            }
+
+            thread::sleep(Duration::from_millis(TRAY_PREVIEW_HIDE_DELAY_MS));
+
+            if generation_state.0.load(Ordering::SeqCst) != generation {
+                return;
+            }
+
+            if preview_app
+                .cursor_position()
+                .map(|position| hover_bounds.contains(position))
+                .unwrap_or(false)
+            {
+                continue;
+            }
+
+            let fade_app = preview_app.clone();
+            let _ = preview_app.run_on_main_thread(move || {
+                if let Some(window) = fade_app.get_webview_window(TRAY_PREVIEW_LABEL) {
+                    let _ = window.emit("tray-preview-hide", ());
+                }
+            });
+
+            thread::sleep(Duration::from_millis(TRAY_PREVIEW_FADE_MS));
+
+            if generation_state
+                .0
+                .compare_exchange(
+                    generation,
+                    generation + 1,
+                    Ordering::SeqCst,
+                    Ordering::SeqCst,
+                )
+                .is_err()
+            {
+                return;
+            }
+
+            let hide_app = preview_app.clone();
+            let _ = preview_app.run_on_main_thread(move || {
+                if let Some(window) = hide_app.get_webview_window(TRAY_PREVIEW_LABEL) {
+                    let _ = window.hide();
+                }
+            });
+            return;
+        }
+    });
 }
 
 #[tauri::command]
@@ -316,6 +524,7 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let tray_visual_state = TrayVisualState::default();
+    let tray_preview_state = TrayPreviewState::default();
 
     tauri::Builder::default()
         .manage(tray_visual_state.clone())
@@ -342,33 +551,68 @@ pub fn run() {
         .setup(move |app| {
             let window = app.get_webview_window("main").unwrap();
 
+            let tray_preview_window = tauri::WebviewWindowBuilder::new(
+                app,
+                TRAY_PREVIEW_LABEL,
+                tauri::WebviewUrl::App("tray-preview.html".into()),
+            )
+            .title("BSL-Timer")
+            .inner_size(TRAY_PREVIEW_WIDTH, TRAY_PREVIEW_HEIGHT)
+            .resizable(false)
+            .visible(false)
+            .focused(false)
+            .decorations(false)
+            .skip_taskbar(true)
+            .always_on_top(true)
+            .transparent(true)
+            .build()?;
+
+            let _ = tray_preview_window.set_ignore_cursor_events(true);
+
             let open_item = MenuItem::with_id(app, "open", "Open BSL-Timer", true, None::<&str>)?;
             let exit_item = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&open_item, &exit_item])?;
+
+            let preview_state_for_menu = tray_preview_state.clone();
+            let preview_state_for_tray = tray_preview_state.clone();
 
             TrayIconBuilder::with_id(TRAY_ICON_ID)
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("BSL-Timer")
                 .menu(&tray_menu)
                 .show_menu_on_left_click(false)
-                .on_menu_event(|app, event| match event.id.as_ref() {
-                    "open" => show_main_window(app),
+                .on_menu_event(move |app, event| match event.id.as_ref() {
+                    "open" => {
+                        hide_tray_preview(app, &preview_state_for_menu);
+                        show_main_window(app);
+                    }
                     "exit" => {
+                        hide_tray_preview(app, &preview_state_for_menu);
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.emit("tray-exit-requested", ());
                         }
                     }
                     _ => {}
                 })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
+                .on_tray_icon_event(move |tray, event| match event {
+                    TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
                         ..
-                    } = event
-                    {
+                    } => {
+                        hide_tray_preview(tray.app_handle(), &preview_state_for_tray);
                         toggle_main_window(tray.app_handle());
                     }
+                    TrayIconEvent::Enter { position, rect, .. } => {
+                        schedule_tray_preview(
+                            tray.app_handle(),
+                            &preview_state_for_tray,
+                            position,
+                            rect,
+                        );
+                    }
+                    TrayIconEvent::Leave { .. } => {}
+                    _ => {}
                 })
                 .build(app)?;
 
@@ -402,14 +646,6 @@ pub fn run() {
             }
 
             Ok(())
-        })
-        .on_window_event(|window, event| {
-            if window.label() == "main" {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    api.prevent_close();
-                    let _ = window.hide();
-                }
-            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

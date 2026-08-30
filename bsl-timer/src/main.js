@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
+import { emitTo, listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import {
@@ -98,6 +98,7 @@ let confirmationConfig = null;
 let confirmationPreviousFocus = null;
 let isClosingApplication = false;
 let trayIconVisualKey = null;
+let trayPreviewDataKey = null;
 
 const workspace = new TimerWorkspace({
   onUpdate: (eventId, snapshot) => {
@@ -108,6 +109,7 @@ const workspace = new TimerWorkspace({
     }
 
     void refreshTrayIcon();
+    void refreshTrayPreview();
   },
   onExpire: () => {
     workspace.save();
@@ -177,6 +179,61 @@ async function refreshTrayIcon() {
   } catch (error) {
     trayIconVisualKey = null;
     console.error('Failed to update tray icon:', error);
+  }
+}
+
+function createTrayPreviewData() {
+  const activeEvent = workspace.getActiveEvent();
+  const activeSnapshot = workspace.getActiveEngine()?.getSnapshot();
+  const snapshots = workspace.getEvents().map((eventInstance) => (
+    workspace.getEngine(eventInstance.id)?.getSnapshot()
+  )).filter(Boolean);
+  const activeCount = snapshots.filter(({ state }) => (
+    state === TimerState.RUNNING || state === TimerState.PAUSED
+  )).length;
+  const overdueCount = snapshots.filter(({ state }) => (
+    state === TimerState.OVERDUE
+  )).length;
+  const state = activeSnapshot?.state ?? TimerState.IDLE;
+  const otherActiveCount = Math.max(
+    0,
+    activeCount - (
+      state === TimerState.RUNNING || state === TimerState.PAUSED ? 1 : 0
+    )
+  );
+  const otherOverdueCount = Math.max(
+    0,
+    overdueCount - (state === TimerState.OVERDUE ? 1 : 0)
+  );
+
+  return {
+    name: activeEvent
+      ? workspace.getDisplayName(activeEvent.id, getDefaultTimerName())
+      : t('app.title'),
+    time: state === TimerState.OVERDUE
+      ? millisecondsToClock(activeSnapshot?.overdueMs ?? 0)
+      : millisecondsToClock(activeSnapshot?.remainingMs ?? 0, true),
+    state,
+    otherActiveCount,
+    otherOverdueCount
+  };
+}
+
+async function refreshTrayPreview({ force = false } = {}) {
+  const data = createTrayPreviewData();
+  const dataKey = JSON.stringify(data);
+
+  if (!force && dataKey === trayPreviewDataKey) {
+    return;
+  }
+
+  trayPreviewDataKey = dataKey;
+
+  try {
+    await emitTo('tray-preview', 'tray-preview-data', data);
+  } catch (error) {
+    trayPreviewDataKey = null;
+    console.error('Failed to update tray preview:', error);
   }
 }
 
@@ -360,6 +417,16 @@ function focusActiveTimerControl() {
   }
 
   const { state } = timer.getSnapshot();
+
+  if (
+    state === TimerState.IDLE
+    && !minutesInput.disabled
+  ) {
+    minutesInput.focus({ preventScroll: true });
+    minutesInput.select();
+    return;
+  }
+
   let targetButton = startButton;
 
   if (state === TimerState.RUNNING || state === TimerState.PAUSED) {
@@ -450,6 +517,7 @@ function createTabEditor(eventInstance) {
 
     editingEventId = null;
     renderTabs();
+    void refreshTrayPreview({ force: true });
 
     if (shouldFocusStart) {
       requestAnimationFrame(() => {
@@ -503,6 +571,7 @@ function createTimerTab(eventInstance, canClose) {
       workspace.setActiveEvent(eventInstance.id);
       updateActiveTabSelection();
       renderActiveTimer();
+      void refreshTrayPreview({ force: true });
     });
 
     selectButton.addEventListener('dblclick', () => {
@@ -730,6 +799,7 @@ async function closeTimerTab(eventId) {
   renderTabs();
   renderActiveTimer();
   void refreshTrayIcon();
+  void refreshTrayPreview({ force: true });
 }
 
 function showTabNotice(message) {
@@ -755,22 +825,28 @@ async function requestApplicationClose({
     && workspace.hasActiveTimers();
 
   if (needsConfirmation && showForConfirmation) {
-    await appWindow.show();
-    await appWindow.unminimize();
-    await appWindow.setFocus();
+    void appWindow.show()
+      .then(() => appWindow.setFocus())
+      .catch((error) => {
+        console.error(
+          'Failed to show the exit confirmation window:',
+          error
+        );
+      });
   }
 
-  if (
-    needsConfirmation
-    && !await requestConfirmation({
+  if (needsConfirmation) {
+    const confirmationPromise = requestConfirmation({
       titleKey: 'behavior.closeTitle',
       messageKey: 'behavior.closeMessage',
       primaryKey: 'behavior.closeAction',
       secondaryKey: 'window.cancel',
       destructive: true
-    })
-  ) {
-    return;
+    });
+
+    if (!await confirmationPromise) {
+      return;
+    }
   }
 
   isClosingApplication = true;
@@ -843,6 +919,7 @@ function refreshLocalizedContent() {
   updateConfirmationDialog();
   renderTabs();
   renderActiveTimer();
+  void refreshTrayPreview({ force: true });
 }
 
 [
@@ -1075,6 +1152,7 @@ addTimerButton.addEventListener('click', () => {
   editingEventId = eventInstance.id;
   renderTabs({ focusEditor: true });
   renderActiveTimer();
+  void refreshTrayPreview({ force: true });
 });
 
 alwaysOnTopButton.addEventListener('click', async () => {
@@ -1120,7 +1198,7 @@ document
 document
   .getElementById('minimize-btn')
   .addEventListener('click', async () => {
-    await appWindow.minimize();
+    await appWindow.hide();
   });
 
 document
@@ -1186,6 +1264,10 @@ await listen('tray-exit-requested', () => {
   });
 });
 
+await listen('tray-preview-requested', () => {
+  void refreshTrayPreview({ force: true });
+});
+
 await listen(APPEARANCE_PREVIEW_EVENT, (event) => {
   void applyAppearance(event.payload);
 });
@@ -1202,4 +1284,5 @@ const resetActiveTimers = await shouldResetStoredActiveTimers();
 workspace.load({ resetActiveTimers });
 refreshLocalizedContent();
 void refreshTrayIcon();
+void refreshTrayPreview({ force: true });
 focusInitialTimerControl();

@@ -79,11 +79,20 @@
     "restoreAction": "Restore",
     "resetAction": "Reset"
   },
+  "trayPreview": {
+    "idle": "Ready",
+    "running": "Running",
+    "paused": "Paused",
+    "overdue": "Overdue",
+    "otherActive": "Other active: {count}",
+    "otherOverdue": "Other overdue: {count}"
+  },
   "about": {
     "windowTitle": "About BSL-Timer",
     "version": "Version",
     "authorPrefix": "Alexander Vasiliev is a systems engineer and creator of ",
     "authorSuffix": ". BSL-Timer was created for everyday tasks in collaboration with artificial intelligence.",
+    "gitverse": "GitVerse",
     "github": "GitHub",
     "productPage": "BSL-Timer page"
   }

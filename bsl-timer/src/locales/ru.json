@@ -79,11 +79,20 @@
     "restoreAction": "Восстановить",
     "resetAction": "Сбросить"
   },
+  "trayPreview": {
+    "idle": "Готов",
+    "running": "Работает",
+    "paused": "Пауза",
+    "overdue": "Просрочено",
+    "otherActive": "Ещё активно: {count}",
+    "otherOverdue": "Ещё просрочено: {count}"
+  },
   "about": {
     "windowTitle": "О программе BSL-Timer",
     "version": "Версия",
     "authorPrefix": "Васильев Александр — системный инженер и автор проекта ",
     "authorSuffix": ". BSL-Timer создан для повседневных задач в сотрудничестве с искусственным интеллектом.",
+    "gitverse": "GitVerse",
     "github": "GitHub",
     "productPage": "Страница BSL-Timer"
   }

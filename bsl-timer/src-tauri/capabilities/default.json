@@ -1,7 +1,7 @@
 {
   "identifier": "default",
-  "description": "Capabilities for the main, settings, and About windows",
-  "windows": ["main", "settings", "about"],
+  "description": "Capabilities for the main, settings, About, and tray preview windows",
+  "windows": ["main", "settings", "about", "tray-preview"],
   "permissions": [
     "core:event:allow-emit-to",
     "core:event:allow-listen",
@@ -11,7 +11,6 @@
     "core:window:allow-hide",
     "core:window:allow-available-monitors",
     "core:window:allow-minimize",
-    "core:window:allow-unminimize",
     "core:window:allow-outer-position",
     "core:window:allow-outer-size",
     "core:window:allow-set-always-on-top",
@@ -26,6 +25,7 @@
       "allow": [
         { "url": "https://bsl-world.ru/" },
         { "url": "https://bsl-world.ru/soft/bsl-timer" },
+        { "url": "https://gitverse.ru/BSL-World/bsl-world-public/content/main/bsl-timer" },
         { "url": "https://github.com/BSL-World/bsl-world-public/tree/main/bsl-timer" }
       ]
     }
