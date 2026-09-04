@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { emitTo } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
@@ -75,6 +76,12 @@ const confirmCloseActiveInput =
 const pulseTrayOverdueInput =
   document.getElementById('pulse-tray-overdue-input');
 
+const autostartEnabledInput =
+  document.getElementById('autostart-enabled-input');
+
+const autostartStatus =
+  document.getElementById('autostart-status');
+
 const closeButtonActionSelect =
   document.getElementById('close-button-action-select');
 
@@ -96,6 +103,9 @@ let committedAppearance = getAppearance();
 let pendingAppearance = { ...committedAppearance };
 let committedBehavior = getBehavior();
 let pendingBehavior = { ...committedBehavior };
+let committedAutostartEnabled = false;
+let pendingAutostartEnabled = false;
+let autostartStateLoaded = false;
 let previewTimeoutId = null;
 let isClosing = false;
 
@@ -154,7 +164,57 @@ function updateBehaviorControls() {
     pendingBehavior.startupTimerAction;
 }
 
+function setAutostartStatus(messageKey = null) {
+  autostartStatus.hidden = messageKey === null;
+  autostartStatus.textContent = messageKey ? t(messageKey) : '';
+}
+
+async function loadAutostartState() {
+  autostartEnabledInput.disabled = true;
+  setAutostartStatus();
+
+  try {
+    committedAutostartEnabled = await invoke('is_autostart_enabled');
+    pendingAutostartEnabled = committedAutostartEnabled;
+    autostartStateLoaded = true;
+    autostartEnabledInput.checked = pendingAutostartEnabled;
+    autostartEnabledInput.disabled = false;
+  } catch (error) {
+    autostartStateLoaded = false;
+    setAutostartStatus('settings.autostartUnavailable');
+    console.error('Failed to read autostart state:', error);
+  }
+
+  updateApplyButton();
+}
+
+async function applyAutostartSetting() {
+  if (
+    !autostartStateLoaded
+    || pendingAutostartEnabled === committedAutostartEnabled
+  ) {
+    return true;
+  }
+
+  try {
+    await invoke('set_autostart_enabled', {
+      enabled: pendingAutostartEnabled
+    });
+    committedAutostartEnabled = pendingAutostartEnabled;
+    setAutostartStatus();
+    return true;
+  } catch (error) {
+    setAutostartStatus('settings.autostartUpdateFailed');
+    console.error('Failed to update autostart state:', error);
+    return false;
+  }
+}
+
 function updateApplyButton() {
+  const autostartUnchanged =
+    !autostartStateLoaded
+    || pendingAutostartEnabled === committedAutostartEnabled;
+
   applyButton.disabled =
     pendingLocale === getLocale()
     && pendingTheme === getTheme()
@@ -162,7 +222,8 @@ function updateApplyButton() {
       pendingAppearance,
       committedAppearance
     )
-    && behaviorEquals(pendingBehavior, committedBehavior);
+    && behaviorEquals(pendingBehavior, committedBehavior)
+    && autostartUnchanged;
 }
 
 async function updateInterface() {
@@ -225,6 +286,11 @@ function restoreAppearanceDefault(property, value) {
 }
 
 async function applyPendingSettings() {
+  if (!await applyAutostartSetting()) {
+    updateApplyButton();
+    return false;
+  }
+
   setLocale(pendingLocale);
   setTheme(pendingTheme);
 
@@ -241,6 +307,7 @@ async function applyPendingSettings() {
   updateBehaviorControls();
   updateApplyButton();
   await updateInterface();
+  return true;
 }
 
 async function closeSettings() {
@@ -312,6 +379,12 @@ pulseTrayOverdueInput.addEventListener('change', () => {
   updateApplyButton();
 });
 
+autostartEnabledInput.addEventListener('change', () => {
+  pendingAutostartEnabled = autostartEnabledInput.checked;
+  setAutostartStatus();
+  updateApplyButton();
+});
+
 closeButtonActionSelect.addEventListener('change', () => {
   pendingBehavior = normalizeBehavior({
     ...pendingBehavior,
@@ -329,8 +402,9 @@ startupTimerActionSelect.addEventListener('change', () => {
 });
 
 okButton.addEventListener('click', async () => {
-  await applyPendingSettings();
-  await closeSettings();
+  if (await applyPendingSettings()) {
+    await closeSettings();
+  }
 });
 
 cancelButton.addEventListener('click', async () => {
@@ -391,6 +465,7 @@ updateAppearanceControls();
 updateBehaviorControls();
 updateApplyButton();
 await updateInterface();
+await loadAutostartState();
 await migrateLegacyWindowPosition(
   settingsWindow,
   LEGACY_SETTINGS_POSITION_STORAGE_KEY

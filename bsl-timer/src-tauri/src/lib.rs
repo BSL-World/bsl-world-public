@@ -1,5 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use std::{
+    ffi::OsStr,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc, Mutex,
@@ -13,9 +14,11 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager, PhysicalPosition,
 };
+use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
+const AUTOSTART_ARG: &str = "--from-autostart";
 const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_PREVIEW_LABEL: &str = "tray-preview";
 const TRAY_PREVIEW_DELAY_MS: u64 = 350;
@@ -159,6 +162,14 @@ fn set_tray_icon(app: &tauri::AppHandle, color: [u8; 3], level: u8) -> Result<()
     let icon = recolor_tray_icon(color, level)?;
 
     tray.set_icon(Some(icon)).map_err(|error| error.to_string())
+}
+
+fn is_autostart_launch() -> bool {
+    std::env::args_os().any(|arg| arg == OsStr::new(AUTOSTART_ARG))
+}
+
+fn contains_autostart_arg(args: &[String]) -> bool {
+    args.iter().any(|arg| arg == AUTOSTART_ARG)
 }
 
 fn show_main_window(app: &tauri::AppHandle) {
@@ -399,6 +410,24 @@ fn close_about_window(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn is_autostart_enabled(app: tauri::AppHandle) -> Result<bool, String> {
+    app.autolaunch()
+        .is_enabled()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn set_autostart_enabled(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    let manager = app.autolaunch();
+
+    if enabled {
+        manager.enable().map_err(|error| error.to_string())
+    } else {
+        manager.disable().map_err(|error| error.to_string())
+    }
+}
+
+#[tauri::command]
 fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
@@ -528,9 +557,17 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(tray_visual_state.clone())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            show_main_window(app);
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            if !contains_autostart_arg(&args) {
+                show_main_window(app);
+            }
         }))
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .arg(AUTOSTART_ARG)
+                .app_name("BSL-Timer")
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_window_state::Builder::default()
@@ -543,13 +580,19 @@ pub fn run() {
             close_settings_window,
             exit_application,
             get_app_version,
+            is_autostart_enabled,
             open_about_window,
             open_settings_window,
+            set_autostart_enabled,
             set_main_window_transparency,
             update_tray_icon
         ])
         .setup(move |app| {
             let window = app.get_webview_window("main").unwrap();
+
+            if is_autostart_launch() {
+                let _ = window.hide();
+            }
 
             let tray_preview_window = tauri::WebviewWindowBuilder::new(
                 app,
