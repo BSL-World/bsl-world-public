@@ -21,8 +21,15 @@ import {
   getEdition
 } from './edition.js';
 import {
+  GLOW_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  VISUAL_PREVIEW_EVENT,
+  applyGlow,
   applyTheme,
-  THEME_STORAGE_KEY
+  getGlowEnabled,
+  getTheme,
+  normalizeGlowEnabled,
+  normalizeTheme
 } from './theme.js';
 
 import {
@@ -98,6 +105,7 @@ let confirmationConfig = null;
 let confirmationPreviousFocus = null;
 let isClosingApplication = false;
 let trayIconVisualKey = null;
+let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
 
 const workspace = new TimerWorkspace({
@@ -108,7 +116,7 @@ const workspace = new TimerWorkspace({
       renderTimer(snapshot);
     }
 
-    void refreshTrayIcon();
+    refreshStatusIcons();
     void refreshTrayPreview();
   },
   onExpire: () => {
@@ -129,6 +137,74 @@ try {
 
 function getActiveTimer() {
   return workspace.getActiveEngine();
+}
+
+function getEventVisualSettings(eventInstance, {
+  fallbackTheme = getTheme(),
+  fallbackGlowEnabled = getGlowEnabled()
+} = {}) {
+  const settings = eventInstance?.settings ?? {};
+
+  return {
+    themeId: normalizeTheme(
+      settings.themeId ?? settings.theme ?? fallbackTheme
+    ),
+    glowEnabled: normalizeGlowEnabled(
+      settings.glowEnabled ?? fallbackGlowEnabled
+    )
+  };
+}
+
+function migrateTimerVisualSettings() {
+  const fallbackTheme = getTheme();
+  const fallbackGlowEnabled = getGlowEnabled();
+
+  for (const eventInstance of workspace.getEvents()) {
+    const visualSettings = getEventVisualSettings(eventInstance, {
+      fallbackTheme,
+      fallbackGlowEnabled
+    });
+    const currentSettings = eventInstance.settings ?? {};
+
+    if (
+      currentSettings.themeId === visualSettings.themeId
+      && currentSettings.glowEnabled === visualSettings.glowEnabled
+    ) {
+      continue;
+    }
+
+    workspace.updateEventSettings(
+      eventInstance.id,
+      visualSettings
+    );
+  }
+}
+
+function syncVisualSettingsStorage({
+  themeId,
+  glowEnabled
+}) {
+  if (localStorage.getItem(THEME_STORAGE_KEY) !== themeId) {
+    localStorage.setItem(THEME_STORAGE_KEY, themeId);
+  }
+
+  const glowValue = String(glowEnabled);
+
+  if (localStorage.getItem(GLOW_STORAGE_KEY) !== glowValue) {
+    localStorage.setItem(GLOW_STORAGE_KEY, glowValue);
+  }
+}
+
+function applyActiveVisualSettings() {
+  const visualSettings = getEventVisualSettings(
+    workspace.getActiveEvent()
+  );
+
+  applyTheme(visualSettings.themeId);
+  applyGlow(visualSettings.glowEnabled);
+  syncVisualSettingsStorage(visualSettings);
+
+  return visualSettings;
 }
 
 function parseHexColor(value) {
@@ -154,13 +230,13 @@ function hasOverdueTimers() {
 
 async function refreshTrayIcon() {
   const style = getComputedStyle(document.documentElement);
+  const overdue = hasOverdueTimers();
   const colorValue = style.getPropertyValue(
-    hasOverdueTimers()
+    overdue
       ? '--timer-overdue-color'
       : '--theme-color'
   ).trim();
   const color = parseHexColor(colorValue);
-  const overdue = hasOverdueTimers();
   const pulseEnabled = getBehavior().pulseTrayIconOnOverdue;
   const visualKey = `${colorValue}:${overdue}:${pulseEnabled}`;
 
@@ -180,6 +256,37 @@ async function refreshTrayIcon() {
     trayIconVisualKey = null;
     console.error('Failed to update tray icon:', error);
   }
+}
+
+async function refreshTaskbarIcon() {
+  const style = getComputedStyle(document.documentElement);
+  const activeSnapshot = workspace.getActiveEngine()?.getSnapshot();
+  const overdue = activeSnapshot?.state === TimerState.OVERDUE;
+  const colorValue = style.getPropertyValue(
+    overdue
+      ? '--timer-overdue-color'
+      : '--theme-color'
+  ).trim();
+  const color = parseHexColor(colorValue);
+  const visualKey = `${colorValue}:${overdue}`;
+
+  if (!color || visualKey === taskbarIconVisualKey) {
+    return;
+  }
+
+  taskbarIconVisualKey = visualKey;
+
+  try {
+    await invoke('update_taskbar_icon', { color });
+  } catch (error) {
+    taskbarIconVisualKey = null;
+    console.error('Failed to update taskbar icon:', error);
+  }
+}
+
+function refreshStatusIcons() {
+  void refreshTrayIcon();
+  void refreshTaskbarIcon();
 }
 
 function createTrayPreviewData() {
@@ -254,6 +361,16 @@ function normalizeDurationInputs(durationMs) {
   hoursInput.value = String(hours);
   minutesInput.value = String(minutes);
   secondsInput.value = String(seconds);
+}
+
+function cycleDurationInput(input, delta) {
+  const currentValue = Number.parseInt(input.value, 10);
+  const normalizedValue = Number.isFinite(currentValue)
+    ? currentValue
+    : 0;
+
+  input.value = String((normalizedValue + delta + 60) % 60);
+  updateDurationFromInputs();
 }
 
 function updateDurationFromInputs() {
@@ -569,8 +686,10 @@ function createTimerTab(eventInstance, canClose) {
       }
 
       workspace.setActiveEvent(eventInstance.id);
+      applyActiveVisualSettings();
       updateActiveTabSelection();
       renderActiveTimer();
+      refreshStatusIcons();
       void refreshTrayPreview({ force: true });
     });
 
@@ -796,9 +915,10 @@ async function closeTimerTab(eventId) {
   }
 
   workspace.removeEvent(eventId);
+  applyActiveVisualSettings();
   renderTabs();
   renderActiveTimer();
-  void refreshTrayIcon();
+  refreshStatusIcons();
   void refreshTrayPreview({ force: true });
 }
 
@@ -948,6 +1068,20 @@ function refreshLocalizedContent() {
       startTimer();
     }
   });
+});
+
+[
+  minutesInput,
+  secondsInput
+].forEach((input) => {
+  input.addEventListener('wheel', (event) => {
+    if (document.activeElement !== input || input.disabled) {
+      return;
+    }
+
+    event.preventDefault();
+    cycleDurationInput(input, event.deltaY < 0 ? -1 : 1);
+  }, { passive: false });
 });
 
 startButton.addEventListener('click', startTimer);
@@ -1150,8 +1284,10 @@ addTimerButton.addEventListener('click', () => {
 
   const eventInstance = workspace.addEvent();
   editingEventId = eventInstance.id;
+  applyActiveVisualSettings();
   renderTabs({ focusEditor: true });
   renderActiveTimer();
+  refreshStatusIcons();
   void refreshTrayPreview({ force: true });
 });
 
@@ -1224,8 +1360,27 @@ window.addEventListener('storage', (event) => {
     event.key === THEME_STORAGE_KEY
     && event.newValue
   ) {
-    applyTheme(event.newValue);
-    void refreshTrayIcon();
+    const themeId = applyTheme(event.newValue);
+
+    workspace.updateEventSettings(
+      workspace.activeEventId,
+      { themeId }
+    );
+    refreshStatusIcons();
+    void refreshTrayPreview({ force: true });
+  }
+
+  if (
+    event.key === GLOW_STORAGE_KEY
+    && event.newValue
+  ) {
+    const glowEnabled = applyGlow(event.newValue);
+
+    workspace.updateEventSettings(
+      workspace.activeEventId,
+      { glowEnabled }
+    );
+    void refreshTrayPreview({ force: true });
   }
 
   if (
@@ -1239,7 +1394,7 @@ window.addEventListener('storage', (event) => {
     event.key === BEHAVIOR_STORAGE_KEY
     && event.newValue
   ) {
-    void refreshTrayIcon();
+    refreshStatusIcons();
   }
 });
 
@@ -1272,9 +1427,19 @@ await listen(APPEARANCE_PREVIEW_EVENT, (event) => {
   void applyAppearance(event.payload);
 });
 
+await listen(VISUAL_PREVIEW_EVENT, (event) => {
+  const { themeId, glowEnabled } = event.payload ?? {};
+
+  applyTheme(themeId);
+  applyGlow(glowEnabled);
+  refreshStatusIcons();
+  void refreshTrayPreview({ force: true });
+});
+
 document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
+applyGlow();
 await applyAppearance(getAppearance());
 applyTranslations();
 document.title = t('app.title');
@@ -1282,7 +1447,9 @@ document.title = t('app.title');
 const resetActiveTimers = await shouldResetStoredActiveTimers();
 
 workspace.load({ resetActiveTimers });
+migrateTimerVisualSettings();
+applyActiveVisualSettings();
 refreshLocalizedContent();
-void refreshTrayIcon();
+refreshStatusIcons();
 void refreshTrayPreview({ force: true });
 focusInitialTimerControl();

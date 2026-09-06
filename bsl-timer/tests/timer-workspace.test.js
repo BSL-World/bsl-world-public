@@ -151,3 +151,64 @@ test('detects and resets stored active timers', () => {
 
   secondWorkspace.destroy();
 });
+
+test('updates and persists timer visual settings independently', () => {
+  const storage = createMemoryStorage();
+  const workspace = new TimerWorkspace({
+    sessionStore: new SessionStore({ storage })
+  });
+
+  workspace.load();
+  const firstEvent = workspace.getActiveEvent();
+  workspace.updateEventSettings(firstEvent.id, {
+    themeId: 'blue',
+    glowEnabled: false
+  });
+
+  const secondEvent = workspace.addEvent();
+  workspace.updateEventSettings(secondEvent.id, {
+    themeId: 'magenta',
+    glowEnabled: true
+  });
+
+  assert.deepEqual(
+    workspace.getEvent(firstEvent.id).settings,
+    {
+      themeId: 'blue',
+      glowEnabled: false
+    }
+  );
+  assert.deepEqual(
+    workspace.getEvent(secondEvent.id).settings,
+    {
+      themeId: 'magenta',
+      glowEnabled: true
+    }
+  );
+
+  workspace.save();
+  workspace.destroy();
+
+  const restoredWorkspace = new TimerWorkspace({
+    sessionStore: new SessionStore({ storage })
+  });
+
+  restoredWorkspace.load();
+
+  assert.deepEqual(
+    restoredWorkspace.getEvent(firstEvent.id).settings,
+    {
+      themeId: 'blue',
+      glowEnabled: false
+    }
+  );
+  assert.deepEqual(
+    restoredWorkspace.getEvent(secondEvent.id).settings,
+    {
+      themeId: 'magenta',
+      glowEnabled: true
+    }
+  );
+
+  restoredWorkspace.destroy();
+});

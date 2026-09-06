@@ -8,9 +8,13 @@ import {
   t
 } from './i18n.js';
 import { getEdition } from './edition.js';
+import {
+  GLOW_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  applyGlow,
+  applyTheme
+} from './theme.js';
 import { prepareAuxiliaryWindow } from './window-position.js';
-
-const themeStorageKey = 'bsl-timer.theme';
 
 const appWindow = getCurrentWindow();
 const okButton = document.getElementById('about-ok-btn');
@@ -60,8 +64,12 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('storage', (event) => {
-  if (event.key === themeStorageKey && event.newValue) {
-    document.documentElement.dataset.theme = event.newValue;
+  if (event.key === THEME_STORAGE_KEY && event.newValue) {
+    applyTheme(event.newValue);
+  }
+
+  if (event.key === GLOW_STORAGE_KEY && event.newValue) {
+    applyGlow(event.newValue);
   }
 
   if (event.key === 'bsl-timer.locale' && event.newValue) {
@@ -70,5 +78,7 @@ window.addEventListener('storage', (event) => {
   }
 });
 
+applyTheme();
+applyGlow();
 await prepareAuxiliaryWindow(appWindow);
 okButton.focus();

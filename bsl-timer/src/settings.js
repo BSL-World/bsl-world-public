@@ -11,11 +11,16 @@ import {
 } from './i18n.js';
 
 import {
+  GLOW_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  VISUAL_PREVIEW_EVENT,
+  applyGlow,
   applyTheme,
+  getGlowEnabled,
   getSupportedThemes,
   getTheme,
-  setTheme,
-  THEME_STORAGE_KEY
+  setGlowEnabled,
+  setTheme
 } from './theme.js';
 
 import {
@@ -51,6 +56,9 @@ const languageSelect =
 
 const themeSelect =
   document.getElementById('theme-select');
+
+const glowEnabledInput =
+  document.getElementById('glow-enabled-input');
 
 const windowTransparencyInput =
   document.getElementById('window-transparency-input');
@@ -98,7 +106,10 @@ const applyButton =
   document.getElementById('apply-settings-btn');
 
 let pendingLocale = getLocale();
-let pendingTheme = getTheme();
+let committedTheme = getTheme();
+let pendingTheme = committedTheme;
+let committedGlowEnabled = getGlowEnabled();
+let pendingGlowEnabled = committedGlowEnabled;
 let committedAppearance = getAppearance();
 let pendingAppearance = { ...committedAppearance };
 let committedBehavior = getBehavior();
@@ -135,6 +146,10 @@ function populateThemeSelect() {
 
     themeSelect.append(option);
   }
+}
+
+function updateVisualControls() {
+  glowEnabledInput.checked = pendingGlowEnabled;
 }
 
 function updateAppearanceControls() {
@@ -218,6 +233,7 @@ function updateApplyButton() {
   applyButton.disabled =
     pendingLocale === getLocale()
     && pendingTheme === getTheme()
+    && pendingGlowEnabled === getGlowEnabled()
     && appearanceEquals(
       pendingAppearance,
       committedAppearance
@@ -237,6 +253,22 @@ async function updateInterface() {
       'Failed to update the settings window title:',
       error
     );
+  }
+}
+
+
+async function emitVisualPreview() {
+  const themeId = applyTheme(pendingTheme);
+  const glowEnabled = applyGlow(pendingGlowEnabled);
+
+  try {
+    await emitTo(
+      'main',
+      VISUAL_PREVIEW_EVENT,
+      { themeId, glowEnabled }
+    );
+  } catch (error) {
+    console.error('Failed to preview visual settings:', error);
   }
 }
 
@@ -292,7 +324,10 @@ async function applyPendingSettings() {
   }
 
   setLocale(pendingLocale);
-  setTheme(pendingTheme);
+  committedTheme = setTheme(pendingTheme);
+  pendingTheme = committedTheme;
+  committedGlowEnabled = setGlowEnabled(pendingGlowEnabled);
+  pendingGlowEnabled = committedGlowEnabled;
 
   committedAppearance = saveAppearance(pendingAppearance);
   pendingAppearance = { ...committedAppearance };
@@ -303,6 +338,7 @@ async function applyPendingSettings() {
 
   populateLanguageSelect();
   populateThemeSelect();
+  updateVisualControls();
   updateAppearanceControls();
   updateBehaviorControls();
   updateApplyButton();
@@ -325,6 +361,11 @@ async function cancelPendingSettings() {
     previewTimeoutId = null;
   }
 
+  pendingTheme = committedTheme;
+  pendingGlowEnabled = committedGlowEnabled;
+  applyTheme(committedTheme);
+  applyGlow(committedGlowEnabled);
+  await emitVisualPreview();
   await emitAppearancePreview(committedAppearance);
   await closeSettings();
 }
@@ -337,6 +378,13 @@ languageSelect.addEventListener('change', () => {
 themeSelect.addEventListener('change', () => {
   pendingTheme = themeSelect.value;
   updateApplyButton();
+  void emitVisualPreview();
+});
+
+glowEnabledInput.addEventListener('change', () => {
+  pendingGlowEnabled = glowEnabledInput.checked;
+  updateApplyButton();
+  void emitVisualPreview();
 });
 
 windowTransparencyInput.addEventListener(
@@ -436,8 +484,16 @@ window.addEventListener('storage', async (event) => {
   }
 
   if (event.key === THEME_STORAGE_KEY) {
-    pendingTheme = applyTheme(event.newValue);
+    committedTheme = applyTheme(event.newValue);
+    pendingTheme = committedTheme;
     populateThemeSelect();
+    updateApplyButton();
+  }
+
+  if (event.key === GLOW_STORAGE_KEY) {
+    committedGlowEnabled = applyGlow(event.newValue);
+    pendingGlowEnabled = committedGlowEnabled;
+    updateVisualControls();
     updateApplyButton();
   }
 
@@ -459,8 +515,10 @@ window.addEventListener('storage', async (event) => {
 });
 
 applyTheme();
+applyGlow();
 populateLanguageSelect();
 populateThemeSelect();
+updateVisualControls();
 updateAppearanceControls();
 updateBehaviorControls();
 updateApplyButton();

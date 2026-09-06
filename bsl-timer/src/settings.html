@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
+    <script>
+        document.documentElement.dataset.theme =
+            localStorage.getItem('bsl-timer.theme') || 'green';
+        document.documentElement.dataset.glow =
+            localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
+    </script>
     <link rel="stylesheet" href="/styles.css">
 </head>
 
@@ -29,6 +35,11 @@
                 <label for="theme-select" data-i18n="settings.colorScheme"></label>
 
                 <select id="theme-select"></select>
+
+                <label class="checkbox-setting">
+                    <input id="glow-enabled-input" type="checkbox">
+                    <span data-i18n="settings.glowEnabled"></span>
+                </label>
             </section>
 
             <section class="settings-card appearance-settings-card">

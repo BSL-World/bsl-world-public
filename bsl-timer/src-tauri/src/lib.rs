@@ -105,9 +105,12 @@ fn contrast_color(color: [u8; 3]) -> [u8; 3] {
     }
 }
 
-fn recolor_tray_icon(color: [u8; 3], level: u8) -> Result<Image<'static>, String> {
-    let source = Image::from_bytes(include_bytes!("../icons/32x32.png"))
-        .map_err(|error| error.to_string())?;
+fn recolor_icon(
+    source_bytes: &'static [u8],
+    color: [u8; 3],
+    level: u8,
+) -> Result<Image<'static>, String> {
+    let source = Image::from_bytes(source_bytes).map_err(|error| error.to_string())?;
     let mut rgba = source.rgba().to_vec();
     let width = source.width();
     let height = source.height();
@@ -159,9 +162,18 @@ fn set_tray_icon(app: &tauri::AppHandle, color: [u8; 3], level: u8) -> Result<()
     let tray = app
         .tray_by_id(TRAY_ICON_ID)
         .ok_or_else(|| "Tray icon was not found".to_string())?;
-    let icon = recolor_tray_icon(color, level)?;
+    let icon = recolor_icon(include_bytes!("../icons/32x32.png"), color, level)?;
 
     tray.set_icon(Some(icon)).map_err(|error| error.to_string())
+}
+
+fn set_taskbar_icon(app: &tauri::AppHandle, color: [u8; 3]) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+    let icon = recolor_icon(include_bytes!("../icons/128x128.png"), color, 100)?;
+
+    window.set_icon(icon).map_err(|error| error.to_string())
 }
 
 fn is_autostart_launch() -> bool {
@@ -460,6 +472,11 @@ fn update_tray_icon(
 }
 
 #[tauri::command]
+fn update_taskbar_icon(app: tauri::AppHandle, color: [u8; 3]) -> Result<(), String> {
+    set_taskbar_icon(&app, color)
+}
+
+#[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
         let _ = window.show();
@@ -585,6 +602,7 @@ pub fn run() {
             open_settings_window,
             set_autostart_enabled,
             set_main_window_transparency,
+            update_taskbar_icon,
             update_tray_icon
         ])
         .setup(move |app| {

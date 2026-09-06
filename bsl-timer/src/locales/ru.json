@@ -65,14 +65,16 @@
     "startupReset": "Сбрасывать автоматически",
     "ok": "Ok",
     "apply": "Применить",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "glowEnabled": "Подсветка / внутреннее свечение"
   },
   "theme": {
     "green": "Зелёная",
     "blue": "Синяя",
     "neonCyan": "Неоновая бирюза",
     "tan": "Бежевый LCD",
-    "purple": "Фиолетовая"
+    "purple": "Фиолетовая",
+    "magenta": "Пурпурная"
   },
   "behavior": {
     "closeTitle": "Закрыть BSL-Timer?",

@@ -6,8 +6,10 @@ import {
   t
 } from './i18n.js';
 import {
-  applyTheme,
-  THEME_STORAGE_KEY
+  GLOW_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  applyGlow,
+  applyTheme
 } from './theme.js';
 
 const card = document.getElementById('tray-preview-card');
@@ -83,8 +85,13 @@ window.addEventListener('storage', (event) => {
   if (event.key === THEME_STORAGE_KEY && event.newValue) {
     applyTheme(event.newValue);
   }
+
+  if (event.key === GLOW_STORAGE_KEY && event.newValue) {
+    applyGlow(event.newValue);
+  }
 });
 
 applyTheme();
+applyGlow();
 applyTranslations();
 render();

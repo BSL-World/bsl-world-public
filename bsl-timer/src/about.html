@@ -8,6 +8,8 @@
     <script>
         document.documentElement.dataset.theme =
             localStorage.getItem('bsl-timer.theme') || 'green';
+        document.documentElement.dataset.glow =
+            localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
     </script>
     <link rel="stylesheet" href="/styles.css">
 </head>

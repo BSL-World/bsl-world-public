@@ -65,14 +65,16 @@
     "startupReset": "Reset automatically",
     "ok": "Ok",
     "apply": "Apply",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "glowEnabled": "Glow / internal illumination"
   },
   "theme": {
     "green": "Green",
     "blue": "Blue",
     "neonCyan": "Neon Cyan",
     "tan": "Tan LCD",
-    "purple": "Purple"
+    "purple": "Violet",
+    "magenta": "Magenta"
   },
   "behavior": {
     "closeTitle": "Close BSL-Timer?",

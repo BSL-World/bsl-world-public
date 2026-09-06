@@ -197,6 +197,21 @@ export class TimerWorkspace {
     return true;
   }
 
+  updateEventSettings(eventId, settings = {}) {
+    const eventInstance = this.getEvent(eventId);
+
+    if (!eventInstance) {
+      return false;
+    }
+
+    eventInstance.settings = {
+      ...cloneRecord(eventInstance.settings),
+      ...cloneRecord(settings)
+    };
+    this.save();
+    return true;
+  }
+
   setActiveEvent(eventId) {
     if (!this.getEvent(eventId)) {
       return false;
