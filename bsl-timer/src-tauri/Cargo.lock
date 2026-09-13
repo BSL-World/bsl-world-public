@@ -329,7 +329,7 @@ dependencies = [
 
 [[package]]
 name = "bsl-timer"
-version = "0.6.0"
+version = "0.6.2"
 dependencies = [
  "serde",
  "serde_json",
@@ -340,6 +340,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-window-state",
  "window-vibrancy 0.7.1",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

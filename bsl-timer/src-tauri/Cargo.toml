@@ -1,6 +1,6 @@
 [package]
 name = "bsl-timer"
-version = "0.6.0"
+version = "0.6.2"
 description = "BSL-Timer: countdown timers, interval signals, alarms, date events"
 authors = ["Alexander Vasilyev (bsl-world.ru)"]
 edition = "2021"
@@ -26,3 +26,6 @@ serde_json = "1"
 window-vibrancy = "0.7.1"
 tauri-plugin-window-state = "2.4.1"
 tauri-plugin-autostart = "2.5.1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }

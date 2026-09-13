@@ -18,6 +18,11 @@ use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::UI::WindowsAndMessaging::{
+    CreateIcon, DestroyIcon, SendMessageW, ICON_BIG, ICON_SMALL, WM_SETICON,
+};
+
 const AUTOSTART_ARG: &str = "--from-autostart";
 const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_PREVIEW_LABEL: &str = "tray-preview";
@@ -30,6 +35,17 @@ const PULSE_LEVELS: [u8; 8] = [100, 92, 84, 76, 68, 76, 84, 92];
 
 #[derive(Clone, Default)]
 struct TrayPreviewState(Arc<AtomicU64>);
+
+#[cfg(target_os = "windows")]
+#[derive(Clone, Default)]
+struct TaskbarIconState(Arc<Mutex<TaskbarIcons>>);
+
+#[cfg(target_os = "windows")]
+#[derive(Default)]
+struct TaskbarIcons {
+    small: usize,
+    big: usize,
+}
 
 #[derive(Clone, Copy)]
 struct TrayBounds {
@@ -94,15 +110,7 @@ fn scale_color(color: [u8; 3], level: u8) -> [u8; 3] {
 }
 
 fn contrast_color(color: [u8; 3]) -> [u8; 3] {
-    let luminance =
-        (u32::from(color[0]) * 2126 + u32::from(color[1]) * 7152 + u32::from(color[2]) * 722)
-            / 10_000;
-
-    if luminance > 105 {
-        mix_color(color, [24, 24, 24], 190)
-    } else {
-        mix_color(color, [232, 232, 232], 190)
-    }
+    mix_color(color, [232, 232, 232], 190)
 }
 
 fn recolor_icon(
@@ -167,6 +175,119 @@ fn set_tray_icon(app: &tauri::AppHandle, color: [u8; 3], level: u8) -> Result<()
     tray.set_icon(Some(icon)).map_err(|error| error.to_string())
 }
 
+#[cfg(target_os = "windows")]
+fn create_windows_icon(image: &Image<'_>) -> Result<usize, String> {
+    let width = image.width() as usize;
+    let height = image.height() as usize;
+    let rgba = image.rgba();
+
+    if width == 0 || height == 0 || rgba.len() != width * height * 4 {
+        return Err("Invalid taskbar icon image".to_string());
+    }
+
+    let mask_stride = width.div_ceil(32) * 4;
+    let mut and_mask = vec![0_u8; mask_stride * height];
+    let mut xor_bits = vec![0_u8; width * height * 4];
+
+    for y in 0..height {
+        for x in 0..width {
+            let source_index = (y * width + x) * 4;
+            let destination_index = (y * width + x) * 4;
+            let red = rgba[source_index];
+            let green = rgba[source_index + 1];
+            let blue = rgba[source_index + 2];
+            let alpha = rgba[source_index + 3];
+
+            xor_bits[destination_index] = blue;
+            xor_bits[destination_index + 1] = green;
+            xor_bits[destination_index + 2] = red;
+            xor_bits[destination_index + 3] = alpha;
+
+            if alpha == 0 {
+                let mask_index = y * mask_stride + x / 8;
+                and_mask[mask_index] |= 0x80 >> (x % 8);
+            }
+        }
+    }
+
+    let icon = unsafe {
+        CreateIcon(
+            std::ptr::null_mut(),
+            width as i32,
+            height as i32,
+            1,
+            32,
+            and_mask.as_ptr(),
+            xor_bits.as_ptr(),
+        )
+    };
+
+    if icon.is_null() {
+        return Err("Failed to create native Windows taskbar icon".to_string());
+    }
+
+    Ok(icon as usize)
+}
+
+#[cfg(target_os = "windows")]
+fn set_taskbar_icon(
+    app: &tauri::AppHandle,
+    state: &TaskbarIconState,
+    color: [u8; 3],
+) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+    let small_image = recolor_icon(include_bytes!("../icons/32x32.png"), color, 100)?;
+    let big_image = recolor_icon(include_bytes!("../icons/128x128.png"), color, 100)?;
+    let small_icon = create_windows_icon(&small_image)?;
+    let big_icon = match create_windows_icon(&big_image) {
+        Ok(icon) => icon,
+        Err(error) => {
+            unsafe {
+                DestroyIcon(small_icon as _);
+            }
+            return Err(error);
+        }
+    };
+    let hwnd = window.hwnd().map_err(|error| error.to_string())?;
+
+    unsafe {
+        SendMessageW(
+            hwnd.0 as _,
+            WM_SETICON,
+            ICON_SMALL as usize,
+            small_icon as isize,
+        );
+        SendMessageW(
+            hwnd.0 as _,
+            WM_SETICON,
+            ICON_BIG as usize,
+            big_icon as isize,
+        );
+    }
+
+    let mut icons = state
+        .0
+        .lock()
+        .map_err(|_| "Taskbar icon state is unavailable".to_string())?;
+    let previous_small = std::mem::replace(&mut icons.small, small_icon);
+    let previous_big = std::mem::replace(&mut icons.big, big_icon);
+    drop(icons);
+
+    unsafe {
+        if previous_small != 0 {
+            DestroyIcon(previous_small as _);
+        }
+        if previous_big != 0 {
+            DestroyIcon(previous_big as _);
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
 fn set_taskbar_icon(app: &tauri::AppHandle, color: [u8; 3]) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
@@ -472,8 +593,20 @@ fn update_tray_icon(
 }
 
 #[tauri::command]
-fn update_taskbar_icon(app: tauri::AppHandle, color: [u8; 3]) -> Result<(), String> {
-    set_taskbar_icon(&app, color)
+fn update_taskbar_icon(
+    app: tauri::AppHandle,
+    #[cfg(target_os = "windows")] state: tauri::State<'_, TaskbarIconState>,
+    color: [u8; 3],
+) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        return set_taskbar_icon(&app, &state, color);
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        set_taskbar_icon(&app, color)
+    }
 }
 
 #[tauri::command]
@@ -571,9 +704,15 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     let tray_visual_state = TrayVisualState::default();
     let tray_preview_state = TrayPreviewState::default();
+    #[cfg(target_os = "windows")]
+    let taskbar_icon_state = TaskbarIconState::default();
 
-    tauri::Builder::default()
-        .manage(tray_visual_state.clone())
+    let builder = tauri::Builder::default().manage(tray_visual_state.clone());
+
+    #[cfg(target_os = "windows")]
+    let builder = builder.manage(taskbar_icon_state);
+
+    builder
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             if !contains_autostart_arg(&args) {
                 show_main_window(app);
