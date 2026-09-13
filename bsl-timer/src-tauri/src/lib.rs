@@ -20,7 +20,8 @@ use window_vibrancy::apply_blur;
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    CreateIcon, DestroyIcon, SendMessageW, ICON_BIG, ICON_SMALL, WM_SETICON,
+    CreateIcon, DestroyIcon, SendMessageW, SetClassLongPtrW, GCLP_HICON, GCLP_HICONSM, ICON_BIG,
+    ICON_SMALL, WM_SETICON,
 };
 
 const AUTOSTART_ARG: &str = "--from-autostart";
@@ -238,8 +239,10 @@ fn set_taskbar_icon(
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "Main window was not found".to_string())?;
-    let small_image = recolor_icon(include_bytes!("../icons/32x32.png"), color, 100)?;
-    let big_image = recolor_icon(include_bytes!("../icons/128x128.png"), color, 100)?;
+    // Use larger source images for the native window icons. Windows may ignore
+    // an ICON_SMALL image that is too small for the current taskbar scaling.
+    let small_image = recolor_icon(include_bytes!("../icons/128x128.png"), color, 100)?;
+    let big_image = recolor_icon(include_bytes!("../icons/128x128@2x.png"), color, 100)?;
     let small_icon = create_windows_icon(&small_image)?;
     let big_icon = match create_windows_icon(&big_image) {
         Ok(icon) => icon,
@@ -265,6 +268,12 @@ fn set_taskbar_icon(
             ICON_BIG as usize,
             big_icon as isize,
         );
+
+        // Also update the native window class icons. This prevents an installed
+        // build launched through Windows Shell from falling back to the EXE icon
+        // for its taskbar group while the running window already has a themed icon.
+        SetClassLongPtrW(hwnd.0 as _, GCLP_HICONSM, small_icon as isize);
+        SetClassLongPtrW(hwnd.0 as _, GCLP_HICON, big_icon as isize);
     }
 
     let mut icons = state
