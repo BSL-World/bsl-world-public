@@ -7,7 +7,79 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Restore the canonical mouse-wheel direction for numeric timer controls:
+  wheel toward the user increases the value, and wheel away decreases it.
+
+### Planned
+
+- Add visible progress/status feedback while an automatic update is being downloaded and installed.
+- Continue investigation of dynamic Windows taskbar icon color updates in installed builds.
+
+## [0.7.0] - 2026-09-20
+
+### Added
+
+- Automatic update checks using Tauri Updater.
+- Localized Update / Later confirmation dialog.
+- Signed Windows updater artifacts.
+- Verification of downloaded updates using the embedded public signing key.
+- Integration with the BSL-World controlled download infrastructure.
+
+### Changed
+
+- BSL-Timer can now discover, download, verify, and install a newer version without requiring the user to download the installer manually.
+
+## [0.6.4] - 2026-09-14
+
+### Changed
+
+- Finalized the packaged Windows application icon resources.
+- Updated installer and application icon assets for more consistent Windows presentation.
+
+## [0.6.2] - 2026-09-13
+
+### Changed
+
+- Reworked the Windows runtime taskbar icon update path.
+- Refined native Windows icon replacement handling used by dynamic taskbar icons.
+
+## [0.6.0] - 2026-09-06
+
+### Added
+
+- Per-timer color themes.
+- Independent Glow setting.
+- Blue, Violet, Magenta, Neon Cyan, Green, and Tan LCD visual palettes.
+- Dynamic Windows taskbar icon based on the active timer theme.
+
+### Changed
+
+- Theme and Glow settings are stored separately for each timer.
+- Switching timer tabs immediately applies that timer's appearance.
+
+## [0.5.0] - 2026-09-04
+
+### Added
+
+- Windows autostart support.
+- Settings control for starting BSL-Timer together with Windows.
+
 ## [0.4.0] - 2026-08-30
+
+### Added
+
+- Full system tray integration.
+- Configurable behavior for the main window close button.
+- Themed tray status icon.
+- Optional pulsing indication for overdue timers.
+- Timer preview shown when hovering over the tray icon.
+
+### Changed
+
+- The main window can be shown or hidden from the tray.
+- Application exit behavior was refined for running timers.
 
 ## [0.3.0] - 2026-08-23
 

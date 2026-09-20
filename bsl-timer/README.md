@@ -2,9 +2,9 @@
 
 BSL-Timer is a compact countdown timer for Windows.
 
-The application is designed for everyday situations where one clear and
-reliable timer is more useful than an overloaded organizer: cooking, focused
-work, exercise, breaks, meetings, and other time-limited tasks.
+It is designed for everyday situations where a clear and reliable countdown
+is more useful than an overloaded organizer: cooking, focused work, exercise,
+breaks, meetings, and other time-limited tasks.
 
 ## Free edition
 
@@ -15,17 +15,22 @@ BSL-Timer Free includes:
 - overdue counting after the timer reaches zero;
 - visual overdue indication and an audible signal;
 - Always on Top mode;
-- Green, Blue, Purple, and Tan LCD color themes;
-- a locally bundled DSEG7 Classic electronic display font;
+- multiple color themes;
+- optional Glow effects;
 - adjustable window transparency and display brightness;
 - English and Russian interface languages;
 - saved appearance settings and window positions;
 - configurable confirmation before closing an active timer;
-- configurable Ask, Resume, or Reset behavior for an active timer at startup.
+- configurable startup behavior for active timers;
+- Windows system tray integration;
+- tray timer preview;
+- optional Windows autostart;
+- automatic signed application updates.
 
-The Free edition supports one timer. Multiple independent timer tabs are a Pro
-edition feature. The Pro edition is currently under development and is not yet
-available for purchase.
+The Free edition supports one timer.
+
+Multiple independent timer tabs are a Pro edition feature. The Pro edition is
+currently under development and is not available for public distribution.
 
 ## System requirements
 
@@ -38,36 +43,33 @@ download it automatically if it is missing.
 
 ## Installation
 
-1. Download the latest Free installer from the Gitverse release page.
-2. Run `bsl-timer_0.3.0-beta.1_free_x64-setup.exe`.
-3. Follow the installer instructions.
-4. Start BSL-Timer from Start.
+Download the current Free installer from the official BSL-World website or
+the BSL-World repository and run it.
 
-The current beta installer is not digitally signed. Windows SmartScreen may
-therefore display a warning. Download releases only from the official BSL-World
-repository.
+BSL-Timer installs into the current Windows user profile and does not require
+administrator privileges.
+
+Starting with version 0.7.0, BSL-Timer includes an automatic updater. Future
+versions can be discovered, downloaded, verified, and installed directly by
+the application.
 
 ## Current status
 
-Version `0.3.0-beta.1` is the first public Free beta release. Core timer
-functionality is ready for everyday use, but the application is still being
-tested and improved.
+The current stable release is BSL-Timer 0.7.0 Free.
 
-Planned features include:
+Version 0.7.0 introduced the signed automatic update system.
 
-- selectable Windows and custom notification sounds;
-- selectable audio output device;
-- additional interface languages;
-- additional timer and event types;
-- system tray and startup support for future alarms and dated events;
-- Microsoft Store distribution;
-- the Pro edition with multiple independent timer tabs.
+Development continues with user-interface improvements, additional countdown
+features, and the future Pro edition.
 
 ## Feedback and issues
 
 Project website: [bsl-world.ru](https://bsl-world.ru/)
 
-Repository: [BSL-World on Gitverse](https://gitverse.ru/BSL-World/bsl-world-public)
+Repositories:
+
+- [BSL-World on GitVerse](https://gitverse.ru/BSL-World/bsl-world-public)
+- [BSL-World on GitHub](https://github.com/BSL-World/bsl-world-public)
 
 Please report reproducible problems through the repository issue tracker. When
 reporting a problem, include the BSL-Timer version, Windows version, expected
@@ -91,4 +93,4 @@ npm run tauri build
 BSL-Timer is proprietary freeware. It is free to use, but it is not open-source
 software. See [LICENSE.md](LICENSE.md) for the complete terms.
 
-Copyright (c) 2026 Alexander Vasiliev / BSL-World. All rights reserved.
+Copyright (c) 2026 Vasilyev Alexander / BSL-World. All rights reserved.
