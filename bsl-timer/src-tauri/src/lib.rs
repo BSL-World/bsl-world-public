@@ -716,7 +716,9 @@ pub fn run() {
     #[cfg(target_os = "windows")]
     let taskbar_icon_state = TaskbarIconState::default();
 
-    let builder = tauri::Builder::default().manage(tray_visual_state.clone());
+    let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(tray_visual_state.clone());
 
     #[cfg(target_os = "windows")]
     let builder = builder.manage(taskbar_icon_state);

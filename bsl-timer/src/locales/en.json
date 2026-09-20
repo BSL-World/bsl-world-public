@@ -101,5 +101,11 @@
     "gitverse": "GitVerse",
     "github": "GitHub",
     "productPage": "BSL-Timer page"
+  },
+  "updater": {
+    "title": "Update available",
+    "message": "BSL-Timer {version} is available. Install it now?",
+    "update": "Update",
+    "later": "Later"
   }
 }

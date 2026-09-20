@@ -1,7 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-
+import {
+  checkForUpdates,
+  installUpdate
+} from './updater.js';
 import {
   applyTranslations,
   setLocale,
@@ -1453,3 +1456,22 @@ refreshLocalizedContent();
 refreshStatusIcons();
 void refreshTrayPreview({ force: true });
 focusInitialTimerControl();
+const availableUpdate = await checkForUpdates();
+
+if (availableUpdate) {
+  const shouldUpdate = await requestConfirmation({
+    titleKey: 'updater.title',
+    messageKey: 'updater.message',
+    primaryKey: 'updater.update',
+    secondaryKey: 'updater.later',
+    values: { version: availableUpdate.version }
+  });
+
+  if (shouldUpdate) {
+    try {
+      await installUpdate(availableUpdate);
+    } catch (error) {
+      console.error('Failed to install BSL-Timer update:', error);
+    }
+  }
+}
