@@ -90,6 +90,18 @@ User preferences must be stored separately from business data and runtime state 
 
 Shared translations, palettes, utilities, and other genuinely reusable definitions may be moved to `bsl-core`. Product-specific behavior must remain in the corresponding product.
 
+## Windows application requirements
+
+The following requirements are mandatory for every BSL-World Windows application intended for public distribution:
+
+- Provide an automatic update mechanism.
+- Update packages must be integrity-checked and cryptographically verified before installation.
+- The application must show clear user-visible update progress/status instead of silently waiting during download or installation.
+- Update failures must be reported to the user in the interface, not only in logs or the developer console.
+- Release channels, editions, or licensed feature sets must not be crossed accidentally by the updater.
+- Before publishing a release, validate the real update path from the previous public version to the new version using production artifacts.
+- Update metadata and downloadable artifacts must use the approved BSL-World download infrastructure.
+
 ## Development workflow
 
 Work proceeds in this order:
@@ -103,7 +115,7 @@ Work proceeds in this order:
 7. Review the diff and working-tree status.
 8. Commit, tag, publish, and update documentation only after verification.
 
-Instructions for manual Windows work should be atomic: one command block at a time, with the working directory stated explicitly.
+For manual Windows work, state the working directory explicitly. Normally provide 3-6 related CMD commands per batch, with each independently executable command in its own separate code block for easy copying. Stop the batch at an error-sensitive or decision-sensitive boundary.
 
 ## Canonical interface themes
 
