@@ -64,6 +64,10 @@ Do not maintain a separate `WHATSNEW.md` or equivalent file unless a product has
 
 Every public release must have an entry in `CHANGELOG.md`.
 
+User-facing release handoff records are stored under `product-updates/<product-name>/<version>.md`.
+
+For every public release with user-visible changes, add or update the corresponding handoff file so publication and promotion work can continue without reconstructing the development history from chat logs.
+
 ## Language rules
 
 - Use English for source-code identifiers, comments, filenames, paths, configuration keys, technical IDs, and internal strings.
