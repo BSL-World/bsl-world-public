@@ -7,15 +7,21 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-### Fixed
-
-- Restore the canonical mouse-wheel direction for numeric timer controls:
-  wheel toward the user increases the value, and wheel away decreases it.
-
 ### Planned
 
-- Add visible progress/status feedback while an automatic update is being downloaded and installed.
 - Continue investigation of dynamic Windows taskbar icon color updates in installed builds.
+
+## [0.7.1] - 2026-09-22
+
+### Added
+
+- Visible download progress and installation status for automatic updates.
+- Localized updater failure messages shown directly in the application.
+- Separate updater targets for Free and Pro builds.
+
+### Changed
+
+- Updater checks now identify the application edition so Free and Pro releases can use separate signed artifacts.
 
 ## [0.7.0] - 2026-09-20
 

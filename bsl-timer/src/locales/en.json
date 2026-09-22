@@ -106,6 +106,12 @@
     "title": "Update available",
     "message": "BSL-Timer {version} is available. Install it now?",
     "update": "Update",
-    "later": "Later"
+    "later": "Later",
+    "progressTitle": "Updating BSL-Timer",
+    "downloading": "Downloading update…",
+    "downloadingProgress": "Downloading update… {percent}%",
+    "installing": "Download complete. Installing update…",
+    "errorTitle": "Update failed",
+    "errorMessage": "BSL-Timer could not download or install the update. Please try again later."
   }
 }

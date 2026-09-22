@@ -106,6 +106,7 @@ let noticeTimeoutId = null;
 let confirmationResolver = null;
 let confirmationConfig = null;
 let confirmationPreviousFocus = null;
+let updaterDialogMode = null;
 let isClosingApplication = false;
 let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
@@ -880,8 +881,12 @@ function requestConfirmation(config) {
     return Promise.resolve(false);
   }
 
+  updaterDialogMode = null;
   confirmationConfig = config;
   confirmationPreviousFocus = document.activeElement;
+  confirmationDialogXButton.hidden = false;
+  confirmationSecondaryButton.hidden = false;
+  confirmationPrimaryButton.hidden = false;
   updateConfirmationDialog();
   confirmationDialogBackdrop.hidden = false;
 
@@ -892,6 +897,43 @@ function requestConfirmation(config) {
   return new Promise((resolve) => {
     confirmationResolver = resolve;
   });
+}
+
+function showUpdaterProgress(messageKey, values = {}) {
+  updaterDialogMode = 'progress';
+  confirmationConfig = null;
+  confirmationDialogTitle.textContent = t('updater.progressTitle');
+  confirmationDialogMessage.textContent = formatTranslation(
+    messageKey,
+    values
+  );
+  confirmationDialogXButton.hidden = true;
+  confirmationSecondaryButton.hidden = true;
+  confirmationPrimaryButton.hidden = true;
+  confirmationDialogBackdrop.hidden = false;
+}
+
+function showUpdaterError() {
+  updaterDialogMode = 'error';
+  confirmationConfig = null;
+  confirmationDialogTitle.textContent = t('updater.errorTitle');
+  confirmationDialogMessage.textContent = t('updater.errorMessage');
+  confirmationDialogXButton.hidden = true;
+  confirmationSecondaryButton.hidden = true;
+  confirmationPrimaryButton.hidden = false;
+  confirmationPrimaryButton.classList.remove('danger-button');
+  confirmationPrimaryButton.textContent = t('window.ok');
+  confirmationDialogBackdrop.hidden = false;
+
+  requestAnimationFrame(() => {
+    confirmationPrimaryButton.focus();
+  });
+}
+
+function hideUpdaterDialog() {
+  updaterDialogMode = null;
+  confirmationDialogBackdrop.hidden = true;
+  requestAnimationFrame(focusActiveTimerControl);
 }
 
 async function closeTimerTab(eventId) {
@@ -1171,24 +1213,57 @@ timerControls.addEventListener('keydown', (event) => {
 });
 
 confirmationDialogXButton.addEventListener('click', () => {
+  if (updaterDialogMode) {
+    return;
+  }
+
   settleConfirmation(false);
 });
 
 confirmationSecondaryButton.addEventListener('click', () => {
+  if (updaterDialogMode) {
+    return;
+  }
+
   settleConfirmation(false);
 });
 
 confirmationPrimaryButton.addEventListener('click', () => {
+  if (updaterDialogMode === 'error') {
+    hideUpdaterDialog();
+    return;
+  }
+
+  if (updaterDialogMode) {
+    return;
+  }
+
   settleConfirmation(true);
 });
 
 confirmationDialogBackdrop.addEventListener('click', (event) => {
-  if (event.target === confirmationDialogBackdrop) {
+  if (
+    !updaterDialogMode
+    && event.target === confirmationDialogBackdrop
+  ) {
     settleConfirmation(false);
   }
 });
 
 confirmationDialogBackdrop.addEventListener('keydown', (event) => {
+  if (updaterDialogMode === 'progress') {
+    event.preventDefault();
+    return;
+  }
+
+  if (updaterDialogMode === 'error') {
+    if (event.key === 'Enter' || event.key === 'Escape') {
+      event.preventDefault();
+      hideUpdaterDialog();
+    }
+    return;
+  }
+
   if (
     event.key === 'ArrowLeft' ||
     event.key === 'ArrowUp' ||
@@ -1468,10 +1543,37 @@ if (availableUpdate) {
   });
 
   if (shouldUpdate) {
+    showUpdaterProgress('updater.downloading');
+
     try {
-      await installUpdate(availableUpdate);
+      await installUpdate(availableUpdate, ({
+        phase,
+        downloaded,
+        total
+      }) => {
+        if (phase === 'installing') {
+          showUpdaterProgress('updater.installing');
+          return;
+        }
+
+        if (total && total > 0) {
+          const percent = Math.min(
+            100,
+            Math.floor((downloaded / total) * 100)
+          );
+
+          showUpdaterProgress(
+            'updater.downloadingProgress',
+            { percent }
+          );
+          return;
+        }
+
+        showUpdaterProgress('updater.downloading');
+      });
     } catch (error) {
       console.error('Failed to install BSL-Timer update:', error);
+      showUpdaterError();
     }
   }
 }
