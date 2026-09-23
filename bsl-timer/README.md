@@ -55,12 +55,22 @@ the application.
 
 ## Current status
 
-The current stable release is BSL-Timer 0.7.0 Free.
+The current stable release is BSL-Timer 0.7.1 Free.
 
-Version 0.7.0 introduced the signed automatic update system.
+Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
+added visible update progress, localized updater errors, and separate Free / Pro
+update targets.
 
 Development continues with user-interface improvements, additional countdown
 features, and the future Pro edition.
+
+### Known development issue
+
+Dynamic Windows taskbar icon recoloring works in `npm run tauri dev`, but the
+installed production build may continue to show the packaged application icon.
+The runtime icon code is retained for future investigation. See
+[`docs/taskbar-icon-investigation.md`](docs/taskbar-icon-investigation.md) for
+the current technical record.
 
 ## Feedback and issues
 
