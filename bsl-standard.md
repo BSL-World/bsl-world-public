@@ -249,6 +249,12 @@ Mission:
 
 > Make any countdown — from a few seconds to decades — simple, clear, beautiful, and reliable.
 
+## Cross-chat workflow
+
+Cross-chat BSL-World work is coordinated through `bsl-workflow.md`.
+
+For public product releases, `product-updates/<product-name>/<version>.md` is the canonical development-to-content/promotion handoff. Chats should read repository handoff files instead of reconstructing release history from old conversations.
+
 ## Standard maintenance
 
 - The authoritative repository copy is `D:\bsl-world\bsl-standard.md`.
