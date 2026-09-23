@@ -64,9 +64,6 @@ Do not maintain a separate `WHATSNEW.md` or equivalent file unless a product has
 
 Every public release must have an entry in `CHANGELOG.md`.
 
-User-facing release handoff records are stored under `product-updates/<product-name>/<version>.md`.
-
-For every public release with user-visible changes, add or update the corresponding handoff file so publication and promotion work can continue without reconstructing the development history from chat logs.
 
 ## Language rules
 
@@ -249,18 +246,3 @@ Mission:
 
 > Make any countdown — from a few seconds to decades — simple, clear, beautiful, and reliable.
 
-## Cross-chat workflow
-
-Cross-chat BSL-World work is coordinated through `bsl-workflow.md`.
-
-For public product releases, `product-updates/<product-name>/<version>.md` is the canonical development-to-content/promotion handoff. Chats should read repository handoff files instead of reconstructing release history from old conversations.
-
-## Standard maintenance
-
-- The authoritative repository copy is `D:\bsl-world\bsl-standard.md`.
-- A persistent reference copy is kept in ChatGPT Library under the same filename.
-- BSL-Core is the decision and review workspace for cross-product standards.
-- Approved cross-product decisions are transferred from BSL-Core into this document.
-- Product chats implement the standard; they do not redefine it silently.
-- When a new decision supersedes an older rule, the supersession must be stated explicitly.
-- The repository and Library copies are not automatically synchronized. After an approved change, both copies must be updated deliberately.
