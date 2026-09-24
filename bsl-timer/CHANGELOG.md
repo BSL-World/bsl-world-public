@@ -9,7 +9,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Planned
 
-- Continue investigation of dynamic Windows taskbar icon color updates in installed builds.
+- Correct the author name order in the About window to `Vasilyev Alexander`.
+- Activate and focus the About window when it opens, positioning it beside the main window when possible.
+
+## [0.7.2] - 2026-09-24
+
+### Fixed
+
+- Fixed dynamic Windows taskbar icon color updates in installed builds by assigning a separate runtime AppUserModelID before the main window is created.
+- Made the overdue timer panel, display, and status respond consistently to the Glow setting, including the Tan LCD theme.
 
 ## [0.7.1] - 2026-09-22
 

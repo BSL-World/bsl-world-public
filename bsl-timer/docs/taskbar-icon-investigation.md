@@ -2,33 +2,27 @@
 
 ## Status
 
-Open development issue.
+Resolved in BSL-Timer 0.7.2.
 
-The dynamic taskbar icon follows the active timer theme correctly when BSL-Timer
-runs through `npm run tauri dev`.
-
-In the installed production build, Windows may continue to display the static
-packaged application icon on the taskbar instead of the runtime recolored icon.
-
-This issue does not affect the timer, tray icon, updater, or application
-operation. It is a Windows taskbar / shell presentation problem.
+The dynamic taskbar icon now follows the active timer theme in both development
+runs and installed production builds.
 
 ## Intended behavior
 
-The taskbar icon should use the color theme of the active timer.
+The taskbar icon uses the color theme of the active timer.
 
 The overdue state has higher priority than the normal theme color.
 
-Changing the active timer or its theme should update the taskbar icon without
+Changing the active timer or its theme updates the taskbar icon without
 restarting the application.
 
-## Current implementation
+## Existing native implementation
 
 The Windows-specific implementation is in:
 
 `src-tauri/src/lib.rs`
 
-The runtime path currently:
+The runtime path:
 
 1. recolors the bundled PNG source image;
 2. converts the RGBA image into a native Windows `HICON` with `CreateIcon`;
@@ -39,73 +33,76 @@ The runtime path currently:
 6. retains the current native icon handles in `TaskbarIconState`;
 7. destroys the previous native icon handles after replacement.
 
-The implementation deliberately uses larger PNG sources for the native window
-icons because Windows may ignore a small icon source at some taskbar scaling
-settings.
+The implementation uses larger PNG sources for the native window icons because
+Windows may ignore a small icon source at some taskbar scaling settings.
 
-## Confirmed observation
+## Diagnostic evidence
 
-The important split is:
+A temporary diagnostic build recorded the main window handle, its root and root
+owner, the requested small and large icon handles, and the icon handles returned
+by `WM_GETICON` and the window class.
 
-- development run: dynamic taskbar icon update works;
-- installed production build: the taskbar can continue to use the packaged EXE
-  icon.
+The installed build confirmed that:
 
-Because the same runtime logic works in development, the remaining problem is
-likely not the recoloring algorithm itself.
+- the main `HWND`, root window, and root owner were the same window;
+- the window had no parent;
+- `WM_SETICON` reached the correct window;
+- the small and large window icons matched the requested native handles;
+- the small and large window-class icons also matched the requested handles;
+- the native handles changed when the application theme changed.
 
-## Working hypothesis
+Despite those successful native updates, the installed application continued to
+show the static packaged icon on the taskbar. The same executable displayed the
+dynamic icon when copied to and launched from an unregistered path.
 
-The unresolved area is Windows Shell identity and taskbar grouping in the
-installed application.
+This isolated the problem from icon recoloring and native window handling. The
+remaining difference was Windows Shell identity for the installed application.
 
-The next investigation should focus on the relationship between:
+## Confirmed root cause
 
-- the installed executable identity;
-- the shortcut created by the installer;
-- Windows AppUserModelID / taskbar grouping;
-- the actual main-window `HWND` and window class;
-- the icon selected by Explorer for the installed application group;
-- differences between launching the development executable directly and
-  launching the installed application through Windows Shell.
+The NSIS-installed shortcut and executable were associated with the packaged
+application identity and its static icon. Windows Shell used that identity for
+taskbar grouping and continued to display the packaged icon even though the live
+window accepted the new `WM_SETICON` and class icons.
 
-This is a hypothesis, not a confirmed root cause.
+The brief earlier observation of a working taskbar icon was consistent with
+launching a development, release, or copied executable that was not being
+grouped under the installed shortcut identity. Reconstructing the exact historic
+launch path was not necessary after the production cause was isolated.
 
-## What should not be repeated blindly
+## Resolution
 
-The current code already updates:
+On Windows, BSL-Timer now calls
+`SetCurrentProcessExplicitAppUserModelID` before Tauri creates the main window.
+The runtime identity is:
 
-- `WM_SETICON` for small and large icons;
-- the native window-class small and large icons.
+`ru.bsl-world.bsl-timer.runtime`
 
-Future work should first determine why Windows Shell still prefers the packaged
-icon in the installed build before adding another icon-replacement layer.
+This separates the live application window from the installed shortcut identity
+for taskbar presentation. Windows Shell then uses the icon supplied by the live
+window, while the installed shortcut and packaged executable retain their normal
+static application icon.
 
-## Suggested next diagnostic session
+The native `WM_SETICON` and `SetClassLongPtrW` implementation remains in
+place because it supplies the actual dynamically recolored icon.
 
-When work resumes:
+## Validation
 
-1. reproduce the issue with the current installed production build;
-2. record how the application was launched: Start menu, desktop shortcut,
-   executable directly, or autostart;
-3. inspect the installed shortcut and executable identity;
-4. compare taskbar behavior when launching the installed EXE directly versus
-   through its shortcut;
-5. inspect AppUserModelID / shell grouping behavior;
-6. verify that the runtime `HWND` receiving `WM_SETICON` is the window whose
-   taskbar group Windows is displaying;
-7. only then change the native implementation.
+The fix was validated in an installed production build launched from the Start
+menu. The taskbar icon:
+
+- matched the active timer theme;
+- changed immediately when the theme changed;
+- remained consistent with the application and tray icons;
+- continued to work after application exit and relaunch;
+- worked without creating an additional taskbar button.
+
+Version 0.7.2 also passed the Rust build checks and all 23 automated JavaScript
+tests before the final production build and installed-application verification.
 
 ## Related releases
 
 - 0.6.0 introduced the dynamic taskbar icon.
 - 0.6.2 reworked the Windows runtime taskbar icon update path.
 - 0.6.4 finalized packaged Windows icon resources.
-- 0.7.1 leaves this issue open under `[Unreleased]` in `CHANGELOG.md`.
-
-## Decision
-
-Do not remove the runtime dynamic-icon implementation.
-
-Keep the issue documented and defer further changes until a focused Windows
-Shell / installed-build investigation is performed.
+- 0.7.2 resolved the installed-build Windows Shell identity conflict.

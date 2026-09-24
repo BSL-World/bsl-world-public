@@ -474,7 +474,6 @@ button {
 
 .timer-panel.is-overdue {
   border-color: var(--timer-overdue-color);
-  box-shadow: 0 0 18px rgb(250 2 6 / 28%);
 }
 
 .timer-status {
@@ -564,7 +563,23 @@ button {
 .timer-panel.is-overdue .timer-display,
 .timer-panel.is-overdue .timer-status {
   color: var(--timer-overdue-color);
-  text-shadow: 0 0 12px rgb(250 2 6 / 48%);
+  text-shadow: none;
+}
+
+:root[data-glow="on"] .timer-panel.is-overdue {
+  box-shadow:
+    0 0 18px rgb(250 2 6 / 34%),
+    inset 0 0 18px rgb(250 2 6 / 12%);
+}
+
+:root[data-glow="on"] .timer-panel.is-overdue .timer-display,
+:root[data-glow="on"] .timer-panel.is-overdue .timer-status {
+  text-shadow:
+    0 0 1px rgb(250 2 6 / 100%),
+    0 0 3px rgb(250 2 6 / 96%),
+    0 0 7px rgb(250 2 6 / 78%),
+    0 0 15px rgb(250 2 6 / 50%),
+    0 0 30px rgb(250 2 6 / 24%);
 }
 
 .duration-inputs {
@@ -1308,8 +1323,4 @@ button {
 
 :root[data-theme="tan"] .settings-card select:focus {
   background: #e8e7d6;
-}
-
-:root[data-theme="tan"] .timer-panel.is-overdue .timer-display {
-  text-shadow: 0 0 12px rgb(250 2 6 / 48%);
 }

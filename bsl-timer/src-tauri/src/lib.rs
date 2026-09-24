@@ -19,6 +19,8 @@ use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
 #[cfg(target_os = "windows")]
+use windows_sys::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     CreateIcon, DestroyIcon, SendMessageW, SetClassLongPtrW, GCLP_HICON, GCLP_HICONSM, ICON_BIG,
     ICON_SMALL, WM_SETICON,
@@ -711,6 +713,16 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Keep the live window separate from the installed shortcut identity so
+    // Windows uses the dynamic WM_SETICON taskbar icon instead of the static app icon.
+    #[cfg(target_os = "windows")]
+    {
+        let runtime_app_id: Vec<u16> = "ru.bsl-world.bsl-timer.runtime"
+            .encode_utf16()
+            .chain(std::iter::once(0))
+            .collect();
+        let _ = unsafe { SetCurrentProcessExplicitAppUserModelID(runtime_app_id.as_ptr()) };
+    }
     let tray_visual_state = TrayVisualState::default();
     let tray_preview_state = TrayPreviewState::default();
     #[cfg(target_os = "windows")]
