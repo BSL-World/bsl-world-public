@@ -30,7 +30,8 @@ BSL-Timer Free includes:
 The Free edition supports one timer.
 
 Multiple independent timer tabs are a Pro edition feature. The Pro edition is
-currently under development and is not available for public distribution.
+maintained as a separate build and is not currently available for public
+distribution.
 
 ## System requirements
 
@@ -55,8 +56,8 @@ the application.
 
 ## Current status
 
-The current stable release is BSL-Timer 0.7.2, available in Free and Pro
-editions.
+The current public stable release is BSL-Timer 0.7.2 Free. A separate Pro build
+is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
 added visible update progress, localized updater errors, and separate Free / Pro
@@ -72,6 +73,10 @@ The installed-build taskbar icon problem was traced to Windows Shell application
 identity and resolved in version 0.7.2. See
 [`docs/taskbar-icon-investigation.md`](docs/taskbar-icon-investigation.md) for
 the completed technical record.
+
+The signed release artifacts, production update path, and real
+0.7.1-to-0.7.2 Pro update were also validated. See
+[`docs/release-0.7.2.md`](docs/release-0.7.2.md) for the release record.
 
 ## Feedback and issues
 

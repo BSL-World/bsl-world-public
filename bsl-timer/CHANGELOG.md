@@ -11,6 +11,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - Correct the author name order in the About window to `Vasilyev Alexander`.
 - Activate and focus the About window when it opens, positioning it beside the main window when possible.
+- Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
 
 ## [0.7.2] - 2026-09-24
 

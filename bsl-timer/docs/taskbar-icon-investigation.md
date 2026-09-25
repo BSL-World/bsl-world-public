@@ -100,6 +100,11 @@ menu. The taskbar icon:
 Version 0.7.2 also passed the Rust build checks and all 23 automated JavaScript
 tests before the final production build and installed-application verification.
 
+The final signed Pro release was then validated through the production updater:
+version 0.7.1 detected, downloaded, verified, and installed version 0.7.2. After
+the update, the application reported the correct version and edition, retained
+its user data, and continued to update the taskbar icon dynamically.
+
 ## Related releases
 
 - 0.6.0 introduced the dynamic taskbar icon.
