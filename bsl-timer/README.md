@@ -56,13 +56,15 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.7.2 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.8.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
 added visible update progress, localized updater errors, and separate Free / Pro
-update targets. Version 0.7.2 fixes dynamic taskbar icon color updates in
-installed Windows builds.
+update targets. Version 0.7.2 fixed dynamic taskbar icon color updates in
+installed Windows builds. Version 0.8.0 adds configurable per-timer end-signal
+repeats, signal preview, and simultaneous or queued playback for different
+timers.
 
 Development continues with user-interface improvements and additional countdown
 features.

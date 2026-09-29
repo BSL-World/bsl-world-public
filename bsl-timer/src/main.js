@@ -18,7 +18,11 @@ import {
 } from './timer.js';
 
 import { TimerWorkspace } from './timer-workspace.js';
-import { SignalPlayer } from './signal.js';
+import { EndSignalService } from './end-signal-service.js';
+import {
+  SIGNAL_SETTINGS_EVENT,
+  normalizeSignalSettings
+} from './signal-settings.js';
 import {
   canCreateTimer,
   getEdition
@@ -49,6 +53,19 @@ import {
   getBehavior
 } from './behavior.js';
 import { prepareWindowPosition } from './window-position.js';
+import {
+  AUDIO_PREFERENCES_EVENT,
+  AUDIO_PREFERENCES_STORAGE_KEY,
+  getAudioPreferences,
+  normalizeAudioPreferences
+} from './audio-preferences.js';
+import {
+  WHATS_NEW_REQUEST_EVENT,
+  WHATS_NEW_VERSION,
+  allowWhatsNewAgain,
+  dismissWhatsNew,
+  shouldShowWhatsNew
+} from './whats-new.js';
 
 const ALWAYS_ON_TOP_STORAGE_KEY = 'bsl-timer.always-on-top';
 const appWindow = getCurrentWindow();
@@ -58,7 +75,9 @@ try {
   console.error('Failed to keep the main window inside the work area:', error);
 }
 
-const signalPlayer = new SignalPlayer();
+const endSignalService = new EndSignalService({
+  allowConcurrentSignals: getAudioPreferences().allowConcurrentSignals
+});
 
 const timerTabList = document.getElementById('timer-tab-list');
 const addTimerButton = document.getElementById('add-timer-btn');
@@ -96,6 +115,17 @@ const confirmationSecondaryButton =
 const confirmationPrimaryButton =
   document.getElementById('confirmation-primary-btn');
 
+const whatsNewDialogBackdrop =
+  document.getElementById('whats-new-dialog-backdrop');
+const whatsNewDialogTitle =
+  document.getElementById('whats-new-dialog-title');
+const whatsNewDialogXButton =
+  document.getElementById('whats-new-dialog-x-btn');
+const whatsNewDontShowAgain =
+  document.getElementById('whats-new-dont-show-again');
+const whatsNewOkButton =
+  document.getElementById('whats-new-ok-btn');
+
 const alwaysOnTopButton =
   document.getElementById('always-on-top-btn');
 
@@ -108,6 +138,7 @@ let confirmationConfig = null;
 let confirmationPreviousFocus = null;
 let updaterDialogMode = null;
 let isClosingApplication = false;
+let whatsNewPreviousFocus = null;
 let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
@@ -123,9 +154,14 @@ const workspace = new TimerWorkspace({
     refreshStatusIcons();
     void refreshTrayPreview();
   },
-  onExpire: () => {
+  onExpire: (eventId) => {
     workspace.save();
-    void signalPlayer.playDefault();
+    const eventInstance = workspace.getEvent(eventId);
+
+    endSignalService.start(
+      eventId,
+      normalizeSignalSettings(eventInstance?.settings?.endSignal)
+    );
   }
 });
 
@@ -390,7 +426,7 @@ function updateDurationFromInputs() {
 }
 
 function prepareSignal() {
-  void signalPlayer.prepare().catch((error) => {
+  void endSignalService.prepare().catch((error) => {
     console.error('Failed to prepare timer signal:', error);
   });
 }
@@ -449,7 +485,7 @@ function stopTimer() {
     return;
   }
 
-  signalPlayer.stop();
+  endSignalService.cancel(workspace.activeEventId);
   timer.reset();
   workspace.save();
   requestAnimationFrame(focusActiveTimerControl);
@@ -462,7 +498,7 @@ function restartTimer() {
     return;
   }
 
-  signalPlayer.stop();
+  endSignalService.cancel(workspace.activeEventId);
   timer.reset();
   prepareSignal();
   timer.start();
@@ -936,6 +972,48 @@ function hideUpdaterDialog() {
   requestAnimationFrame(focusActiveTimerControl);
 }
 
+function updateWhatsNewDialog() {
+  whatsNewDialogTitle.textContent = formatTranslation(
+    'whatsNew.title',
+    { version: WHATS_NEW_VERSION }
+  );
+}
+
+function showWhatsNew() {
+  if (!whatsNewDialogBackdrop.hidden) {
+    return;
+  }
+
+  whatsNewPreviousFocus = document.activeElement;
+  whatsNewDontShowAgain.checked = !shouldShowWhatsNew(
+    WHATS_NEW_VERSION
+  );
+  updateWhatsNewDialog();
+  whatsNewDialogBackdrop.hidden = false;
+
+  requestAnimationFrame(() => {
+    whatsNewOkButton.focus();
+  });
+}
+
+function hideWhatsNew() {
+  if (whatsNewDialogBackdrop.hidden) {
+    return;
+  }
+
+  if (whatsNewDontShowAgain.checked) {
+    dismissWhatsNew(WHATS_NEW_VERSION);
+  } else {
+    allowWhatsNewAgain(WHATS_NEW_VERSION);
+  }
+
+  const previousFocus = whatsNewPreviousFocus;
+
+  whatsNewPreviousFocus = null;
+  whatsNewDialogBackdrop.hidden = true;
+  previousFocus?.focus();
+}
+
 async function closeTimerTab(eventId) {
   const timer = workspace.getEngine(eventId);
   const eventName = workspace.getDisplayName(
@@ -959,6 +1037,7 @@ async function closeTimerTab(eventId) {
     return;
   }
 
+  endSignalService.cancel(eventId);
   workspace.removeEvent(eventId);
   applyActiveVisualSettings();
   renderTabs();
@@ -1030,7 +1109,7 @@ async function requestApplicationClose({
 
   workspace.save();
   workspace.destroy();
-  signalPlayer.stop();
+  endSignalService.cancelAll();
 
   try {
     await invoke('exit_application');
@@ -1082,6 +1161,7 @@ function refreshLocalizedContent() {
   applyTranslations();
   document.title = t('app.title');
   updateConfirmationDialog();
+  updateWhatsNewDialog();
   renderTabs();
   renderActiveTimer();
   void refreshTrayPreview({ force: true });
@@ -1147,6 +1227,7 @@ document.addEventListener('keydown', (event) => {
     || event.shiftKey
     || event.repeat
     || !confirmationDialogBackdrop.hidden
+    || !whatsNewDialogBackdrop.hidden
   ) {
     return;
   }
@@ -1324,6 +1405,43 @@ confirmationDialogBackdrop.addEventListener('keydown', (event) => {
   }
 });
 
+whatsNewDialogXButton.addEventListener('click', hideWhatsNew);
+whatsNewOkButton.addEventListener('click', hideWhatsNew);
+
+whatsNewDialogBackdrop.addEventListener('click', (event) => {
+  if (event.target === whatsNewDialogBackdrop) {
+    hideWhatsNew();
+  }
+});
+
+whatsNewDialogBackdrop.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    hideWhatsNew();
+    return;
+  }
+
+  if (event.key !== 'Tab') {
+    return;
+  }
+
+  const focusableElements = [
+    whatsNewDialogXButton,
+    whatsNewDontShowAgain,
+    whatsNewOkButton
+  ];
+  const currentIndex = focusableElements.indexOf(
+    document.activeElement
+  );
+  const direction = event.shiftKey ? -1 : 1;
+  const nextIndex = (
+    currentIndex + direction + focusableElements.length
+  ) % focusableElements.length;
+
+  event.preventDefault();
+  focusableElements[nextIndex].focus();
+});
+
 scrollTabsLeftButton.addEventListener('click', () => {
   timerTabList.scrollBy({
     left: -Math.max(80, timerTabList.clientWidth * 0.7),
@@ -1474,12 +1592,21 @@ window.addEventListener('storage', (event) => {
   ) {
     refreshStatusIcons();
   }
+
+  if (
+    event.key === AUDIO_PREFERENCES_STORAGE_KEY
+    && event.newValue
+  ) {
+    endSignalService.setAllowConcurrentSignals(
+      getAudioPreferences().allowConcurrentSignals
+    );
+  }
 });
 
 window.addEventListener('beforeunload', () => {
   workspace.save();
   workspace.destroy();
-  signalPlayer.stop();
+  endSignalService.cancelAll();
 });
 
 await appWindow.onCloseRequested((event) => {
@@ -1514,6 +1641,32 @@ await listen(VISUAL_PREVIEW_EVENT, (event) => {
   void refreshTrayPreview({ force: true });
 });
 
+await listen(SIGNAL_SETTINGS_EVENT, (event) => {
+  const { eventId, settings } = event.payload ?? {};
+
+  if (!workspace.getEvent(eventId)) {
+    return;
+  }
+
+  workspace.updateEventSettings(eventId, {
+    endSignal: normalizeSignalSettings(settings)
+  });
+});
+
+await listen(AUDIO_PREFERENCES_EVENT, (event) => {
+  const preferences = normalizeAudioPreferences(event.payload);
+
+  endSignalService.setAllowConcurrentSignals(
+    preferences.allowConcurrentSignals
+  );
+});
+
+await listen(WHATS_NEW_REQUEST_EVENT, async () => {
+  await appWindow.show();
+  await appWindow.setFocus();
+  showWhatsNew();
+});
+
 document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
@@ -1532,6 +1685,7 @@ refreshStatusIcons();
 void refreshTrayPreview({ force: true });
 focusInitialTimerControl();
 const availableUpdate = await checkForUpdates();
+let updateFlowStarted = false;
 
 if (availableUpdate) {
   const shouldUpdate = await requestConfirmation({
@@ -1543,6 +1697,7 @@ if (availableUpdate) {
   });
 
   if (shouldUpdate) {
+    updateFlowStarted = true;
     showUpdaterProgress('updater.downloading');
 
     try {
@@ -1576,4 +1731,8 @@ if (availableUpdate) {
       showUpdaterError();
     }
   }
+}
+
+if (!updateFlowStarted && shouldShowWhatsNew(WHATS_NEW_VERSION)) {
+  showWhatsNew();
 }

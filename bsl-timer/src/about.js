@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { emitTo } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
@@ -15,15 +16,19 @@ import {
   applyTheme
 } from './theme.js';
 import { prepareAuxiliaryWindow } from './window-position.js';
+import { WHATS_NEW_REQUEST_EVENT } from './whats-new.js';
 
 const appWindow = getCurrentWindow();
 const okButton = document.getElementById('about-ok-btn');
 const versionElement = document.getElementById('about-version');
 const editionElement = document.getElementById('about-edition');
-const links = Array.from(document.querySelectorAll('.about-link'));
+const whatsNewButton = document.getElementById('about-whats-new-btn');
+const links = Array.from(
+  document.querySelectorAll('.about-link[data-url]')
+);
 
 async function closeAboutWindow() {
-  await appWindow.close();
+  await appWindow.destroy();
 }
 
 async function openExternalUrl(url) {
@@ -50,6 +55,15 @@ links.forEach((link) => {
   link.addEventListener('click', () => {
     void openExternalUrl(link.dataset.url);
   });
+});
+
+whatsNewButton.addEventListener('click', async () => {
+  try {
+    await emitTo('main', WHATS_NEW_REQUEST_EVENT);
+    await closeAboutWindow();
+  } catch (error) {
+    console.error('Failed to open What’s New:', error);
+  }
 });
 
 okButton.addEventListener('click', () => {

@@ -12,7 +12,7 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager, PhysicalPosition,
+    Emitter, LogicalPosition, Manager, PhysicalPosition,
 };
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
@@ -620,23 +620,36 @@ fn update_taskbar_icon(
     }
 }
 
+fn auxiliary_window_position(
+    app: &tauri::AppHandle,
+    offset_x: f64,
+    offset_y: f64,
+) -> Option<LogicalPosition<f64>> {
+    let window = app.get_webview_window("main")?;
+    let scale_factor = window.scale_factor().ok()?;
+    let position = window
+        .outer_position()
+        .ok()?
+        .to_logical::<f64>(scale_factor);
+
+    Some(LogicalPosition::new(
+        position.x + offset_x,
+        position.y + offset_y,
+    ))
+}
+
 #[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
+        if let Some(position) = auxiliary_window_position(&app, 120.0, 120.0) {
+            let _ = window.set_position(position);
+        }
         let _ = window.show();
         let _ = window.set_focus();
         return Ok(());
     }
 
-    let settings_position = app.get_webview_window("main").and_then(|window| {
-        let scale_factor = window.scale_factor().ok()?;
-        let position = window
-            .outer_position()
-            .ok()?
-            .to_logical::<f64>(scale_factor);
-
-        Some((position.x + 120.0, position.y + 120.0))
-    });
+    let settings_position = auxiliary_window_position(&app, 120.0, 120.0);
 
     let mut builder = tauri::WebviewWindowBuilder::new(
         &app,
@@ -654,7 +667,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .prevent_overflow_with_margin(tauri::LogicalSize::new(30.0, 30.0));
 
     builder = match settings_position {
-        Some((x, y)) => builder.position(x, y),
+        Some(position) => builder.position(position.x, position.y),
         None => builder.center(),
     };
 
@@ -669,21 +682,16 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("about") {
+        if let Some(position) = auxiliary_window_position(&app, 60.0, 40.0) {
+            let _ = window.set_position(position);
+        }
         let _ = window.show();
         let _ = window.unminimize();
         let _ = window.set_focus();
         return Ok(());
     }
 
-    let about_position = app.get_webview_window("main").and_then(|window| {
-        let scale_factor = window.scale_factor().ok()?;
-        let position = window
-            .outer_position()
-            .ok()?
-            .to_logical::<f64>(scale_factor);
-
-        Some((position.x + 60.0, position.y + 40.0))
-    });
+    let about_position = auxiliary_window_position(&app, 60.0, 40.0);
 
     let mut builder = tauri::WebviewWindowBuilder::new(
         &app,
@@ -701,7 +709,7 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
     .prevent_overflow_with_margin(tauri::LogicalSize::new(20.0, 20.0));
 
     builder = match about_position {
-        Some((x, y)) => builder.position(x, y),
+        Some(position) => builder.position(position.x, position.y),
         None => builder.center(),
     };
 

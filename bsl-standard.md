@@ -128,6 +128,16 @@ dependency that makes this capability impractical to add later. In user-facing
 text, prefer **audio output device** over **sound card**, because the destination
 may be HDMI, USB, Bluetooth, or a virtual device.
 
+### Numeric input wheel direction
+
+Numeric fields that support mouse-wheel adjustment must use the same direction
+in every BSL-World desktop application. A positive vertical wheel movement
+(`deltaY > 0`) increases the value; the opposite movement decreases it.
+
+Wheel adjustment must only affect the field that currently has keyboard focus,
+must respect its step and minimum/maximum values, and must prevent the settings
+page itself from scrolling during that adjustment.
+
 ## Development workflow
 
 Work proceeds in this order:

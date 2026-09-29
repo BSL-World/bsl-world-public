@@ -131,26 +131,6 @@ export async function keepWindowInsideWorkArea(
   return safePosition;
 }
 
-export async function migrateLegacyWindowPosition(
-  appWindow,
-  storageKey
-) {
-  try {
-    const savedPosition = JSON.parse(localStorage.getItem(storageKey));
-
-    if (
-      Number.isFinite(savedPosition?.x)
-      && Number.isFinite(savedPosition?.y)
-    ) {
-      saveWindowPosition(appWindow, savedPosition);
-    }
-  } catch (error) {
-    console.error('Failed to migrate the saved window position:', error);
-  } finally {
-    localStorage.removeItem(storageKey);
-  }
-}
-
 export async function prepareWindowPosition(
   appWindow,
   margin = DEFAULT_WINDOW_MARGIN
@@ -173,7 +153,7 @@ export async function prepareAuxiliaryWindow(
   margin = DEFAULT_WINDOW_MARGIN
 ) {
   try {
-    await prepareWindowPosition(appWindow, margin);
+    await keepWindowInsideWorkArea(appWindow, margin);
   } catch (error) {
     console.error('Failed to keep the window inside the work area:', error);
   } finally {

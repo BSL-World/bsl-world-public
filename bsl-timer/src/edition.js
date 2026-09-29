@@ -7,10 +7,10 @@ const capabilities = Object.freeze({
   [Edition.FREE]: Object.freeze({
     maxTimers: 1,
     multipleTimers: false,
-    selectableSoundDevice: false,
-    systemSounds: false,
-    customSounds: false,
-    presets: false,
+    selectableSoundDevice: true,
+    systemSounds: true,
+    customSounds: true,
+    presets: true,
     themes: true
   }),
   [Edition.PRO]: Object.freeze({

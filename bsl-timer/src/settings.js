@@ -41,14 +41,28 @@ import {
   normalizeBehavior,
   saveBehavior
 } from './behavior.js';
+import { EndSignalService } from './end-signal-service.js';
 import {
-  migrateLegacyWindowPosition,
+  AUDIO_PREFERENCES_EVENT,
+  AUDIO_PREFERENCES_STORAGE_KEY,
+  audioPreferencesEqual,
+  getAudioPreferences,
+  normalizeAudioPreferences,
+  saveAudioPreferences
+} from './audio-preferences.js';
+import { getEventDisplayName } from './event-instance.js';
+import { SessionStore } from './session-store.js';
+import {
+  SIGNAL_SETTINGS_EVENT,
+  SignalRepeatMode,
+  normalizeSignalSettings,
+  signalSettingsEqual
+} from './signal-settings.js';
+import {
   prepareAuxiliaryWindow
 } from './window-position.js';
 
 const settingsWindow = getCurrentWindow();
-const LEGACY_SETTINGS_POSITION_STORAGE_KEY =
-  'bsl-timer.settings-window-position';
 const SETTINGS_WINDOW_MARGIN = 30;
 
 const languageSelect =
@@ -96,6 +110,36 @@ const closeButtonActionSelect =
 const startupTimerActionSelect =
   document.getElementById('startup-timer-action-select');
 
+const signalTimerName =
+  document.getElementById('signal-timer-name');
+
+const signalSourceSelect =
+  document.getElementById('signal-source-select');
+
+const signalRepeatModeSelect =
+  document.getElementById('signal-repeat-mode-select');
+
+const signalRepeatCountField =
+  document.getElementById('signal-repeat-count-field');
+
+const signalRepeatCountInput =
+  document.getElementById('signal-repeat-count-input');
+
+const signalRepeatDurationField =
+  document.getElementById('signal-repeat-duration-field');
+
+const signalRepeatDurationInput =
+  document.getElementById('signal-repeat-duration-input');
+
+const signalRepeatIntervalInput =
+  document.getElementById('signal-repeat-interval-input');
+
+const signalPreviewButton =
+  document.getElementById('signal-preview-btn');
+
+const allowConcurrentSignalsInput =
+  document.getElementById('allow-concurrent-signals-input');
+
 const okButton =
   document.getElementById('ok-settings-btn');
 
@@ -114,6 +158,29 @@ let committedAppearance = getAppearance();
 let pendingAppearance = { ...committedAppearance };
 let committedBehavior = getBehavior();
 let pendingBehavior = { ...committedBehavior };
+const sessionStore = new SessionStore();
+const settingsSession = sessionStore.load();
+const signalEvent = settingsSession.events.find(
+  ({ id }) => id === settingsSession.activeEventId
+) ?? settingsSession.events[0];
+const signalEventId = signalEvent?.id ?? null;
+let committedSignalSettings = normalizeSignalSettings(
+  signalEvent?.settings?.endSignal
+);
+let pendingSignalSettings = { ...committedSignalSettings };
+let committedAudioPreferences = getAudioPreferences();
+let pendingAudioPreferences = { ...committedAudioPreferences };
+const signalPreviewId = 'settings-preview';
+const signalPreviewService = new EndSignalService({
+  onComplete: (sequenceId) => {
+    if (sequenceId !== signalPreviewId) {
+      return;
+    }
+
+    signalPreviewButton.dataset.playing = 'false';
+    signalPreviewButton.textContent = t('settings.previewSignal');
+  }
+});
 let committedAutostartEnabled = false;
 let pendingAutostartEnabled = false;
 let autostartStateLoaded = false;
@@ -179,6 +246,76 @@ function updateBehaviorControls() {
     pendingBehavior.startupTimerAction;
 }
 
+function updateSignalControls() {
+  signalSourceSelect.value = pendingSignalSettings.source;
+  signalRepeatModeSelect.value = pendingSignalSettings.repeatMode;
+  signalRepeatCountInput.value = String(
+    pendingSignalSettings.repeatCount
+  );
+  signalRepeatDurationInput.value = String(
+    pendingSignalSettings.repeatDurationMs / 1000
+  );
+  signalRepeatIntervalInput.value = String(
+    pendingSignalSettings.repeatIntervalMs / 60_000
+  );
+
+  const usesCount = pendingSignalSettings.repeatMode
+    === SignalRepeatMode.COUNT;
+
+  signalRepeatCountField.hidden = !usesCount;
+  signalRepeatDurationField.hidden = usesCount;
+  allowConcurrentSignalsInput.checked =
+    pendingAudioPreferences.allowConcurrentSignals;
+}
+
+function readSignalControls() {
+  pendingSignalSettings = normalizeSignalSettings({
+    source: signalSourceSelect.value,
+    repeatMode: signalRepeatModeSelect.value,
+    repeatCount: signalRepeatCountInput.value,
+    repeatDurationMs: Number(signalRepeatDurationInput.value) * 1000,
+    repeatIntervalMs: Number(signalRepeatIntervalInput.value) * 60_000
+  });
+
+  updateSignalControls();
+  updateApplyButton();
+}
+
+function adjustSignalNumberInput(input, direction) {
+  const step = Number(input.step) || 1;
+  const minimum = input.min === ''
+    ? Number.NEGATIVE_INFINITY
+    : Number(input.min);
+  const maximum = input.max === ''
+    ? Number.POSITIVE_INFINITY
+    : Number(input.max);
+  const currentValue = Number(input.value);
+  const fallbackValue = Number.isFinite(minimum) ? minimum : 0;
+  const nextValue = Math.min(
+    maximum,
+    Math.max(
+      minimum,
+      (Number.isFinite(currentValue) ? currentValue : fallbackValue)
+        + direction * step
+    )
+  );
+  const decimalPlaces = input.step.includes('.')
+    ? input.step.split('.')[1].length
+    : 0;
+
+  input.value = decimalPlaces > 0
+    ? nextValue.toFixed(decimalPlaces)
+    : String(Math.round(nextValue));
+
+  readSignalControls();
+}
+
+function stopSignalPreview() {
+  signalPreviewService.cancel(signalPreviewId);
+  signalPreviewButton.dataset.playing = 'false';
+  signalPreviewButton.textContent = t('settings.previewSignal');
+}
+
 function setAutostartStatus(messageKey = null) {
   autostartStatus.hidden = messageKey === null;
   autostartStatus.textContent = messageKey ? t(messageKey) : '';
@@ -239,12 +376,30 @@ function updateApplyButton() {
       committedAppearance
     )
     && behaviorEquals(pendingBehavior, committedBehavior)
+    && signalSettingsEqual(
+      pendingSignalSettings,
+      committedSignalSettings
+    )
+    && audioPreferencesEqual(
+      pendingAudioPreferences,
+      committedAudioPreferences
+    )
     && autostartUnchanged;
 }
 
 async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
+  signalTimerName.textContent = getEventDisplayName(
+    signalEvent,
+    t('tabs.defaultName')
+  );
+
+  signalPreviewButton.textContent = signalPreviewService.isActive(
+    signalPreviewId
+  )
+    ? t('settings.stopPreview')
+    : t('settings.previewSignal');
 
   try {
     await settingsWindow.setTitle(t('settings.title'));
@@ -334,6 +489,29 @@ async function applyPendingSettings() {
   committedBehavior = saveBehavior(pendingBehavior);
   pendingBehavior = { ...committedBehavior };
 
+  if (signalEventId) {
+    committedSignalSettings = normalizeSignalSettings(
+      pendingSignalSettings
+    );
+    pendingSignalSettings = { ...committedSignalSettings };
+
+    await emitTo('main', SIGNAL_SETTINGS_EVENT, {
+      eventId: signalEventId,
+      settings: committedSignalSettings
+    });
+  }
+
+  committedAudioPreferences = saveAudioPreferences(
+    pendingAudioPreferences
+  );
+  pendingAudioPreferences = { ...committedAudioPreferences };
+
+  await emitTo(
+    'main',
+    AUDIO_PREFERENCES_EVENT,
+    committedAudioPreferences
+  );
+
   await emitAppearancePreview(committedAppearance);
 
   populateLanguageSelect();
@@ -341,6 +519,7 @@ async function applyPendingSettings() {
   updateVisualControls();
   updateAppearanceControls();
   updateBehaviorControls();
+  updateSignalControls();
   updateApplyButton();
   await updateInterface();
   return true;
@@ -352,6 +531,7 @@ async function closeSettings() {
   }
 
   isClosing = true;
+  signalPreviewService.cancelAll();
   await settingsWindow.destroy();
 }
 
@@ -449,6 +629,51 @@ startupTimerActionSelect.addEventListener('change', () => {
   updateApplyButton();
 });
 
+signalSourceSelect.addEventListener('change', readSignalControls);
+signalRepeatModeSelect.addEventListener('change', readSignalControls);
+signalRepeatCountInput.addEventListener('change', readSignalControls);
+signalRepeatDurationInput.addEventListener('change', readSignalControls);
+signalRepeatIntervalInput.addEventListener('change', readSignalControls);
+
+[
+  signalRepeatCountInput,
+  signalRepeatDurationInput,
+  signalRepeatIntervalInput
+].forEach((input) => {
+  input.addEventListener('wheel', (event) => {
+    if (document.activeElement !== input || event.deltaY === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    adjustSignalNumberInput(input, event.deltaY > 0 ? 1 : -1);
+  }, { passive: false });
+});
+
+allowConcurrentSignalsInput.addEventListener('change', () => {
+  pendingAudioPreferences = normalizeAudioPreferences({
+    ...pendingAudioPreferences,
+    allowConcurrentSignals: allowConcurrentSignalsInput.checked
+  });
+  updateApplyButton();
+});
+
+signalPreviewButton.addEventListener('click', () => {
+  if (signalPreviewService.isActive(signalPreviewId)) {
+    stopSignalPreview();
+    return;
+  }
+
+  readSignalControls();
+  signalPreviewService.start(signalPreviewId, pendingSignalSettings);
+  const previewIsActive = signalPreviewService.isActive(signalPreviewId);
+
+  signalPreviewButton.dataset.playing = String(previewIsActive);
+  signalPreviewButton.textContent = previewIsActive
+    ? t('settings.stopPreview')
+    : t('settings.previewSignal');
+});
+
 okButton.addEventListener('click', async () => {
   if (await applyPendingSettings()) {
     await closeSettings();
@@ -512,6 +737,14 @@ window.addEventListener('storage', async (event) => {
     updateBehaviorControls();
     updateApplyButton();
   }
+
+  if (event.key === AUDIO_PREFERENCES_STORAGE_KEY) {
+    committedAudioPreferences = getAudioPreferences();
+    pendingAudioPreferences = { ...committedAudioPreferences };
+
+    updateSignalControls();
+    updateApplyButton();
+  }
 });
 
 applyTheme();
@@ -521,13 +754,10 @@ populateThemeSelect();
 updateVisualControls();
 updateAppearanceControls();
 updateBehaviorControls();
+updateSignalControls();
 updateApplyButton();
 await updateInterface();
 await loadAutostartState();
-await migrateLegacyWindowPosition(
-  settingsWindow,
-  LEGACY_SETTINGS_POSITION_STORAGE_KEY
-);
 await prepareAuxiliaryWindow(
   settingsWindow,
   SETTINGS_WINDOW_MARGIN

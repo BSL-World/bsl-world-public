@@ -2,10 +2,16 @@
 
 [Russian version](end-signal-plan.ru.md)
 
-## Target
+## Status
 
-The expanded end-of-countdown signal subsystem is planned for BSL-Timer 0.8.0.
-The focused About-window corrections remain planned for the 0.7.3 patch release.
+BSL-Timer 0.8.0 delivers the first production stage of the expanded
+end-of-countdown signal subsystem: per-timer repeat settings, repeat-by-count
+and repeat-by-duration modes, minute-based start-to-start intervals, live
+preview, and application-wide simultaneous or queued playback.
+
+Sound-source selection and explicit audio output device selection remain
+planned follow-up work. The About window can still open on the primary monitor
+in some multi-monitor layouts and is tracked as a non-blocking known issue.
 
 ## Required user controls
 

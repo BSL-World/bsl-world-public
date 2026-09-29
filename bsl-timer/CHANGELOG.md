@@ -9,15 +9,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Planned
 
-- For 0.7.3, correct the author name order in the About window to `Vasilyev Alexander`.
-- For 0.7.3, activate and focus the About window when it opens, positioning it beside the main window when possible.
+- Allow selecting the signal from built-in BSL-World sounds, Windows system sounds, or a user file chosen with the native file picker.
+- Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
+- Play custom sounds from their original files with bundled-signal fallback when a file is unavailable.
 - Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
-- For 0.8.0, add a configurable number of end-of-countdown signal plays and a configurable interval between them.
-- For 0.8.0, allow selecting the signal from built-in BSL-World sounds, Windows system sounds, or a user file chosen with the native file picker.
-- For 0.8.0, add signal preview and explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
-- Store repetition and signal-source settings per timer, keep the output device application-wide, and provide repeat-count and repeat-duration modes with intervals measured between playback start times.
-- Play custom sounds from their original files with bundled-signal fallback when a file is unavailable, and make concurrent signals from different timers user-configurable.
-- Make every feature, including sound settings and presets, available in both editions; Pro differs from Free only by allowing more than one timer tab.
+
+## [0.8.0] - 2026-09-29
+
+### Added
+
+- Added per-timer end-signal settings with repeat-count and repeat-duration modes.
+- Added configurable start-to-start intervals between signal playbacks.
+- Added live signal preview from the Settings window.
+- Added application-wide control for simultaneous or queued signals from different timers.
+- Added a localized What’s New dialog that can be dismissed separately for each release and reopened from the About window.
+
+### Changed
+
+- Aligned edition capability flags so sound settings, sound sources, output-device selection, and presets are not restricted to Pro; multiple timer tabs remain the only Pro-only capability.
+- Reworked the end-signal path into separate settings, scheduling, playback, and orchestration components so future sound sources and output-device selection can use the same pipeline.
+- Standardized mouse-wheel adjustment so downward wheel movement increases focused numeric fields while normal page scrolling remains available outside them.
+
+### Fixed
+
+- Corrected the English author name in the About window to `Vasilyev Alexander`.
+
+### Known issues
+
+- On some multi-monitor layouts, the About window can still open on the primary monitor while the main BSL-Timer window is on another monitor.
 
 ## [0.7.2] - 2026-09-24
 

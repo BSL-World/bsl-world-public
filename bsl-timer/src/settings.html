@@ -118,6 +118,51 @@
                     <option value="reset" data-i18n="settings.startupReset"></option>
                 </select>
             </section>
+
+            <section class="settings-card signal-settings-card">
+                <h2 data-i18n="settings.endSignal"></h2>
+
+                <p class="settings-card-note">
+                    <span data-i18n="settings.signalForTimer"></span>
+                    <strong id="signal-timer-name"></strong>
+                </p>
+
+                <label for="signal-source-select" data-i18n="settings.signalSource"></label>
+
+                <select id="signal-source-select">
+                    <option value="default" data-i18n="settings.signalBuiltIn"></option>
+                </select>
+
+                <label for="signal-repeat-mode-select" data-i18n="settings.repeatMode"></label>
+
+                <select id="signal-repeat-mode-select">
+                    <option value="count" data-i18n="settings.repeatByCount"></option>
+                    <option value="duration" data-i18n="settings.repeatByDuration"></option>
+                </select>
+
+                <label id="signal-repeat-count-field" class="number-setting">
+                    <span data-i18n="settings.additionalRepeats"></span>
+                    <input id="signal-repeat-count-input" type="number" min="0" step="1" inputmode="numeric">
+                </label>
+
+                <label id="signal-repeat-duration-field" class="number-setting">
+                    <span data-i18n="settings.repeatDuration"></span>
+                    <input id="signal-repeat-duration-input" type="number" min="0.1" step="0.1" inputmode="decimal">
+                </label>
+
+                <label class="number-setting">
+                    <span data-i18n="settings.repeatInterval"></span>
+                    <input id="signal-repeat-interval-input" type="number" min="1" step="1" inputmode="numeric">
+                </label>
+
+                <label class="checkbox-setting">
+                    <input id="allow-concurrent-signals-input" type="checkbox">
+                    <span data-i18n="settings.allowConcurrentSignals"></span>
+                </label>
+
+                <button id="signal-preview-btn" class="control-button signal-preview-button" type="button"
+                    data-i18n="settings.previewSignal"></button>
+            </section>
         </div>
 
         <footer class="settings-footer">

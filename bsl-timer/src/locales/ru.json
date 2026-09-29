@@ -63,6 +63,19 @@
     "startupAsk": "Спрашивать",
     "startupResume": "Восстанавливать автоматически",
     "startupReset": "Сбрасывать автоматически",
+    "endSignal": "Сигнал окончания отсчёта",
+    "signalForTimer": "Настройки для:",
+    "signalSource": "Сигнал",
+    "signalBuiltIn": "Встроенный сигнал BSL-Timer",
+    "repeatMode": "Режим повторения",
+    "repeatByCount": "Количество повторов",
+    "repeatByDuration": "Повторять в течение времени",
+    "additionalRepeats": "Дополнительных повторов после первого сигнала",
+    "repeatDuration": "Продолжительность повторения (секунды)",
+    "repeatInterval": "Интервал между сигналами (минуты)",
+    "allowConcurrentSignals": "Разрешать одновременное воспроизведение сигналов разных таймеров",
+    "previewSignal": "Прослушать",
+    "stopPreview": "Остановить",
     "ok": "Ok",
     "apply": "Применить",
     "cancel": "Отмена",
@@ -100,7 +113,17 @@
     "authorSuffix": ". BSL-Timer создан для повседневных задач в сотрудничестве с искусственным интеллектом.",
     "gitverse": "GitVerse",
     "github": "GitHub",
-    "productPage": "Страница BSL-Timer"
+    "productPage": "Страница BSL-Timer",
+    "whatsNew": "Что нового"
+  },
+  "whatsNew": {
+    "title": "Что нового в BSL-Timer {version}",
+    "perTimerSettings": "Отдельные настройки сигнала для каждого таймера.",
+    "repeatModes": "Повтор по количеству или в течение заданного времени.",
+    "repeatInterval": "Настраиваемый интервал между сигналами в минутах.",
+    "preview": "Прослушивание сигнала прямо из настроек.",
+    "concurrentSignals": "Одновременные или последовательные сигналы разных таймеров.",
+    "dontShowAgain": "Больше не показывать для этой версии"
   },
   "updater": {
     "title": "Доступно обновление",

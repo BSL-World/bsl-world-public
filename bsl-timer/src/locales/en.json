@@ -63,6 +63,19 @@
     "startupAsk": "Ask",
     "startupResume": "Restore automatically",
     "startupReset": "Reset automatically",
+    "endSignal": "End signal",
+    "signalForTimer": "Settings for:",
+    "signalSource": "Signal",
+    "signalBuiltIn": "Built-in BSL-Timer signal",
+    "repeatMode": "Repeat mode",
+    "repeatByCount": "Number of repeats",
+    "repeatByDuration": "Repeat for a duration",
+    "additionalRepeats": "Additional repeats after the first signal",
+    "repeatDuration": "Repeat duration (seconds)",
+    "repeatInterval": "Interval between signals (minutes)",
+    "allowConcurrentSignals": "Allow signals from different timers to play simultaneously",
+    "previewSignal": "Preview",
+    "stopPreview": "Stop preview",
     "ok": "Ok",
     "apply": "Apply",
     "cancel": "Cancel",
@@ -96,11 +109,21 @@
   "about": {
     "windowTitle": "About BSL-Timer",
     "version": "Version",
-    "authorPrefix": "Alexander Vasiliev is a systems engineer and creator of ",
+    "authorPrefix": "Vasilyev Alexander is a systems engineer and creator of ",
     "authorSuffix": ". BSL-Timer was created for everyday tasks in collaboration with artificial intelligence.",
     "gitverse": "GitVerse",
     "github": "GitHub",
-    "productPage": "BSL-Timer page"
+    "productPage": "BSL-Timer page",
+    "whatsNew": "What’s New"
+  },
+  "whatsNew": {
+    "title": "What’s New in BSL-Timer {version}",
+    "perTimerSettings": "Separate end-signal settings for each timer.",
+    "repeatModes": "Repeat by count or for a selected duration.",
+    "repeatInterval": "Configurable interval between signals in minutes.",
+    "preview": "Preview the signal directly from Settings.",
+    "concurrentSignals": "Play signals from different timers simultaneously or in sequence.",
+    "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {
     "title": "Update available",
