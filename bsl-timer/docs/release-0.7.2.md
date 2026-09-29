@@ -94,12 +94,14 @@ preview; and explicit audio output device selection. Output-device selection is
 lower in implementation priority but remains a mandatory product requirement
 and a cross-product BSL-World desktop standard.
 
-The approved design stores signal settings per timer and provides two repetition
-modes: a number of additional repeats after the first signal, or a time period
-during which repeats continue. Intervals are measured between playback start
-times. User files are played from their original locations with a bundled-signal
-fallback when unavailable. Concurrent signals from different timers are
-allowed by default and can be disabled, in which case signals are queued.
+The approved design stores repetition and signal-source settings per timer while
+using one application-wide output device for all timers. It provides two
+repetition modes: a number of additional repeats after the first signal, or a
+time period during which repeats continue. Intervals are measured between
+playback start times. User files are played from their original locations with
+a bundled-signal fallback when unavailable. Concurrent signals from different
+timers are allowed by default and can be disabled, in which case signals are
+queued.
 
 Every feature, including sound settings and presets, is available in both Free
 and Pro. The only functional Pro distinction is the ability to create more than

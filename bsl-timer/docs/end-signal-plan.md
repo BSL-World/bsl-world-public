@@ -16,7 +16,8 @@ The focused About-window corrections remain planned for the 0.7.3 patch release.
   - a bundled BSL-World sound collection that works offline;
   - Windows system sounds;
   - a user audio file selected through the native Windows file picker.
-- Audio output device, including an explicit Windows default option.
+- One application-wide audio output device, including an explicit Windows
+  default option.
 - A Test or Preview action that uses the pending sound and output-device choices.
 
 ## Output-device behavior
@@ -24,6 +25,10 @@ The focused About-window corrections remain planned for the 0.7.3 patch release.
 Output-device selection has lower implementation priority than repeat and sound
 selection, but it is mandatory. The audio architecture must support it from the
 start rather than binding playback permanently to the current default device.
+
+The output device is an application-wide BSL-Timer setting. Every timer routes
+audio to the same selected device. Per-tab device selection is not part of the
+planned interface.
 
 The selected device should be persisted by a stable identifier where Windows
 provides one. If it is disconnected or missing, BSL-Timer must fall back safely
@@ -71,8 +76,9 @@ supported source to the selected output device consistently.
    sequence in memory.
 3. The interval is measured from the start of one playback to the start of the
    next. A long file may therefore overlap with another instance of itself.
-4. Signal settings are stored separately for each timer, including repetition,
-   source, and output-device choices.
+4. Repetition settings and the signal source are stored separately for each
+   timer. The output device is an application-wide BSL-Timer setting used by all
+   timers.
 5. A custom file is played from its original location and is not copied into
    application data. If it is missing, playback falls back to a bundled signal;
    the exact fallback sound will be selected separately.

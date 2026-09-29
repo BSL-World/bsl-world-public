@@ -15,7 +15,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - For 0.8.0, add a configurable number of end-of-countdown signal plays and a configurable interval between them.
 - For 0.8.0, allow selecting the signal from built-in BSL-World sounds, Windows system sounds, or a user file chosen with the native file picker.
 - For 0.8.0, add signal preview and explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
-- Store signal settings per timer and provide repeat-count and repeat-duration modes, with intervals measured between playback start times.
+- Store repetition and signal-source settings per timer, keep the output device application-wide, and provide repeat-count and repeat-duration modes with intervals measured between playback start times.
 - Play custom sounds from their original files with bundled-signal fallback when a file is unavailable, and make concurrent signals from different timers user-configurable.
 - Make every feature, including sound settings and presets, available in both editions; Pro differs from Free only by allowing more than one timer tab.
 
