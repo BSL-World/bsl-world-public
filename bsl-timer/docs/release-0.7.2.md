@@ -85,7 +85,24 @@ Two product stages remain:
 1. redraw the raster master icon as vector artwork in Inkscape using Bézier
    paths, producing clean boundaries and reliable exports for icon sizes down to
    64x64;
-2. implement the final planned feature after its requirements are described.
+2. implement the expanded end-of-countdown signal subsystem planned for 0.8.0.
 
-The second feature is intentionally not specified here; no behavior or scope
-should be inferred before the product requirement is provided.
+The signal subsystem must provide a configurable number of signal plays and an
+interval between them; selection among built-in BSL-World sounds, Windows
+system sounds, and a user file chosen with the native file picker; sound
+preview; and explicit audio output device selection. Output-device selection is
+lower in implementation priority but remains a mandatory product requirement
+and a cross-product BSL-World desktop standard.
+
+The approved design stores signal settings per timer and provides two repetition
+modes: a number of additional repeats after the first signal, or a time period
+during which repeats continue. Intervals are measured between playback start
+times. User files are played from their original locations with a bundled-signal
+fallback when unavailable. Concurrent signals from different timers are
+allowed by default and can be disabled, in which case signals are queued.
+
+Every feature, including sound settings and presets, is available in both Free
+and Pro. The only functional Pro distinction is the ability to create more than
+one timer tab; Free remains limited to one tab. Exact interval defaults, the
+guaranteed base-format list, and the bundled fallback sound remain
+implementation details to finalize.

@@ -103,6 +103,31 @@ The following requirements are mandatory for every BSL-World Windows application
 - Before publishing a release, validate the real update path from the previous public version to the new version using production artifacts.
 - Update metadata and downloadable artifacts must use the approved BSL-World download infrastructure.
 
+### Audio output
+
+Every BSL-World desktop application that produces user-facing sound must be
+designed for explicit audio output device selection.
+
+- The audio layer must not be permanently coupled to the operating system's
+  current default output device.
+- The architecture must support enumerating available output devices, selecting
+  one, and persisting that choice by a stable device identifier where the
+  platform provides one.
+- Settings must include an explicit system-default option.
+- If a saved device is disconnected or no longer available, the application
+  must fall back safely to the system default and inform the user without
+  preventing the primary application function from continuing.
+- Device lists must be refreshed when the relevant settings interface opens and
+  after the operating system reports a device-topology change, where practical.
+- A Test or Preview action must use the currently selected device before the
+  setting is committed.
+
+The user interface for selecting a device may be scheduled after more important
+product work, but new audio implementations must not introduce an architectural
+dependency that makes this capability impractical to add later. In user-facing
+text, prefer **audio output device** over **sound card**, because the destination
+may be HDMI, USB, Bluetooth, or a virtual device.
+
 ## Development workflow
 
 Work proceeds in this order:
@@ -245,4 +270,3 @@ The font file must be distributed locally with the product. The interface must n
 Mission:
 
 > Make any countdown — from a few seconds to decades — simple, clear, beautiful, and reliable.
-
