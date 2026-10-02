@@ -19,6 +19,7 @@ import {
 
 import { TimerWorkspace } from './timer-workspace.js';
 import { EndSignalService } from './end-signal-service.js';
+import { SignalPlayer } from './signal.js';
 import {
   SIGNAL_SETTINGS_EVENT,
   normalizeSignalSettings
@@ -60,10 +61,7 @@ import {
   normalizeAudioPreferences
 } from './audio-preferences.js';
 import {
-  WHATS_NEW_REQUEST_EVENT,
   WHATS_NEW_VERSION,
-  allowWhatsNewAgain,
-  dismissWhatsNew,
   shouldShowWhatsNew
 } from './whats-new.js';
 
@@ -76,6 +74,11 @@ try {
 }
 
 const endSignalService = new EndSignalService({
+  player: new SignalPlayer({
+    onFileError: () => {
+      showTabNotice(t('timer.signalFileUnavailable'));
+    }
+  }),
   allowConcurrentSignals: getAudioPreferences().allowConcurrentSignals
 });
 
@@ -115,17 +118,6 @@ const confirmationSecondaryButton =
 const confirmationPrimaryButton =
   document.getElementById('confirmation-primary-btn');
 
-const whatsNewDialogBackdrop =
-  document.getElementById('whats-new-dialog-backdrop');
-const whatsNewDialogTitle =
-  document.getElementById('whats-new-dialog-title');
-const whatsNewDialogXButton =
-  document.getElementById('whats-new-dialog-x-btn');
-const whatsNewDontShowAgain =
-  document.getElementById('whats-new-dont-show-again');
-const whatsNewOkButton =
-  document.getElementById('whats-new-ok-btn');
-
 const alwaysOnTopButton =
   document.getElementById('always-on-top-btn');
 
@@ -138,7 +130,6 @@ let confirmationConfig = null;
 let confirmationPreviousFocus = null;
 let updaterDialogMode = null;
 let isClosingApplication = false;
-let whatsNewPreviousFocus = null;
 let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
@@ -972,46 +963,12 @@ function hideUpdaterDialog() {
   requestAnimationFrame(focusActiveTimerControl);
 }
 
-function updateWhatsNewDialog() {
-  whatsNewDialogTitle.textContent = formatTranslation(
-    'whatsNew.title',
-    { version: WHATS_NEW_VERSION }
-  );
-}
-
-function showWhatsNew() {
-  if (!whatsNewDialogBackdrop.hidden) {
-    return;
+async function openWhatsNewWindow() {
+  try {
+    await invoke('open_whats_new_window');
+  } catch (error) {
+    console.error('Failed to open What’s New:', error);
   }
-
-  whatsNewPreviousFocus = document.activeElement;
-  whatsNewDontShowAgain.checked = !shouldShowWhatsNew(
-    WHATS_NEW_VERSION
-  );
-  updateWhatsNewDialog();
-  whatsNewDialogBackdrop.hidden = false;
-
-  requestAnimationFrame(() => {
-    whatsNewOkButton.focus();
-  });
-}
-
-function hideWhatsNew() {
-  if (whatsNewDialogBackdrop.hidden) {
-    return;
-  }
-
-  if (whatsNewDontShowAgain.checked) {
-    dismissWhatsNew(WHATS_NEW_VERSION);
-  } else {
-    allowWhatsNewAgain(WHATS_NEW_VERSION);
-  }
-
-  const previousFocus = whatsNewPreviousFocus;
-
-  whatsNewPreviousFocus = null;
-  whatsNewDialogBackdrop.hidden = true;
-  previousFocus?.focus();
 }
 
 async function closeTimerTab(eventId) {
@@ -1161,7 +1118,6 @@ function refreshLocalizedContent() {
   applyTranslations();
   document.title = t('app.title');
   updateConfirmationDialog();
-  updateWhatsNewDialog();
   renderTabs();
   renderActiveTimer();
   void refreshTrayPreview({ force: true });
@@ -1227,7 +1183,6 @@ document.addEventListener('keydown', (event) => {
     || event.shiftKey
     || event.repeat
     || !confirmationDialogBackdrop.hidden
-    || !whatsNewDialogBackdrop.hidden
   ) {
     return;
   }
@@ -1403,43 +1358,6 @@ confirmationDialogBackdrop.addEventListener('keydown', (event) => {
       activeElement.click();
     }
   }
-});
-
-whatsNewDialogXButton.addEventListener('click', hideWhatsNew);
-whatsNewOkButton.addEventListener('click', hideWhatsNew);
-
-whatsNewDialogBackdrop.addEventListener('click', (event) => {
-  if (event.target === whatsNewDialogBackdrop) {
-    hideWhatsNew();
-  }
-});
-
-whatsNewDialogBackdrop.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') {
-    event.preventDefault();
-    hideWhatsNew();
-    return;
-  }
-
-  if (event.key !== 'Tab') {
-    return;
-  }
-
-  const focusableElements = [
-    whatsNewDialogXButton,
-    whatsNewDontShowAgain,
-    whatsNewOkButton
-  ];
-  const currentIndex = focusableElements.indexOf(
-    document.activeElement
-  );
-  const direction = event.shiftKey ? -1 : 1;
-  const nextIndex = (
-    currentIndex + direction + focusableElements.length
-  ) % focusableElements.length;
-
-  event.preventDefault();
-  focusableElements[nextIndex].focus();
 });
 
 scrollTabsLeftButton.addEventListener('click', () => {
@@ -1661,12 +1579,6 @@ await listen(AUDIO_PREFERENCES_EVENT, (event) => {
   );
 });
 
-await listen(WHATS_NEW_REQUEST_EVENT, async () => {
-  await appWindow.show();
-  await appWindow.setFocus();
-  showWhatsNew();
-});
-
 document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
@@ -1734,5 +1646,5 @@ if (availableUpdate) {
 }
 
 if (!updateFlowStarted && shouldShowWhatsNew(WHATS_NEW_VERSION)) {
-  showWhatsNew();
+  await openWhatsNewWindow();
 }

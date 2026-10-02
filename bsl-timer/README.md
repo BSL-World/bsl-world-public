@@ -67,7 +67,9 @@ repeats, signal preview, and simultaneous or queued playback for different
 timers.
 
 Development continues with user-interface improvements and additional countdown
-features.
+features. The current development version adds Windows system sounds and user
+audio files, simplifies signal repetition to a repeat count, and moves What’s
+New into a normal resizable window.
 
 ### Resolved Windows taskbar issue
 

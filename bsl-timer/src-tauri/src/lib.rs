@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use std::{
     ffi::OsStr,
+    path::Path,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc, Mutex,
@@ -17,6 +18,89 @@ use tauri::{
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AudioFileEntry {
+    name: String,
+    path: String,
+}
+
+const SUPPORTED_AUDIO_EXTENSIONS: [&str; 10] = [
+    "wav", "mp3", "m4a", "aac", "ogg", "oga", "opus", "flac", "webm", "wma",
+];
+
+fn is_supported_audio_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(OsStr::to_str)
+        .map(|extension| {
+            SUPPORTED_AUDIO_EXTENSIONS
+                .iter()
+                .any(|supported| extension.eq_ignore_ascii_case(supported))
+        })
+        .unwrap_or(false)
+}
+
+#[tauri::command]
+fn list_windows_sounds() -> Result<Vec<AudioFileEntry>, String> {
+    #[cfg(target_os = "windows")]
+    {
+        let windows_directory = std::env::var_os("WINDIR")
+            .ok_or_else(|| "The Windows directory is unavailable".to_string())?;
+        let media_directory = Path::new(&windows_directory).join("Media");
+        let entries = std::fs::read_dir(&media_directory).map_err(|error| {
+            format!(
+                "Failed to read {}: {error}",
+                media_directory.display()
+            )
+        })?;
+        let mut sounds = entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_file() && is_supported_audio_path(path))
+            .map(|path| AudioFileEntry {
+                name: path
+                    .file_stem()
+                    .and_then(OsStr::to_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                path: path.to_string_lossy().into_owned(),
+            })
+            .collect::<Vec<_>>();
+
+        sounds.sort_by_key(|sound| sound.name.to_lowercase());
+        Ok(sounds)
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(Vec::new())
+    }
+}
+
+#[tauri::command]
+fn read_audio_file(path: String) -> Result<tauri::ipc::Response, String> {
+    let audio_path = Path::new(&path);
+
+    if !is_supported_audio_path(audio_path) {
+        return Err("Unsupported audio file format".to_string());
+    }
+
+    if !audio_path.is_file() {
+        return Err("The selected audio file does not exist".to_string());
+    }
+
+    std::fs::read(audio_path)
+        .map(tauri::ipc::Response::new)
+        .map_err(|error| format!("Failed to read the selected audio file: {error}"))
+}
+
+#[tauri::command]
+fn audio_file_exists(path: String) -> bool {
+    let audio_path = Path::new(&path);
+
+    is_supported_audio_path(audio_path) && audio_path.is_file()
+}
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
@@ -699,7 +783,7 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
         tauri::WebviewUrl::App("about.html".into()),
     )
     .title("About BSL-Timer")
-    .inner_size(360.0, 285.0)
+    .inner_size(360.0, 335.0)
     .resizable(false)
     .visible(false)
     .focused(false)
@@ -709,6 +793,47 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
     .prevent_overflow_with_margin(tauri::LogicalSize::new(20.0, 20.0));
 
     builder = match about_position {
+        Some(position) => builder.position(position.x, position.y),
+        None => builder.center(),
+    };
+
+    builder
+        .build()
+        .map(|_| ())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+async fn open_whats_new_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("whats-new") {
+        if let Some(position) = auxiliary_window_position(&app, 80.0, 60.0) {
+            let _ = window.set_position(position);
+        }
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+        return Ok(());
+    }
+
+    let whats_new_position = auxiliary_window_position(&app, 80.0, 60.0);
+
+    let mut builder = tauri::WebviewWindowBuilder::new(
+        &app,
+        "whats-new",
+        tauri::WebviewUrl::App("whats-new.html".into()),
+    )
+    .title("What’s New in BSL-Timer")
+    .inner_size(430.0, 380.0)
+    .min_inner_size(390.0, 320.0)
+    .resizable(true)
+    .visible(false)
+    .focused(false)
+    .decorations(true)
+    .skip_taskbar(false)
+    .always_on_top(false)
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(20.0, 20.0));
+
+    builder = match whats_new_position {
         Some(position) => builder.position(position.x, position.y),
         None => builder.center(),
     };
@@ -756,20 +881,25 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_window_state::Builder::default()
                 .with_state_flags(StateFlags::POSITION)
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
+            audio_file_exists,
             greet,
             close_about_window,
             close_settings_window,
             exit_application,
             get_app_version,
             is_autostart_enabled,
+            list_windows_sounds,
             open_about_window,
             open_settings_window,
+            open_whats_new_window,
+            read_audio_file,
             set_autostart_enabled,
             set_main_window_transparency,
             update_taskbar_icon,

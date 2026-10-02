@@ -131,23 +131,30 @@
 
                 <select id="signal-source-select">
                     <option value="default" data-i18n="settings.signalBuiltIn"></option>
+                    <option value="windows" data-i18n="settings.signalWindows"></option>
+                    <option value="custom" data-i18n="settings.signalCustom"></option>
                 </select>
 
-                <label for="signal-repeat-mode-select" data-i18n="settings.repeatMode"></label>
+                <div id="windows-sound-controls" class="signal-source-controls" hidden>
+                    <label for="windows-sound-select" data-i18n="settings.windowsSound"></label>
+                    <select id="windows-sound-select"></select>
+                </div>
 
-                <select id="signal-repeat-mode-select">
-                    <option value="count" data-i18n="settings.repeatByCount"></option>
-                    <option value="duration" data-i18n="settings.repeatByDuration"></option>
-                </select>
+                <div id="custom-sound-controls" class="signal-source-controls" hidden>
+                    <span class="signal-source-label" data-i18n="settings.customSoundFile"></span>
+
+                    <div class="custom-sound-picker">
+                        <button id="choose-custom-sound-btn" class="control-button" type="button"
+                            data-i18n="settings.chooseAudioFile"></button>
+                        <span id="custom-sound-file-name" class="custom-sound-file-name"></span>
+                    </div>
+                </div>
+
+                <p id="signal-source-status" class="settings-status" hidden></p>
 
                 <label id="signal-repeat-count-field" class="number-setting">
                     <span data-i18n="settings.additionalRepeats"></span>
                     <input id="signal-repeat-count-input" type="number" min="0" step="1" inputmode="numeric">
-                </label>
-
-                <label id="signal-repeat-duration-field" class="number-setting">
-                    <span data-i18n="settings.repeatDuration"></span>
-                    <input id="signal-repeat-duration-input" type="number" min="0.1" step="0.1" inputmode="decimal">
                 </label>
 
                 <label class="number-setting">

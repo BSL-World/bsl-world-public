@@ -1,7 +1,4 @@
-import {
-  SignalRepeatMode,
-  normalizeSignalSettings
-} from './signal-settings.js';
+import { normalizeSignalSettings } from './signal-settings.js';
 
 export class SignalScheduler {
   constructor({
@@ -69,12 +66,7 @@ export class SignalScheduler {
   shouldScheduleNext(sequence) {
     const { settings, playbackCount } = sequence;
 
-    if (settings.repeatMode === SignalRepeatMode.COUNT) {
-      return playbackCount <= settings.repeatCount;
-    }
-
-    return playbackCount * settings.repeatIntervalMs
-      <= settings.repeatDurationMs;
+    return playbackCount <= settings.repeatCount;
   }
 
   run(sequence) {

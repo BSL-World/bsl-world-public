@@ -18,6 +18,10 @@ const trayPreviewEntry = fileURLToPath(
   new URL('./src/tray-preview.html', import.meta.url)
 );
 
+const whatsNewEntry = fileURLToPath(
+  new URL('./src/whats-new.html', import.meta.url)
+);
+
 export default defineConfig({
   root: 'src',
   build: {
@@ -28,7 +32,8 @@ export default defineConfig({
         main: mainEntry,
         settings: settingsEntry,
         about: aboutEntry,
-        trayPreview: trayPreviewEntry
+        trayPreview: trayPreviewEntry,
+        whatsNew: whatsNewEntry
       }
     }
   }

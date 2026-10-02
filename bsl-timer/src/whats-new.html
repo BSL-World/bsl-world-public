@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What’s New in BSL-Timer</title>
+    <script>
+        document.documentElement.dataset.theme =
+            localStorage.getItem('bsl-timer.theme') || 'green';
+        document.documentElement.dataset.glow =
+            localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
+    </script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body class="whats-new-window-body">
+    <main class="whats-new-page">
+        <h1 id="whats-new-title"></h1>
+
+        <ul class="whats-new-list">
+            <li data-i18n="whatsNew.perTimerSettings"></li>
+            <li data-i18n="whatsNew.repeatModes"></li>
+            <li data-i18n="whatsNew.repeatInterval"></li>
+            <li data-i18n="whatsNew.preview"></li>
+            <li data-i18n="whatsNew.concurrentSignals"></li>
+        </ul>
+
+        <label class="whats-new-dismiss-option">
+            <input id="whats-new-dont-show-again" type="checkbox">
+            <span data-i18n="whatsNew.dontShowAgain"></span>
+        </label>
+
+        <footer class="whats-new-window-footer">
+            <button id="whats-new-close-btn" class="control-button primary-button" type="button"
+                data-i18n="window.ok"></button>
+        </footer>
+    </main>
+
+    <script type="module" src="/whats-new-window.js"></script>
+</body>
+
+</html>

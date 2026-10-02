@@ -4,14 +4,17 @@
 
 ## Status
 
-BSL-Timer 0.8.0 delivers the first production stage of the expanded
-end-of-countdown signal subsystem: per-timer repeat settings, repeat-by-count
-and repeat-by-duration modes, minute-based start-to-start intervals, live
-preview, and application-wide simultaneous or queued playback.
+BSL-Timer 0.8.0 delivered the first production stage of the expanded
+end-of-countdown signal subsystem. The current development version simplifies
+repetition to a number of additional repeats, retains minute-based
+start-to-start intervals, and adds Windows system sounds and user audio files.
+Live preview and application-wide simultaneous or queued playback remain
+available.
 
-Sound-source selection and explicit audio output device selection remain
-planned follow-up work. The About window can still open on the primary monitor
-in some multi-monitor layouts and is tracked as a non-blocking known issue.
+An original BSL-World sound collection is postponed until production time is
+available. Explicit audio output device selection remains mandatory follow-up
+work. The About window can still open on the primary monitor in some
+multi-monitor layouts and is tracked as a non-blocking known issue.
 
 ## Required user controls
 
@@ -19,7 +22,6 @@ in some multi-monitor layouts and is tracked as a non-blocking known issue.
 - Interval between signal plays.
 - Signal source:
   - the existing default signal;
-  - a bundled BSL-World sound collection that works offline;
   - Windows system sounds;
   - a user audio file selected through the native Windows file picker.
 - One application-wide audio output device, including an explicit Windows
@@ -44,12 +46,12 @@ change where practical.
 
 ## Sound-source behavior
 
-Bundled BSL-World sounds must remain available offline. Windows system sounds
-must be presented with user-readable names. A custom file must be selected with
-the native picker, validated before it is saved, and previewable. An invalid or
-unavailable custom file must not prevent the timer from completing or entering
-the overdue state; playback falls back safely and the failure is shown to the
-user.
+Windows system sounds are discovered from the Windows Media directory and are
+presented with user-readable names. A custom file is selected with the native
+picker, retained at its original path, and previewable. An invalid or
+unavailable file does not prevent the timer from completing or entering the
+overdue state; playback falls back to the existing built-in BSL-Timer signal
+and the failure is shown to the user.
 
 Creating an original BSL-World sound collection, whether with Suno or another
 production tool, is a content-production task separate from implementing the
@@ -65,18 +67,16 @@ sound-selection and playback architecture.
   the user's concurrent-playback setting.
 - No sound source may require a network connection during normal playback.
 
-The current edition model already declares `selectableSoundDevice`,
-`systemSounds`, and `customSounds`, but currently disables them for Free. The
-implementation must enable them in both editions. The current `SignalPlayer`
-generates one fixed Web Audio signal and connects it to the default destination.
-That hard-wired path must be replaced with an audio service that routes every
-supported source to the selected output device consistently.
+The edition model exposes system sounds and custom files in both Free and Pro.
+The audio service currently routes the built-in signal and file-based sources
+to the Windows default destination. The next audio stage must route every
+source consistently to the application-wide selected output device.
 
 ## Approved product decisions
 
-1. The user chooses one of two repetition modes:
-   - a number of additional repeats after the initial signal;
-   - a period of time during which the signal continues to repeat.
+1. The user specifies only the number of additional repeats after the initial
+   signal. The duration-based repetition mode is removed because it adds
+   ambiguity without sufficient value.
 2. The repeat count has no artificial product maximum. `0` means the initial
    play only. The implementation must not pre-schedule an entire very large
    sequence in memory.
@@ -86,11 +86,11 @@ supported source to the selected output device consistently.
    timer. The output device is an application-wide BSL-Timer setting used by all
    timers.
 5. A custom file is played from its original location and is not copied into
-   application data. If it is missing, playback falls back to a bundled signal;
-   the exact fallback sound will be selected separately.
-6. Common music formats are guaranteed. Additional formats, including unusual
-   lossless formats, may work when a system decoder is available. The exact
-   guaranteed list depends on the selected audio library.
+   application data. If it is missing, unreadable, or cannot be decoded,
+   playback falls back to the existing built-in BSL-Timer signal.
+6. The picker accepts WAV, MP3, M4A, AAC, OGG, OGA, Opus, FLAC, WebM, and WMA.
+   Actual decoding is performed by WebView2 and therefore may also depend on
+   the codecs available in Windows.
 7. Signals from several timers may play simultaneously by default. Settings
    provides an Allow signals from different timers to play simultaneously
    checkbox. When disabled, signals play sequentially in timer-completion order.
@@ -101,10 +101,19 @@ supported source to the selected output device consistently.
 
 ## Remaining technical details
 
-- Interval unit, range, and default value.
-- Duration-mode range and default value.
-- What happens to a long file already playing when the repetition period ends.
-  The preliminary recommendation is to stop scheduling new repeats without
-  cutting off playback that has already started.
-- The guaranteed base-format list after the audio library is selected.
-- The bundled fallback sound.
+- Explicit application-wide audio output device selection and fallback to the
+  Windows default device.
+- Validation of the accepted format list across supported Windows and WebView2
+  versions.
+- Production of the postponed original BSL-World sound collection.
+
+## Future warning signals and tray informer
+
+- Each timer will support configurable warning signals before its countdown
+  deadline. A warning sound may differ from the final end signal.
+- If the main window is hidden or minimized, the timer informer above the system
+  tray opens automatically when a warning signal fires.
+- The informer remains visible while the warning sound is playing and closes
+  three seconds after the sound ends.
+- The same automatic informer mechanism is used for the final countdown-complete
+  notification instead of creating a separate duplicate window system.

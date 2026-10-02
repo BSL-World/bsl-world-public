@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core';
-import { emitTo } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
@@ -16,7 +15,6 @@ import {
   applyTheme
 } from './theme.js';
 import { prepareAuxiliaryWindow } from './window-position.js';
-import { WHATS_NEW_REQUEST_EVENT } from './whats-new.js';
 
 const appWindow = getCurrentWindow();
 const okButton = document.getElementById('about-ok-btn');
@@ -59,7 +57,7 @@ links.forEach((link) => {
 
 whatsNewButton.addEventListener('click', async () => {
   try {
-    await emitTo('main', WHATS_NEW_REQUEST_EVENT);
+    await invoke('open_whats_new_window');
     await closeAboutWindow();
   } catch (error) {
     console.error('Failed to open What’s New:', error);

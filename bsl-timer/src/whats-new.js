@@ -1,9 +1,6 @@
 export const WHATS_NEW_VERSION = '0.8.0';
 export const WHATS_NEW_DISMISSED_VERSION_STORAGE_KEY =
   'bsl-timer.whats-new.dismissed-version';
-export const WHATS_NEW_REQUEST_EVENT =
-  'bsl-timer:whats-new-requested';
-
 export function shouldShowWhatsNew(
   version = WHATS_NEW_VERSION,
   storage = globalThis.localStorage

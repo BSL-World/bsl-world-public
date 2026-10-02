@@ -64,7 +64,6 @@ test('plays the first signal plus the requested additional repeats', async () =>
   const scheduler = createScheduler(clock, playbacks, completed);
 
   scheduler.start('tea', {
-    repeatMode: 'count',
     repeatCount: 2,
     repeatIntervalMs: 120_000
   });
@@ -80,25 +79,6 @@ test('plays the first signal plus the requested additional repeats', async () =>
   ]);
   assert.deepEqual(completed, ['tea']);
   assert.equal(scheduler.isActive('tea'), false);
-});
-
-test('starts duration-based repeats only inside the configured window', () => {
-  const clock = createFakeClock();
-  const playbacks = [];
-  const scheduler = createScheduler(clock, playbacks);
-
-  scheduler.start('oven', {
-    repeatMode: 'duration',
-    repeatDurationMs: 270_000,
-    repeatIntervalMs: 120_000
-  });
-
-  clock.advance(600_000);
-
-  assert.deepEqual(
-    playbacks.map(({ startedAt }) => startedAt),
-    [0, 120_000, 240_000]
-  );
 });
 
 test('runs sequences for different timers independently', () => {

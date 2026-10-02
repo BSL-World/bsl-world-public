@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { open } from '@tauri-apps/plugin-dialog';
 
 import {
   applyTranslations,
@@ -43,6 +44,11 @@ import {
 } from './behavior.js';
 import { EndSignalService } from './end-signal-service.js';
 import {
+  AUDIO_FILE_EXTENSIONS,
+  getAudioFileName
+} from './audio-file.js';
+import { SignalPlayer } from './signal.js';
+import {
   AUDIO_PREFERENCES_EVENT,
   AUDIO_PREFERENCES_STORAGE_KEY,
   audioPreferencesEqual,
@@ -54,7 +60,8 @@ import { getEventDisplayName } from './event-instance.js';
 import { SessionStore } from './session-store.js';
 import {
   SIGNAL_SETTINGS_EVENT,
-  SignalRepeatMode,
+  SignalSource,
+  createSignalPreviewSettings,
   normalizeSignalSettings,
   signalSettingsEqual
 } from './signal-settings.js';
@@ -116,20 +123,26 @@ const signalTimerName =
 const signalSourceSelect =
   document.getElementById('signal-source-select');
 
-const signalRepeatModeSelect =
-  document.getElementById('signal-repeat-mode-select');
+const windowsSoundControls =
+  document.getElementById('windows-sound-controls');
 
-const signalRepeatCountField =
-  document.getElementById('signal-repeat-count-field');
+const windowsSoundSelect =
+  document.getElementById('windows-sound-select');
 
 const signalRepeatCountInput =
   document.getElementById('signal-repeat-count-input');
 
-const signalRepeatDurationField =
-  document.getElementById('signal-repeat-duration-field');
+const customSoundControls =
+  document.getElementById('custom-sound-controls');
 
-const signalRepeatDurationInput =
-  document.getElementById('signal-repeat-duration-input');
+const chooseCustomSoundButton =
+  document.getElementById('choose-custom-sound-btn');
+
+const customSoundFileName =
+  document.getElementById('custom-sound-file-name');
+
+const signalSourceStatus =
+  document.getElementById('signal-source-status');
 
 const signalRepeatIntervalInput =
   document.getElementById('signal-repeat-interval-input');
@@ -170,8 +183,14 @@ let committedSignalSettings = normalizeSignalSettings(
 let pendingSignalSettings = { ...committedSignalSettings };
 let committedAudioPreferences = getAudioPreferences();
 let pendingAudioPreferences = { ...committedAudioPreferences };
+let windowsSounds = [];
 const signalPreviewId = 'settings-preview';
 const signalPreviewService = new EndSignalService({
+  player: new SignalPlayer({
+    onFileError: () => {
+      setSignalSourceStatus('settings.signalFileUnavailable');
+    }
+  }),
   onComplete: (sequenceId) => {
     if (sequenceId !== signalPreviewId) {
       return;
@@ -248,37 +267,128 @@ function updateBehaviorControls() {
 
 function updateSignalControls() {
   signalSourceSelect.value = pendingSignalSettings.source;
-  signalRepeatModeSelect.value = pendingSignalSettings.repeatMode;
   signalRepeatCountInput.value = String(
     pendingSignalSettings.repeatCount
-  );
-  signalRepeatDurationInput.value = String(
-    pendingSignalSettings.repeatDurationMs / 1000
   );
   signalRepeatIntervalInput.value = String(
     pendingSignalSettings.repeatIntervalMs / 60_000
   );
-
-  const usesCount = pendingSignalSettings.repeatMode
-    === SignalRepeatMode.COUNT;
-
-  signalRepeatCountField.hidden = !usesCount;
-  signalRepeatDurationField.hidden = usesCount;
+  windowsSoundControls.hidden = pendingSignalSettings.source
+    !== SignalSource.WINDOWS;
+  customSoundControls.hidden = pendingSignalSettings.source
+    !== SignalSource.CUSTOM;
+  customSoundFileName.textContent = getAudioFileName(
+    pendingSignalSettings.customSoundPath
+  ) || t('settings.noAudioFileSelected');
+  customSoundFileName.title = pendingSignalSettings.customSoundPath;
   allowConcurrentSignalsInput.checked =
     pendingAudioPreferences.allowConcurrentSignals;
 }
 
 function readSignalControls() {
   pendingSignalSettings = normalizeSignalSettings({
+    ...pendingSignalSettings,
     source: signalSourceSelect.value,
-    repeatMode: signalRepeatModeSelect.value,
     repeatCount: signalRepeatCountInput.value,
-    repeatDurationMs: Number(signalRepeatDurationInput.value) * 1000,
-    repeatIntervalMs: Number(signalRepeatIntervalInput.value) * 60_000
+    repeatIntervalMs: Number(signalRepeatIntervalInput.value) * 60_000,
+    windowsSoundPath: windowsSoundSelect.value
+      || pendingSignalSettings.windowsSoundPath
   });
 
+  setSignalSourceStatus();
   updateSignalControls();
   updateApplyButton();
+}
+
+function setSignalSourceStatus(messageKey = null) {
+  signalSourceStatus.hidden = messageKey === null;
+  signalSourceStatus.textContent = messageKey ? t(messageKey) : '';
+}
+
+function populateWindowsSounds() {
+  windowsSoundSelect.replaceChildren();
+
+  if (windowsSounds.length === 0) {
+    const option = document.createElement('option');
+
+    option.value = '';
+    option.textContent = t('settings.windowsSoundsUnavailable');
+    windowsSoundSelect.append(option);
+    windowsSoundSelect.disabled = true;
+    return;
+  }
+
+  windowsSoundSelect.disabled = false;
+
+  windowsSounds.forEach((sound) => {
+    const option = document.createElement('option');
+
+    option.value = sound.path;
+    option.textContent = sound.name;
+    windowsSoundSelect.append(option);
+  });
+
+  const selectedSoundExists = windowsSounds.some(
+    ({ path }) => path === pendingSignalSettings.windowsSoundPath
+  );
+
+  if (
+    pendingSignalSettings.windowsSoundPath
+    && !selectedSoundExists
+  ) {
+    const missingOption = document.createElement('option');
+
+    missingOption.value = pendingSignalSettings.windowsSoundPath;
+    missingOption.textContent = `${t('settings.missingAudioFile')}: ${getAudioFileName(
+      pendingSignalSettings.windowsSoundPath
+    )}`;
+    windowsSoundSelect.prepend(missingOption);
+  }
+
+  windowsSoundSelect.value = pendingSignalSettings.windowsSoundPath
+    || windowsSounds[0].path;
+}
+
+async function loadWindowsSounds() {
+  try {
+    windowsSounds = await invoke('list_windows_sounds');
+  } catch (error) {
+    windowsSounds = [];
+    console.error('Failed to load Windows sounds:', error);
+  }
+
+  populateWindowsSounds();
+}
+
+async function chooseCustomSound() {
+  try {
+    const selectedPath = await open({
+      multiple: false,
+      directory: false,
+      title: t('settings.chooseAudioFile'),
+      filters: [{
+        name: t('settings.audioFiles'),
+        extensions: [...AUDIO_FILE_EXTENSIONS]
+      }]
+    });
+
+    if (typeof selectedPath !== 'string') {
+      return;
+    }
+
+    pendingSignalSettings = normalizeSignalSettings({
+      ...pendingSignalSettings,
+      source: SignalSource.CUSTOM,
+      customSoundPath: selectedPath
+    });
+    signalSourceSelect.value = SignalSource.CUSTOM;
+    setSignalSourceStatus();
+    updateSignalControls();
+    updateApplyButton();
+  } catch (error) {
+    setSignalSourceStatus('settings.signalFileSelectionFailed');
+    console.error('Failed to select a custom audio file:', error);
+  }
 }
 
 function adjustSignalNumberInput(input, direction) {
@@ -390,6 +500,8 @@ function updateApplyButton() {
 async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
+  populateWindowsSounds();
+  updateSignalControls();
   signalTimerName.textContent = getEventDisplayName(
     signalEvent,
     t('tabs.defaultName')
@@ -630,14 +742,15 @@ startupTimerActionSelect.addEventListener('change', () => {
 });
 
 signalSourceSelect.addEventListener('change', readSignalControls);
-signalRepeatModeSelect.addEventListener('change', readSignalControls);
+windowsSoundSelect.addEventListener('change', readSignalControls);
+chooseCustomSoundButton.addEventListener('click', () => {
+  void chooseCustomSound();
+});
 signalRepeatCountInput.addEventListener('change', readSignalControls);
-signalRepeatDurationInput.addEventListener('change', readSignalControls);
 signalRepeatIntervalInput.addEventListener('change', readSignalControls);
 
 [
   signalRepeatCountInput,
-  signalRepeatDurationInput,
   signalRepeatIntervalInput
 ].forEach((input) => {
   input.addEventListener('wheel', (event) => {
@@ -665,7 +778,10 @@ signalPreviewButton.addEventListener('click', () => {
   }
 
   readSignalControls();
-  signalPreviewService.start(signalPreviewId, pendingSignalSettings);
+  signalPreviewService.start(
+    signalPreviewId,
+    createSignalPreviewSettings(pendingSignalSettings)
+  );
   const previewIsActive = signalPreviewService.isActive(signalPreviewId);
 
   signalPreviewButton.dataset.playing = String(previewIsActive);
@@ -751,6 +867,7 @@ applyTheme();
 applyGlow();
 populateLanguageSelect();
 populateThemeSelect();
+await loadWindowsSounds();
 updateVisualControls();
 updateAppearanceControls();
 updateBehaviorControls();

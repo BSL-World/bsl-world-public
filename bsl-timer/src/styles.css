@@ -784,35 +784,51 @@ button {
   font-size: 11px;
 }
 
-.whats-new-dialog {
-  width: 100%;
-  max-width: 326px;
-  max-height: 100%;
-  padding: 12px;
-  overflow-y: auto;
-  border: 1px solid rgb(var(--theme-rgb) / 48%);
-  border-radius: 10px;
-  background: rgba(18, 22, 32, 0.98);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.52);
+.whats-new-window-body {
+  min-height: 100vh;
+  overflow: auto;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgb(var(--theme-rgb) / 15%),
+      transparent 58%
+    ),
+    #171827;
+  color: #f5f5f7;
   scrollbar-color: var(--theme-color) rgba(255, 255, 255, 0.08);
   scrollbar-width: thin;
 }
 
-.whats-new-dialog h2 {
+.whats-new-page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.whats-new-window-body.is-measuring {
+  min-height: 0;
+}
+
+.whats-new-window-body.is-measuring .whats-new-page {
+  min-height: 0;
+}
+
+.whats-new-page h1 {
   margin: 0;
   color: var(--theme-color-strong);
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 650;
 }
 
 .whats-new-list {
   display: grid;
-  gap: 4px;
-  margin: 9px 0;
-  padding-left: 18px;
+  gap: 9px;
+  margin: 18px 0;
+  padding-left: 22px;
   color: rgba(255, 255, 255, 0.84);
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .whats-new-list li::marker {
@@ -823,9 +839,9 @@ button {
   display: flex;
   gap: 7px;
   align-items: center;
-  margin: 7px 0 10px;
+  margin: 4px 0 18px;
   color: rgba(255, 255, 255, 0.76);
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -834,6 +850,14 @@ button {
   height: 14px;
   margin: 0;
   accent-color: var(--theme-color);
+}
+
+.whats-new-window-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 9%);
 }
 
 .about-window-body {
@@ -1164,6 +1188,31 @@ button {
   min-width: 120px;
 }
 
+.signal-source-controls {
+  display: grid;
+  gap: 7px;
+}
+
+.signal-source-label {
+  color: #d9d9e3;
+  font-size: 13px;
+}
+
+.custom-sound-picker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.custom-sound-file-name {
+  overflow: hidden;
+  color: #c9cad6;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .checkbox-setting {
   display: flex;
   gap: 8px;
@@ -1327,14 +1376,9 @@ button {
   background: rgba(232, 231, 214, 0.98);
 }
 
-:root[data-theme="tan"] .whats-new-dialog {
-  border-color: rgb(112 112 110 / 48%);
-  background: rgba(232, 231, 214, 0.98);
-}
-
 :root[data-theme="tan"] .confirmation-dialog h2,
 :root[data-theme="tan"] .confirmation-dialog p,
-:root[data-theme="tan"] .whats-new-dialog h2,
+:root[data-theme="tan"] .whats-new-page h1,
 :root[data-theme="tan"] .whats-new-list,
 :root[data-theme="tan"] .whats-new-dismiss-option {
   color: #343432;
@@ -1350,6 +1394,11 @@ button {
 }
 
 :root[data-theme="tan"] .about-window-body {
+  background: linear-gradient(145deg, #e8e7d6, #cfceb6);
+  color: #343432;
+}
+
+:root[data-theme="tan"] .whats-new-window-body {
   background: linear-gradient(145deg, #e8e7d6, #cfceb6);
   color: #343432;
 }

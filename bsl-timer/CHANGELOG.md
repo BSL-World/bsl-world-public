@@ -7,11 +7,33 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added Windows system sounds as selectable per-timer end signals.
+- Added a native file picker for choosing a user audio file from its original location.
+
+### Changed
+
+- Simplified signal repetition to one unambiguous setting: the number of additional repeats after the first playback.
+- Changed What’s New from a modal dialog into a normal, resizable application window.
+
+### Fixed
+
+- Fall back to the built-in BSL-Timer signal when a selected Windows or user audio file is missing, unreadable, or cannot be decoded.
+- Make signal preview play the selected sound once instead of following the timer's saved repeat sequence.
+- Size the What’s New window to its localized content where the available monitor work area permits it, while retaining scrolling as a small-screen fallback.
+- Increase the About window height so localized text and links remain visible.
+
 ### Planned
 
-- Allow selecting the signal from built-in BSL-World sounds, Windows system sounds, or a user file chosen with the native file picker.
+- Add configurable per-timer warning signals before the countdown deadline, with
+  a warning sound that can differ from the final end signal.
+- Automatically show the tray informer when a warning signal fires while the
+  main window is hidden or minimized, keep it visible during playback, and hide
+  it three seconds after the warning sound ends. Use the same informer mechanism
+  for the final countdown-complete notification.
+- Create an original built-in BSL-World sound collection when production time is available.
 - Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
-- Play custom sounds from their original files with bundled-signal fallback when a file is unavailable.
 - Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
 
 ## [0.8.0] - 2026-09-29

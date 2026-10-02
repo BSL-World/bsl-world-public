@@ -1,22 +1,19 @@
 export const SIGNAL_SETTINGS_EVENT = 'bsl-timer:signal-settings-changed';
 
-export const SignalRepeatMode = Object.freeze({
-  COUNT: 'count',
-  DURATION: 'duration'
-});
-
 export const SignalSource = Object.freeze({
-  DEFAULT: 'default'
+  DEFAULT: 'default',
+  WINDOWS: 'windows',
+  CUSTOM: 'custom'
 });
 
 export const MIN_SIGNAL_REPEAT_INTERVAL_MS = 60_000;
 
 export const DEFAULT_SIGNAL_SETTINGS = Object.freeze({
-  repeatMode: SignalRepeatMode.COUNT,
   repeatCount: 0,
-  repeatDurationMs: 30_000,
   repeatIntervalMs: MIN_SIGNAL_REPEAT_INTERVAL_MS,
-  source: SignalSource.DEFAULT
+  source: SignalSource.DEFAULT,
+  windowsSoundPath: '',
+  customSoundPath: ''
 });
 
 function normalizeNonNegativeInteger(value, fallback) {
@@ -39,35 +36,49 @@ function normalizePositiveInteger(value, fallback) {
   return Math.min(Math.round(number), Number.MAX_SAFE_INTEGER);
 }
 
+function normalizePath(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function migrateRepeatCount(sourceSettings, repeatIntervalMs) {
+  if (sourceSettings.repeatMode !== 'duration') {
+    return normalizeNonNegativeInteger(
+      sourceSettings.repeatCount,
+      DEFAULT_SIGNAL_SETTINGS.repeatCount
+    );
+  }
+
+  const repeatDurationMs = normalizePositiveInteger(
+    sourceSettings.repeatDurationMs,
+    0
+  );
+
+  return Math.floor(repeatDurationMs / repeatIntervalMs);
+}
+
 export function normalizeSignalSettings(settings = {}) {
   const sourceSettings = settings && typeof settings === 'object'
     ? settings
     : {};
+  const repeatIntervalMs = Math.max(
+    MIN_SIGNAL_REPEAT_INTERVAL_MS,
+    normalizePositiveInteger(
+      sourceSettings.repeatIntervalMs,
+      DEFAULT_SIGNAL_SETTINGS.repeatIntervalMs
+    )
+  );
 
   return {
-    repeatMode: Object.values(SignalRepeatMode).includes(
-      sourceSettings.repeatMode
-    )
-      ? sourceSettings.repeatMode
-      : DEFAULT_SIGNAL_SETTINGS.repeatMode,
-    repeatCount: normalizeNonNegativeInteger(
-      sourceSettings.repeatCount,
-      DEFAULT_SIGNAL_SETTINGS.repeatCount
+    repeatCount: migrateRepeatCount(
+      sourceSettings,
+      repeatIntervalMs
     ),
-    repeatDurationMs: normalizePositiveInteger(
-      sourceSettings.repeatDurationMs,
-      DEFAULT_SIGNAL_SETTINGS.repeatDurationMs
-    ),
-    repeatIntervalMs: Math.max(
-      MIN_SIGNAL_REPEAT_INTERVAL_MS,
-      normalizePositiveInteger(
-        sourceSettings.repeatIntervalMs,
-        DEFAULT_SIGNAL_SETTINGS.repeatIntervalMs
-      )
-    ),
+    repeatIntervalMs,
     source: Object.values(SignalSource).includes(sourceSettings.source)
       ? sourceSettings.source
-      : DEFAULT_SIGNAL_SETTINGS.source
+      : DEFAULT_SIGNAL_SETTINGS.source,
+    windowsSoundPath: normalizePath(sourceSettings.windowsSoundPath),
+    customSoundPath: normalizePath(sourceSettings.customSoundPath)
   };
 }
 
@@ -78,4 +89,25 @@ export function signalSettingsEqual(first, second) {
   return Object.keys(DEFAULT_SIGNAL_SETTINGS).every(
     (key) => normalizedFirst[key] === normalizedSecond[key]
   );
+}
+
+export function getSelectedSignalPath(settings = {}) {
+  const normalizedSettings = normalizeSignalSettings(settings);
+
+  if (normalizedSettings.source === SignalSource.WINDOWS) {
+    return normalizedSettings.windowsSoundPath;
+  }
+
+  if (normalizedSettings.source === SignalSource.CUSTOM) {
+    return normalizedSettings.customSoundPath;
+  }
+
+  return '';
+}
+
+export function createSignalPreviewSettings(settings = {}) {
+  return {
+    ...normalizeSignalSettings(settings),
+    repeatCount: 0
+  };
 }
