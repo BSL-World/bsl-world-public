@@ -153,6 +153,13 @@ Work proceeds in this order:
 
 For manual Windows work, state the working directory explicitly. Normally provide 3-6 related CMD commands per batch, with each independently executable command in its own separate code block for easy copying. Stop the batch at an error-sensitive or decision-sensitive boundary.
 
+If the user quotes any part of an instruction batch and asks a clarifying
+question about it, treat every command that appeared after the quoted text as
+unread and unexecuted unless the user explicitly confirms otherwise. Answer the
+question first, do not advance the assumed repository or deployment state, and
+repeat any commands that are still required only after the clarification is
+resolved.
+
 ## Canonical interface themes
 
 ### General rules
