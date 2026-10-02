@@ -126,11 +126,11 @@
   },
   "whatsNew": {
     "title": "What’s New in BSL-Timer {version}",
-    "perTimerSettings": "Separate end-signal settings for each timer.",
-    "repeatModes": "Repeat the signal a selected number of times.",
-    "repeatInterval": "Configurable interval between signals in minutes.",
-    "preview": "Preview the signal directly from Settings.",
-    "concurrentSignals": "Play signals from different timers simultaneously or in sequence.",
+    "windowsSounds": "Use Windows system sounds as the end signal for each timer.",
+    "customAudioFile": "Choose your own audio file through the native Windows file picker.",
+    "repeatCount": "Set an unambiguous number of additional signal repeats.",
+    "singlePreview": "Preview the selected sound once without running the saved repeat sequence.",
+    "standaloneWindow": "Read What’s New in a normal, resizable application window.",
     "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {

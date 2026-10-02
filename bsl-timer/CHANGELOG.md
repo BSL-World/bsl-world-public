@@ -7,6 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Planned
+
+- Add configurable per-timer warning signals before the countdown deadline, with
+  a warning sound that can differ from the final end signal.
+- Automatically show the tray informer when a warning signal fires while the
+  main window is hidden or minimized, keep it visible during playback, and hide
+  it three seconds after the warning sound ends. Use the same informer mechanism
+  for the final countdown-complete notification.
+- Create an original built-in BSL-World sound collection when production time is available.
+- Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
+- Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
+
+## [0.9.0] - 2026-10-02
+
 ### Added
 
 - Added Windows system sounds as selectable per-timer end signals.
@@ -23,18 +37,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Make signal preview play the selected sound once instead of following the timer's saved repeat sequence.
 - Size the What’s New window to its localized content where the available monitor work area permits it, while retaining scrolling as a small-screen fallback.
 - Increase the About window height so localized text and links remain visible.
-
-### Planned
-
-- Add configurable per-timer warning signals before the countdown deadline, with
-  a warning sound that can differ from the final end signal.
-- Automatically show the tray informer when a warning signal fires while the
-  main window is hidden or minimized, keep it visible during playback, and hide
-  it three seconds after the warning sound ends. Use the same informer mechanism
-  for the final countdown-complete notification.
-- Create an original built-in BSL-World sound collection when production time is available.
-- Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
-- Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
 
 ## [0.8.0] - 2026-09-29
 
