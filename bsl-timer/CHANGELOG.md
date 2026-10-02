@@ -36,6 +36,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Fall back to the built-in BSL-Timer signal when a selected Windows or user audio file is missing, unreadable, or cannot be decoded.
 - Make signal preview play the selected sound once instead of following the timer's saved repeat sequence.
 - Size the What’s New window to its localized content where the available monitor work area permits it, while retaining scrolling as a small-screen fallback.
+- Keep the standalone What’s New window out of the Windows taskbar, matching the other auxiliary application windows.
 - Increase the About window height so localized text and links remain visible.
 
 ## [0.8.0] - 2026-09-29

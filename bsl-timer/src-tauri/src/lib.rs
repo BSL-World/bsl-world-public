@@ -829,7 +829,7 @@ async fn open_whats_new_window(app: tauri::AppHandle) -> Result<(), String> {
     .visible(false)
     .focused(false)
     .decorations(true)
-    .skip_taskbar(false)
+    .skip_taskbar(true)
     .always_on_top(false)
     .prevent_overflow_with_margin(tauri::LogicalSize::new(20.0, 20.0));
 

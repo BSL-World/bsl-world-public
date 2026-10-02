@@ -128,8 +128,8 @@
     "title": "What’s New in BSL-Timer {version}",
     "windowsSounds": "Use Windows system sounds as the end signal for each timer.",
     "customAudioFile": "Choose your own audio file through the native Windows file picker.",
-    "repeatCount": "Set an unambiguous number of additional signal repeats.",
-    "singlePreview": "Preview the selected sound once without running the saved repeat sequence.",
+    "repeatCount": "Set the number of additional signal repeats.",
+    "singlePreview": "Preview the selected sound.",
     "standaloneWindow": "Read What’s New in a normal, resizable application window.",
     "dontShowAgain": "Don’t show again for this version"
   },
