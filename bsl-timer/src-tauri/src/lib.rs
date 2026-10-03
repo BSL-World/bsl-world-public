@@ -115,9 +115,9 @@ const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_PREVIEW_LABEL: &str = "tray-preview";
 const TRAY_PREVIEW_DELAY_MS: u64 = 350;
 const TRAY_PREVIEW_HIDE_DELAY_MS: u64 = 600;
-const TRAY_PREVIEW_FADE_MS: u64 = 260;
+const TRAY_PREVIEW_FADE_MS: u64 = 420;
 const TRAY_PREVIEW_WIDTH: f64 = 340.0;
-const TRAY_PREVIEW_HEIGHT: f64 = 150.0;
+const TRAY_PREVIEW_HEIGHT: f64 = 190.0;
 const PULSE_LEVELS: [u8; 8] = [100, 92, 84, 76, 68, 76, 84, 92];
 
 #[derive(Clone, Default)]
@@ -429,6 +429,68 @@ fn hide_tray_preview(app: &tauri::AppHandle, state: &TrayPreviewState) {
     if let Some(window) = app.get_webview_window(TRAY_PREVIEW_LABEL) {
         let _ = window.hide();
     }
+}
+
+fn automatic_tray_preview_position(
+    app: &tauri::AppHandle,
+) -> Result<PhysicalPosition<i32>, String> {
+    let monitor = app
+        .primary_monitor()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "The primary monitor is unavailable".to_string())?;
+    let scale_factor = monitor.scale_factor();
+    let work_area = monitor.work_area();
+    let margin = 12.0 * scale_factor;
+    let width = TRAY_PREVIEW_WIDTH * scale_factor;
+    let height = TRAY_PREVIEW_HEIGHT * scale_factor;
+    let right = f64::from(work_area.position.x)
+        + f64::from(work_area.size.width);
+    let bottom = f64::from(work_area.position.y)
+        + f64::from(work_area.size.height);
+
+    Ok(PhysicalPosition::new(
+        (right - width - margin).round() as i32,
+        (bottom - height - margin).round() as i32,
+    ))
+}
+
+#[tauri::command]
+fn show_tray_informer(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, TrayPreviewState>,
+) -> Result<u64, String> {
+    let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
+    let position = automatic_tray_preview_position(&app)?;
+    let window = app
+        .get_webview_window(TRAY_PREVIEW_LABEL)
+        .ok_or_else(|| "The tray informer window was not found".to_string())?;
+
+    window
+        .emit("tray-preview-show", ())
+        .map_err(|error| error.to_string())?;
+    window
+        .set_position(position)
+        .map_err(|error| error.to_string())?;
+    window.show().map_err(|error| error.to_string())?;
+
+    Ok(generation)
+}
+
+#[tauri::command]
+fn hide_tray_informer(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, TrayPreviewState>,
+    generation: u64,
+) -> Result<bool, String> {
+    if state.0.load(Ordering::SeqCst) != generation {
+        return Ok(false);
+    }
+
+    if let Some(window) = app.get_webview_window(TRAY_PREVIEW_LABEL) {
+        window.hide().map_err(|error| error.to_string())?;
+    }
+
+    Ok(true)
 }
 
 fn tray_preview_position(
@@ -863,7 +925,8 @@ pub fn run() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .manage(tray_visual_state.clone());
+        .manage(tray_visual_state.clone())
+        .manage(tray_preview_state.clone());
 
     #[cfg(target_os = "windows")]
     let builder = builder.manage(taskbar_icon_state);
@@ -894,6 +957,7 @@ pub fn run() {
             close_settings_window,
             exit_application,
             get_app_version,
+            hide_tray_informer,
             is_autostart_enabled,
             list_windows_sounds,
             open_about_window,
@@ -902,6 +966,7 @@ pub fn run() {
             read_audio_file,
             set_autostart_enabled,
             set_main_window_transparency,
+            show_tray_informer,
             update_taskbar_icon,
             update_tray_icon
         ])

@@ -17,12 +17,16 @@ test('uses safe signal defaults', () => {
 
 test('normalizes repeat and audio source settings', () => {
   assert.deepEqual(normalizeSignalSettings({
+    playSound: false,
+    showInformer: false,
     repeatCount: 1_000_000,
     repeatIntervalMs: 125_000,
     source: SignalSource.CUSTOM,
     windowsSoundPath: ' C:\\Windows\\Media\\Alarm01.wav ',
     customSoundPath: ' D:\\Sounds\\Tea.mp3 '
   }), {
+    playSound: false,
+    showInformer: false,
     repeatCount: 1_000_000,
     repeatIntervalMs: 125_000,
     source: SignalSource.CUSTOM,

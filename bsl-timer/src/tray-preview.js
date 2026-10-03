@@ -15,11 +15,14 @@ import {
 const card = document.getElementById('tray-preview-card');
 const name = document.getElementById('tray-preview-name');
 const status = document.getElementById('tray-preview-status');
+const description = document.getElementById('tray-preview-description');
 const time = document.getElementById('tray-preview-time');
 const summary = document.getElementById('tray-preview-summary');
 
 let currentData = {
   name: 'BSL-Timer',
+  description: '',
+  mode: 'timer',
   time: '00:00:00',
   state: 'idle',
   otherActiveCount: 0,
@@ -35,6 +38,7 @@ function format(key, values = {}) {
 
 function render() {
   const {
+    mode,
     otherActiveCount,
     otherOverdueCount,
     state
@@ -43,8 +47,22 @@ function render() {
 
   card.dataset.state = state;
   name.textContent = currentData.name;
-  status.textContent = t(`trayPreview.${state}`);
+  status.textContent = t(`trayPreview.${
+    mode === 'timer' ? state : mode
+  }`);
+  description.textContent = currentData.description ?? '';
+  description.hidden = !description.textContent;
   time.textContent = currentData.time;
+
+  if (mode === 'warning') {
+    details.push(format('trayPreview.warningRemaining', {
+      count: currentData.thresholdMinutes
+    }));
+  }
+
+  if (mode === 'completed') {
+    details.push(t('trayPreview.countdownCompleted'));
+  }
 
   if (otherActiveCount > 0) {
     details.push(format('trayPreview.otherActive', {
@@ -64,6 +82,8 @@ function render() {
 
 await listen('tray-preview-data', (event) => {
   currentData = event.payload;
+  applyTheme(currentData.themeId);
+  applyGlow(currentData.glowEnabled);
   render();
 });
 

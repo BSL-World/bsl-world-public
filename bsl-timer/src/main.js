@@ -20,10 +20,20 @@ import {
 import { TimerWorkspace } from './timer-workspace.js';
 import { EndSignalService } from './end-signal-service.js';
 import { SignalPlayer } from './signal.js';
+import { TrayInformerService } from './tray-informer-service.js';
+import { EVENT_DETAILS_EVENT } from './event-instance.js';
 import {
   SIGNAL_SETTINGS_EVENT,
   normalizeSignalSettings
 } from './signal-settings.js';
+import {
+  WARNING_SIGNAL_SETTINGS_EVENT,
+  WARNING_THRESHOLD_MINUTES,
+  normalizeWarningSignalSettings
+} from './warning-signal-settings.js';
+import {
+  WarningSignalController
+} from './warning-signal-controller.js';
 import {
   canCreateTimer,
   getEdition
@@ -73,13 +83,77 @@ try {
   console.error('Failed to keep the main window inside the work area:', error);
 }
 
+const signalInformer = new TrayInformerService({
+  show: async (data) => {
+    await emitTo('tray-preview', 'tray-preview-data', data);
+    return invoke('show_tray_informer');
+  },
+  startFade: () => {
+    void emitTo('tray-preview', 'tray-preview-hide');
+  },
+  hide: (generation) => {
+    if (!Number.isFinite(generation)) {
+      return false;
+    }
+
+    return invoke('hide_tray_informer', { generation });
+  }
+});
+
 const endSignalService = new EndSignalService({
   player: new SignalPlayer({
     onFileError: () => {
       showTabNotice(t('timer.signalFileUnavailable'));
     }
   }),
-  allowConcurrentSignals: getAudioPreferences().allowConcurrentSignals
+  allowConcurrentSignals: getAudioPreferences().allowConcurrentSignals,
+  onPlaybackStart: (eventId, playbackNumber, settings) => {
+    if (!settings.showInformer) {
+      return;
+    }
+
+    signalInformer.start(
+      `end:${eventId}:${playbackNumber}`,
+      createSignalInformerData(eventId, 'completed')
+    );
+  },
+  onPlaybackComplete: (eventId, playbackNumber, settings) => {
+    if (settings.showInformer) {
+      signalInformer.complete(`end:${eventId}:${playbackNumber}`);
+    }
+  }
+});
+const warningSignalPlayer = new SignalPlayer();
+const warningSignalController = new WarningSignalController({
+  onWarning: (eventId, thresholdMinutes, _snapshot, delivery) => {
+    const token = `warning:${eventId}:${thresholdMinutes}`;
+
+    if (delivery.informer) {
+      signalInformer.start(
+        token,
+        createSignalInformerData(
+          eventId,
+          'warning',
+          thresholdMinutes
+        )
+      );
+    }
+
+    if (!delivery.sound) {
+      signalInformer.complete(token);
+      return;
+    }
+
+    void warningSignalPlayer.playWarning(token)
+      .catch((error) => {
+        console.error('Failed to play timer warning signal:', error);
+      })
+      .finally(() => {
+        if (delivery.informer) {
+          signalInformer.complete(token);
+        }
+      });
+  }
 });
 
 const timerTabList = document.getElementById('timer-tab-list');
@@ -136,6 +210,13 @@ let trayPreviewDataKey = null;
 
 const workspace = new TimerWorkspace({
   onUpdate: (eventId, snapshot) => {
+    const eventInstance = workspace.getEvent(eventId);
+
+    warningSignalController.update(
+      eventId,
+      snapshot,
+      eventInstance?.settings?.warningSignals
+    );
     updateTabState(eventId, snapshot);
 
     if (eventId === workspace.activeEventId) {
@@ -148,11 +229,21 @@ const workspace = new TimerWorkspace({
   onExpire: (eventId) => {
     workspace.save();
     const eventInstance = workspace.getEvent(eventId);
-
-    endSignalService.start(
-      eventId,
-      normalizeSignalSettings(eventInstance?.settings?.endSignal)
+    const signalSettings = normalizeSignalSettings(
+      eventInstance?.settings?.endSignal
     );
+
+    if (signalSettings.playSound) {
+      endSignalService.start(eventId, signalSettings);
+      return;
+    }
+
+    if (signalSettings.showInformer) {
+      signalInformer.showMoment(
+        `end:${eventId}:informer-only`,
+        createSignalInformerData(eventId, 'completed')
+      );
+    }
   }
 });
 
@@ -345,15 +436,42 @@ function createTrayPreviewData() {
   );
 
   return {
+    mode: 'timer',
     name: activeEvent
       ? workspace.getDisplayName(activeEvent.id, getDefaultTimerName())
       : t('app.title'),
+    description: activeEvent?.description ?? '',
     time: state === TimerState.OVERDUE
       ? millisecondsToClock(activeSnapshot?.overdueMs ?? 0)
       : millisecondsToClock(activeSnapshot?.remainingMs ?? 0, true),
     state,
+    ...getEventVisualSettings(activeEvent),
     otherActiveCount,
     otherOverdueCount
+  };
+}
+
+function createSignalInformerData(
+  eventId,
+  mode,
+  thresholdMinutes = null
+) {
+  const eventInstance = workspace.getEvent(eventId);
+  const snapshot = workspace.getEngine(eventId)?.getSnapshot();
+  const visualSettings = getEventVisualSettings(eventInstance);
+
+  return {
+    mode,
+    name: workspace.getDisplayName(eventId, getDefaultTimerName()),
+    description: eventInstance?.description ?? '',
+    time: mode === 'warning'
+      ? millisecondsToClock(thresholdMinutes * 60_000)
+      : millisecondsToClock(snapshot?.remainingMs ?? 0),
+    state: mode === 'completed' ? TimerState.OVERDUE : TimerState.RUNNING,
+    thresholdMinutes,
+    ...visualSettings,
+    otherActiveCount: 0,
+    otherOverdueCount: 0
   };
 }
 
@@ -420,6 +538,17 @@ function prepareSignal() {
   void endSignalService.prepare().catch((error) => {
     console.error('Failed to prepare timer signal:', error);
   });
+  void warningSignalPlayer.prepare().catch((error) => {
+    console.error('Failed to prepare timer warning signal:', error);
+  });
+}
+
+function stopWarningSignals(eventId) {
+  WARNING_THRESHOLD_MINUTES.forEach((thresholdMinutes) => {
+    warningSignalPlayer.stop(
+      `warning:${eventId}:${thresholdMinutes}`
+    );
+  });
 }
 
 function startTimer() {
@@ -477,6 +606,7 @@ function stopTimer() {
   }
 
   endSignalService.cancel(workspace.activeEventId);
+  stopWarningSignals(workspace.activeEventId);
   timer.reset();
   workspace.save();
   requestAnimationFrame(focusActiveTimerControl);
@@ -490,6 +620,7 @@ function restartTimer() {
   }
 
   endSignalService.cancel(workspace.activeEventId);
+  stopWarningSignals(workspace.activeEventId);
   timer.reset();
   prepareSignal();
   timer.start();
@@ -709,6 +840,9 @@ function createTimerTab(eventInstance, canClose) {
       eventInstance.id,
       getDefaultTimerName()
     );
+    selectButton.title = eventInstance.description
+      ? `${label.textContent}\n${eventInstance.description}`
+      : label.textContent;
     selectButton.append(label);
 
     selectButton.addEventListener('click', () => {
@@ -995,6 +1129,8 @@ async function closeTimerTab(eventId) {
   }
 
   endSignalService.cancel(eventId);
+  stopWarningSignals(eventId);
+  warningSignalController.reset(eventId);
   workspace.removeEvent(eventId);
   applyActiveVisualSettings();
   renderTabs();
@@ -1568,6 +1704,29 @@ await listen(SIGNAL_SETTINGS_EVENT, (event) => {
 
   workspace.updateEventSettings(eventId, {
     endSignal: normalizeSignalSettings(settings)
+  });
+});
+
+await listen(EVENT_DETAILS_EVENT, (event) => {
+  const { eventId, name, description } = event.payload ?? {};
+
+  if (!workspace.updateEventDetails(eventId, { name, description })) {
+    return;
+  }
+
+  renderTabs();
+  void refreshTrayPreview({ force: true });
+});
+
+await listen(WARNING_SIGNAL_SETTINGS_EVENT, (event) => {
+  const { eventId, settings } = event.payload ?? {};
+
+  if (!workspace.getEvent(eventId)) {
+    return;
+  }
+
+  workspace.updateEventSettings(eventId, {
+    warningSignals: normalizeWarningSignalSettings(settings)
   });
 });
 

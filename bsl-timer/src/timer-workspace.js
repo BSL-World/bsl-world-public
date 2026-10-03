@@ -1,6 +1,7 @@
 import {
   createEventInstance,
-  getEventDisplayName
+  getEventDisplayName,
+  normalizeEventDescription
 } from './event-instance.js';
 import { SessionStore } from './session-store.js';
 import { TimerEngine, TimerState } from './timer.js';
@@ -193,6 +194,24 @@ export class TimerWorkspace {
       : '';
 
     eventInstance.name = normalizedName || null;
+    this.save();
+    return true;
+  }
+
+  updateEventDetails(eventId, {
+    name = null,
+    description = null
+  } = {}) {
+    const eventInstance = this.getEvent(eventId);
+
+    if (!eventInstance) {
+      return false;
+    }
+
+    eventInstance.name = typeof name === 'string'
+      ? name.trim().slice(0, 40) || null
+      : null;
+    eventInstance.description = normalizeEventDescription(description);
     this.save();
     return true;
   }

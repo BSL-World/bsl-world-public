@@ -1,4 +1,6 @@
-export const EVENT_INSTANCE_VERSION = 1;
+export const EVENT_INSTANCE_VERSION = 2;
+export const EVENT_DETAILS_EVENT = 'bsl-timer:event-details-changed';
+export const MAX_EVENT_DESCRIPTION_LENGTH = 300;
 
 export const EventType = Object.freeze({
   TIMER: 'timer'
@@ -21,6 +23,20 @@ function normalizeText(value) {
   }
 
   const normalizedValue = value.trim();
+  return normalizedValue || null;
+}
+
+export function normalizeEventDescription(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalizedValue = value
+    .replaceAll('\r\n', '\n')
+    .replaceAll('\r', '\n')
+    .trim()
+    .slice(0, MAX_EVENT_DESCRIPTION_LENGTH);
+
   return normalizedValue || null;
 }
 
@@ -50,6 +66,7 @@ export function createEventInstance({
   id = createId(),
   type = EventType.TIMER,
   name = null,
+  description = null,
   ordinal = 1,
   settings = {},
   runtime = {}
@@ -59,6 +76,7 @@ export function createEventInstance({
     id: normalizeText(id) ?? createId(),
     type: normalizeText(type) ?? EventType.TIMER,
     name: normalizeText(name),
+    description: normalizeEventDescription(description),
     ordinal: normalizeOrdinal(ordinal),
     settings: cloneRecord(settings),
     runtime: cloneRecord(runtime)

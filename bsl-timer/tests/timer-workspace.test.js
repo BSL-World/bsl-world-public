@@ -212,3 +212,31 @@ test('updates and persists timer visual settings independently', () => {
 
   restoredWorkspace.destroy();
 });
+
+test('updates and persists timer name and description', () => {
+  const storage = createMemoryStorage();
+  const workspace = new TimerWorkspace({
+    sessionStore: new SessionStore({ storage })
+  });
+
+  workspace.load();
+  const eventId = workspace.getActiveEvent().id;
+
+  assert.equal(workspace.updateEventDetails(eventId, {
+    name: 'Cooking',
+    description: 'Put the potatoes on to boil'
+  }), true);
+  workspace.destroy();
+
+  const restoredWorkspace = new TimerWorkspace({
+    sessionStore: new SessionStore({ storage })
+  });
+
+  restoredWorkspace.load();
+  assert.equal(restoredWorkspace.getEvent(eventId).name, 'Cooking');
+  assert.equal(
+    restoredWorkspace.getEvent(eventId).description,
+    'Put the potatoes on to boil'
+  );
+  restoredWorkspace.destroy();
+});

@@ -9,6 +9,8 @@ export const SignalSource = Object.freeze({
 export const MIN_SIGNAL_REPEAT_INTERVAL_MS = 60_000;
 
 export const DEFAULT_SIGNAL_SETTINGS = Object.freeze({
+  playSound: true,
+  showInformer: true,
   repeatCount: 0,
   repeatIntervalMs: MIN_SIGNAL_REPEAT_INTERVAL_MS,
   source: SignalSource.DEFAULT,
@@ -69,6 +71,8 @@ export function normalizeSignalSettings(settings = {}) {
   );
 
   return {
+    playSound: sourceSettings.playSound !== false,
+    showInformer: sourceSettings.showInformer !== false,
     repeatCount: migrateRepeatCount(
       sourceSettings,
       repeatIntervalMs

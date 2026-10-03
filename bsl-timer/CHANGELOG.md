@@ -7,14 +7,28 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added independent 15, 10, and 5 minute warning-signal switches for every
+  timer, disabled by default.
+- Added a short built-in BSL-Timer warning sound that is distinct from the
+  final countdown-complete signal.
+- Added run-aware warning scheduling: each enabled threshold fires once,
+  resets on a new countdown, survives pause and resume, and never fires
+  retroactively after session restoration.
+- Added independent Sound and Informer delivery switches for every warning
+  threshold and for countdown completion.
+- Added an automatic tray informer that identifies the triggering timer,
+  remains visible for three seconds after playback, and fades out smoothly.
+- Added an optional three-line description for every timer, shown in its tray
+  informer and as a tab hover tooltip.
+
+### Fixed
+
+- Clarified that end-signal settings apply to the selected timer.
+
 ### Planned
 
-- Add configurable per-timer warning signals before the countdown deadline, with
-  a warning sound that can differ from the final end signal.
-- Automatically show the tray informer when a warning signal fires while the
-  main window is hidden or minimized, keep it visible during playback, and hide
-  it three seconds after the warning sound ends. Use the same informer mechanism
-  for the final countdown-complete notification.
 - Create an original built-in BSL-World sound collection when production time is available.
 - Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
 - Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.

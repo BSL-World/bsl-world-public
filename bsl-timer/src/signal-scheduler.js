@@ -4,6 +4,8 @@ export class SignalScheduler {
   constructor({
     play,
     onError = () => {},
+    onPlaybackStart = () => {},
+    onPlaybackComplete = () => {},
     onComplete = () => {},
     setTimeoutFn = globalThis.setTimeout.bind(globalThis),
     clearTimeoutFn = globalThis.clearTimeout.bind(globalThis),
@@ -15,6 +17,8 @@ export class SignalScheduler {
 
     this.play = play;
     this.onError = onError;
+    this.onPlaybackStart = onPlaybackStart;
+    this.onPlaybackComplete = onPlaybackComplete;
     this.onComplete = onComplete;
     this.setTimeoutFn = setTimeoutFn;
     this.clearTimeoutFn = clearTimeoutFn;
@@ -75,6 +79,13 @@ export class SignalScheduler {
     }
 
     sequence.playbackCount += 1;
+    const playbackNumber = sequence.playbackCount;
+
+    this.onPlaybackStart(
+      sequence.id,
+      playbackNumber,
+      sequence.settings
+    );
 
     let playbackPromise;
 
@@ -89,8 +100,18 @@ export class SignalScheduler {
       playbackPromise = Promise.resolve();
     }
 
+    const reportPlaybackComplete = () => {
+      this.onPlaybackComplete(
+        sequence.id,
+        playbackNumber,
+        sequence.settings
+      );
+    };
+
     if (!this.shouldScheduleNext(sequence)) {
       void playbackPromise.finally(() => {
+        reportPlaybackComplete();
+
         if (this.sequences.get(sequence.id) !== sequence) {
           return;
         }
@@ -100,6 +121,8 @@ export class SignalScheduler {
       });
       return;
     }
+
+    void playbackPromise.finally(reportPlaybackComplete);
 
     const nextStartAt = sequence.startedAt
       + sequence.playbackCount * sequence.settings.repeatIntervalMs;

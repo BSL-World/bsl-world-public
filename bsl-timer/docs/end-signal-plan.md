@@ -107,13 +107,24 @@ source consistently to the application-wide selected output device.
   versions.
 - Production of the postponed original BSL-World sound collection.
 
-## Future warning signals and tray informer
+## Warning signals and tray informer
 
-- Each timer will support configurable warning signals before its countdown
-  deadline. A warning sound may differ from the final end signal.
-- If the main window is hidden or minimized, the timer informer above the system
-  tray opens automatically when a warning signal fires.
-- The informer remains visible while the warning sound is playing and closes
-  three seconds after the sound ends.
-- The same automatic informer mechanism is used for the final countdown-complete
-  notification instead of creating a separate duplicate window system.
+- Each timer has independent Sound and Informer switches for the 15, 10, and
+  5 minute warning thresholds. All warning channels are disabled by default.
+- Countdown completion also has independent Sound and Informer switches. Both
+  remain enabled by default to preserve sound behavior and expose the new
+  visual notification.
+- Warning thresholds fire once per countdown run, reset on a new run, remain
+  armed across pause and resume, and do not fire retroactively after session
+  restoration. Thresholds longer than the countdown duration are skipped.
+- Warning signals use one short built-in BSL-Timer sound that is distinct from
+  the final end signal. Sound selection remains intentionally unavailable for
+  warning signals.
+- The timer informer opens above the system tray regardless of whether the main
+  window is visible. It never takes keyboard focus or creates a taskbar button.
+- The informer remains visible while the sound is playing, stays for another
+  three seconds, and then fades out smoothly. Every repeated playback invokes
+  it separately instead of keeping it open throughout the repeat interval.
+- Each timer can store an optional three-line description. The informer shows
+  it together with the timer name and event status; the same description is
+  available as the timer tab hover tooltip.

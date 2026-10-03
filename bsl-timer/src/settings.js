@@ -56,7 +56,12 @@ import {
   normalizeAudioPreferences,
   saveAudioPreferences
 } from './audio-preferences.js';
-import { getEventDisplayName } from './event-instance.js';
+import {
+  EVENT_DETAILS_EVENT,
+  MAX_EVENT_DESCRIPTION_LENGTH,
+  getEventDisplayName,
+  normalizeEventDescription
+} from './event-instance.js';
 import { SessionStore } from './session-store.js';
 import {
   SIGNAL_SETTINGS_EVENT,
@@ -65,6 +70,11 @@ import {
   normalizeSignalSettings,
   signalSettingsEqual
 } from './signal-settings.js';
+import {
+  WARNING_SIGNAL_SETTINGS_EVENT,
+  normalizeWarningSignalSettings,
+  warningSignalSettingsEqual
+} from './warning-signal-settings.js';
 import {
   prepareAuxiliaryWindow
 } from './window-position.js';
@@ -117,11 +127,23 @@ const closeButtonActionSelect =
 const startupTimerActionSelect =
   document.getElementById('startup-timer-action-select');
 
+const timerNameInput =
+  document.getElementById('timer-name-input');
+
+const timerDescriptionInput =
+  document.getElementById('timer-description-input');
+
 const signalTimerName =
   document.getElementById('signal-timer-name');
 
 const signalSourceSelect =
   document.getElementById('signal-source-select');
+
+const playEndSignalInput =
+  document.getElementById('play-end-signal-input');
+
+const showEndInformerInput =
+  document.getElementById('show-end-informer-input');
 
 const windowsSoundControls =
   document.getElementById('windows-sound-controls');
@@ -153,6 +175,14 @@ const signalPreviewButton =
 const allowConcurrentSignalsInput =
   document.getElementById('allow-concurrent-signals-input');
 
+const warningSoundInputs = [
+  ...document.querySelectorAll('.warning-sound-input')
+];
+
+const warningInformerInputs = [
+  ...document.querySelectorAll('.warning-informer-input')
+];
+
 const okButton =
   document.getElementById('ok-settings-btn');
 
@@ -177,10 +207,27 @@ const signalEvent = settingsSession.events.find(
   ({ id }) => id === settingsSession.activeEventId
 ) ?? settingsSession.events[0];
 const signalEventId = signalEvent?.id ?? null;
+let committedEventDetails = {
+  name: signalEvent?.name ?? '',
+  description: signalEvent?.description ?? ''
+};
+let pendingEventDetails = { ...committedEventDetails };
 let committedSignalSettings = normalizeSignalSettings(
   signalEvent?.settings?.endSignal
 );
 let pendingSignalSettings = { ...committedSignalSettings };
+let committedWarningSignalSettings = normalizeWarningSignalSettings(
+  signalEvent?.settings?.warningSignals
+);
+let pendingWarningSignalSettings = {
+  ...committedWarningSignalSettings,
+  soundThresholdMinutes: [
+    ...committedWarningSignalSettings.soundThresholdMinutes
+  ],
+  informerThresholdMinutes: [
+    ...committedWarningSignalSettings.informerThresholdMinutes
+  ]
+};
 let committedAudioPreferences = getAudioPreferences();
 let pendingAudioPreferences = { ...committedAudioPreferences };
 let windowsSounds = [];
@@ -265,7 +312,49 @@ function updateBehaviorControls() {
     pendingBehavior.startupTimerAction;
 }
 
+function normalizeEventDetails({ name = '', description = '' } = {}) {
+  return {
+    name: String(name).trim().slice(0, 40),
+    description: normalizeEventDescription(description) ?? ''
+  };
+}
+
+function eventDetailsEqual(first, second) {
+  const normalizedFirst = normalizeEventDetails(first);
+  const normalizedSecond = normalizeEventDetails(second);
+
+  return normalizedFirst.name === normalizedSecond.name
+    && normalizedFirst.description === normalizedSecond.description;
+}
+
+function updateEventDetailsControls() {
+  timerNameInput.value = pendingEventDetails.name
+    || getEventDisplayName(
+      { ...signalEvent, name: null },
+      t('tabs.defaultName')
+    );
+  timerDescriptionInput.value = pendingEventDetails.description;
+}
+
+function readEventDetailsControls() {
+  pendingEventDetails = normalizeEventDetails({
+    name: timerNameInput.value,
+    description: timerDescriptionInput.value.slice(
+      0,
+      MAX_EVENT_DESCRIPTION_LENGTH
+    )
+  });
+  signalTimerName.textContent = pendingEventDetails.name
+    || getEventDisplayName(
+      { ...signalEvent, name: null },
+      t('tabs.defaultName')
+    );
+  updateApplyButton();
+}
+
 function updateSignalControls() {
+  playEndSignalInput.checked = pendingSignalSettings.playSound;
+  showEndInformerInput.checked = pendingSignalSettings.showInformer;
   signalSourceSelect.value = pendingSignalSettings.source;
   signalRepeatCountInput.value = String(
     pendingSignalSettings.repeatCount
@@ -283,11 +372,21 @@ function updateSignalControls() {
   customSoundFileName.title = pendingSignalSettings.customSoundPath;
   allowConcurrentSignalsInput.checked =
     pendingAudioPreferences.allowConcurrentSignals;
+  warningSoundInputs.forEach((input) => {
+    input.checked = pendingWarningSignalSettings.soundThresholdMinutes
+      .includes(Number(input.value));
+  });
+  warningInformerInputs.forEach((input) => {
+    input.checked = pendingWarningSignalSettings.informerThresholdMinutes
+      .includes(Number(input.value));
+  });
 }
 
 function readSignalControls() {
   pendingSignalSettings = normalizeSignalSettings({
     ...pendingSignalSettings,
+    playSound: playEndSignalInput.checked,
+    showInformer: showEndInformerInput.checked,
     source: signalSourceSelect.value,
     repeatCount: signalRepeatCountInput.value,
     repeatIntervalMs: Number(signalRepeatIntervalInput.value) * 60_000,
@@ -297,6 +396,19 @@ function readSignalControls() {
 
   setSignalSourceStatus();
   updateSignalControls();
+  updateApplyButton();
+}
+
+function readWarningSignalControls() {
+  pendingWarningSignalSettings = normalizeWarningSignalSettings({
+    soundThresholdMinutes: warningSoundInputs
+      .filter((input) => input.checked)
+      .map((input) => Number(input.value)),
+    informerThresholdMinutes: warningInformerInputs
+      .filter((input) => input.checked)
+      .map((input) => Number(input.value))
+  });
+
   updateApplyButton();
 }
 
@@ -486,9 +598,17 @@ function updateApplyButton() {
       committedAppearance
     )
     && behaviorEquals(pendingBehavior, committedBehavior)
+    && eventDetailsEqual(
+      pendingEventDetails,
+      committedEventDetails
+    )
     && signalSettingsEqual(
       pendingSignalSettings,
       committedSignalSettings
+    )
+    && warningSignalSettingsEqual(
+      pendingWarningSignalSettings,
+      committedWarningSignalSettings
     )
     && audioPreferencesEqual(
       pendingAudioPreferences,
@@ -501,11 +621,13 @@ async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
   populateWindowsSounds();
+  updateEventDetailsControls();
   updateSignalControls();
-  signalTimerName.textContent = getEventDisplayName(
-    signalEvent,
-    t('tabs.defaultName')
-  );
+  signalTimerName.textContent = pendingEventDetails.name
+    || getEventDisplayName(
+      { ...signalEvent, name: null },
+      t('tabs.defaultName')
+    );
 
   signalPreviewButton.textContent = signalPreviewService.isActive(
     signalPreviewId
@@ -602,6 +724,14 @@ async function applyPendingSettings() {
   pendingBehavior = { ...committedBehavior };
 
   if (signalEventId) {
+    committedEventDetails = normalizeEventDetails(pendingEventDetails);
+    pendingEventDetails = { ...committedEventDetails };
+
+    await emitTo('main', EVENT_DETAILS_EVENT, {
+      eventId: signalEventId,
+      ...committedEventDetails
+    });
+
     committedSignalSettings = normalizeSignalSettings(
       pendingSignalSettings
     );
@@ -610,6 +740,24 @@ async function applyPendingSettings() {
     await emitTo('main', SIGNAL_SETTINGS_EVENT, {
       eventId: signalEventId,
       settings: committedSignalSettings
+    });
+
+    committedWarningSignalSettings = normalizeWarningSignalSettings(
+      pendingWarningSignalSettings
+    );
+    pendingWarningSignalSettings = {
+      ...committedWarningSignalSettings,
+      soundThresholdMinutes: [
+        ...committedWarningSignalSettings.soundThresholdMinutes
+      ],
+      informerThresholdMinutes: [
+        ...committedWarningSignalSettings.informerThresholdMinutes
+      ]
+    };
+
+    await emitTo('main', WARNING_SIGNAL_SETTINGS_EVENT, {
+      eventId: signalEventId,
+      settings: committedWarningSignalSettings
     });
   }
 
@@ -631,6 +779,7 @@ async function applyPendingSettings() {
   updateVisualControls();
   updateAppearanceControls();
   updateBehaviorControls();
+  updateEventDetailsControls();
   updateSignalControls();
   updateApplyButton();
   await updateInterface();
@@ -742,6 +891,8 @@ startupTimerActionSelect.addEventListener('change', () => {
 });
 
 signalSourceSelect.addEventListener('change', readSignalControls);
+playEndSignalInput.addEventListener('change', readSignalControls);
+showEndInformerInput.addEventListener('change', readSignalControls);
 windowsSoundSelect.addEventListener('change', readSignalControls);
 chooseCustomSoundButton.addEventListener('click', () => {
   void chooseCustomSound();
@@ -770,6 +921,16 @@ allowConcurrentSignalsInput.addEventListener('change', () => {
   });
   updateApplyButton();
 });
+
+[
+  ...warningSoundInputs,
+  ...warningInformerInputs
+].forEach((input) => {
+  input.addEventListener('change', readWarningSignalControls);
+});
+
+timerNameInput.addEventListener('input', readEventDetailsControls);
+timerDescriptionInput.addEventListener('input', readEventDetailsControls);
 
 signalPreviewButton.addEventListener('click', () => {
   if (signalPreviewService.isActive(signalPreviewId)) {

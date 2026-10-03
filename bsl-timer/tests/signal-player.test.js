@@ -145,3 +145,39 @@ test('does not fall back after a stopped file load fails', async () => {
   assert.equal(builtInPlaybackCount, 0);
   assert.equal(fileErrorCount, 0);
 });
+
+test('plays the fixed warning sound as a short rising pair', async () => {
+  const notes = [];
+  const player = new SignalPlayer();
+
+  player.audioContext = {
+    currentTime: 10,
+    state: 'running'
+  };
+  player.prepare = async () => true;
+  player.scheduleBeep = async (sequenceId, startTime, options) => {
+    notes.push({ sequenceId, startTime, options });
+  };
+
+  assert.equal(await player.playWarning('warning:tea:5'), true);
+  assert.deepEqual(notes, [
+    {
+      sequenceId: 'warning:tea:5',
+      startTime: 10,
+      options: {
+        frequency: 660,
+        duration: 0.16,
+        volume: 0.2
+      }
+    },
+    {
+      sequenceId: 'warning:tea:5',
+      startTime: 10.24,
+      options: {
+        frequency: 880,
+        duration: 0.16,
+        volume: 0.2
+      }
+    }
+  ]);
+});

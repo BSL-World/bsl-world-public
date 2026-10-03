@@ -119,6 +119,17 @@
                 </select>
             </section>
 
+            <section class="settings-card timer-details-card">
+                <h2 data-i18n="settings.timerDetails"></h2>
+
+                <label for="timer-name-input" data-i18n="settings.timerName"></label>
+                <input id="timer-name-input" type="text" maxlength="40">
+
+                <label for="timer-description-input" data-i18n="settings.timerDescription"></label>
+                <textarea id="timer-description-input" rows="3" maxlength="300"
+                    data-i18n-placeholder="settings.timerDescriptionPlaceholder"></textarea>
+            </section>
+
             <section class="settings-card signal-settings-card">
                 <h2 data-i18n="settings.endSignal"></h2>
 
@@ -126,6 +137,18 @@
                     <span data-i18n="settings.signalForTimer"></span>
                     <strong id="signal-timer-name"></strong>
                 </p>
+
+                <div class="notification-channel-options">
+                    <label class="checkbox-setting">
+                        <input id="play-end-signal-input" type="checkbox">
+                        <span data-i18n="settings.playEndSignal"></span>
+                    </label>
+
+                    <label class="checkbox-setting">
+                        <input id="show-end-informer-input" type="checkbox">
+                        <span data-i18n="settings.showEndInformer"></span>
+                    </label>
+                </div>
 
                 <label for="signal-source-select" data-i18n="settings.signalSource"></label>
 
@@ -169,6 +192,38 @@
 
                 <button id="signal-preview-btn" class="control-button signal-preview-button" type="button"
                     data-i18n="settings.previewSignal"></button>
+
+                <div class="warning-signal-settings">
+                    <h3 data-i18n="settings.warningSignals"></h3>
+
+                    <p class="warning-signal-callout" data-i18n="settings.warningSignalsCallout"></p>
+                    <p class="settings-card-note" data-i18n="settings.warningSignalsDescription"></p>
+
+                    <div class="warning-channels" role="group"
+                        data-i18n-aria-label="settings.warningSignals">
+                        <span></span>
+                        <strong data-i18n="settings.notificationSound"></strong>
+                        <strong data-i18n="settings.notificationInformer"></strong>
+
+                        <span data-i18n="settings.warning15Minutes"></span>
+                        <input class="warning-sound-input" type="checkbox" value="15"
+                            data-i18n-aria-label="settings.warning15Sound">
+                        <input class="warning-informer-input" type="checkbox" value="15"
+                            data-i18n-aria-label="settings.warning15Informer">
+
+                        <span data-i18n="settings.warning10Minutes"></span>
+                        <input class="warning-sound-input" type="checkbox" value="10"
+                            data-i18n-aria-label="settings.warning10Sound">
+                        <input class="warning-informer-input" type="checkbox" value="10"
+                            data-i18n-aria-label="settings.warning10Informer">
+
+                        <span data-i18n="settings.warning5Minutes"></span>
+                        <input class="warning-sound-input" type="checkbox" value="5"
+                            data-i18n-aria-label="settings.warning5Sound">
+                        <input class="warning-informer-input" type="checkbox" value="5"
+                            data-i18n-aria-label="settings.warning5Informer">
+                    </div>
+                </div>
             </section>
         </div>
 

@@ -31,3 +31,13 @@ test('preserves a trimmed custom event name', () => {
   assert.equal(eventInstance.name, 'Pasta');
   assert.equal(getEventDisplayName(eventInstance), 'Pasta');
 });
+
+test('normalizes and limits a timer description', () => {
+  const eventInstance = createEventInstance({
+    description: `  First line\r\nSecond line ${'x'.repeat(400)}  `
+  });
+
+  assert.equal(eventInstance.description.includes('\r'), false);
+  assert.equal(eventInstance.description.startsWith('First line\n'), true);
+  assert.equal(eventInstance.description.length, 300);
+});

@@ -80,6 +80,30 @@ export class SignalPlayer {
     return true;
   }
 
+  async playWarning(sequenceId = 'warning') {
+    const ready = await this.prepare();
+
+    if (!ready) {
+      return false;
+    }
+
+    const startTime = this.audioContext.currentTime;
+    const warningNotes = [
+      { offset: 0, frequency: 660 },
+      { offset: 0.24, frequency: 880 }
+    ];
+
+    await Promise.all(warningNotes.map(({ offset, frequency }) => (
+      this.scheduleBeep(sequenceId, startTime + offset, {
+        frequency,
+        duration: 0.16,
+        volume: 0.2
+      })
+    )));
+
+    return true;
+  }
+
   stop(sequenceId = null) {
     if (sequenceId === null) {
       this.stopGeneration += 1;
@@ -222,7 +246,11 @@ export class SignalPlayer {
     });
   }
 
-  scheduleBeep(sequenceId, startTime) {
+  scheduleBeep(sequenceId, startTime, {
+    frequency = 880,
+    duration = 0.2,
+    volume = 0.25
+  } = {}) {
     const oscillators = this.activeOscillators.get(sequenceId)
       ?? new Set();
 
@@ -232,17 +260,17 @@ export class SignalPlayer {
 
     const oscillator = this.audioContext.createOscillator();
     const gain = this.audioContext.createGain();
-    const endTime = startTime + 0.2;
+    const endTime = startTime + duration;
 
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, startTime);
+    oscillator.frequency.setValueAtTime(frequency, startTime);
 
     gain.gain.setValueAtTime(0.0001, startTime);
     gain.gain.exponentialRampToValueAtTime(
-      0.25,
+      volume,
       startTime + 0.01
     );
-    gain.gain.setValueAtTime(0.25, endTime - 0.03);
+    gain.gain.setValueAtTime(volume, endTime - 0.03);
     gain.gain.exponentialRampToValueAtTime(
       0.0001,
       endTime

@@ -9,6 +9,8 @@ export class EndSignalService {
     onError = (error) => {
       console.error('Failed to play timer signal:', error);
     },
+    onPlaybackStart = () => {},
+    onPlaybackComplete = () => {},
     onComplete = () => {}
   } = {}) {
     this.player = player;
@@ -21,6 +23,8 @@ export class EndSignalService {
         this.player.play(sequenceId, settings)
       ),
       onError,
+      onPlaybackStart,
+      onPlaybackComplete,
       onComplete: (sequenceId) => {
         this.handleSequenceComplete(sequenceId);
       }

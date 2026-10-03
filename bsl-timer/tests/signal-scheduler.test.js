@@ -120,3 +120,37 @@ test('cancels a pending repeat sequence', () => {
   assert.equal(playbacks.length, 1);
   assert.equal(scheduler.isActive('coffee'), false);
 });
+
+test('reports the start and completion of every playback', async () => {
+  const clock = createFakeClock();
+  const events = [];
+  const scheduler = new SignalScheduler({
+    play: () => Promise.resolve(),
+    onPlaybackStart: (_sequenceId, playbackNumber) => {
+      events.push(`start:${playbackNumber}`);
+    },
+    onPlaybackComplete: (_sequenceId, playbackNumber) => {
+      events.push(`complete:${playbackNumber}`);
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeout,
+    clearTimeoutFn: clock.clearTimeout
+  });
+
+  scheduler.start('tea', {
+    repeatCount: 1,
+    repeatIntervalMs: 60_000
+  });
+  await Promise.resolve();
+  await Promise.resolve();
+  clock.advance(60_000);
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.deepEqual(events, [
+    'start:1',
+    'complete:1',
+    'start:2',
+    'complete:2'
+  ]);
+});
