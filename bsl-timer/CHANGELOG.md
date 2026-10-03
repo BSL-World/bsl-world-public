@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-03
+
 ### Added
 
 - Added independent 15, 10, and 5 minute warning-signal switches for every
@@ -19,7 +21,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added independent Sound and Informer delivery switches for every warning
   threshold and for countdown completion.
 - Added an automatic tray informer that identifies the triggering timer,
-  remains visible for three seconds after playback, and fades out smoothly.
+  remains visible during playback and for three seconds afterward, and fades
+  out smoothly.
 - Added an optional three-line description for every timer, shown in its tray
   informer and as a tab hover tooltip.
 

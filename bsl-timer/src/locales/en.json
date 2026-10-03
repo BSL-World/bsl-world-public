@@ -150,11 +150,10 @@
   },
   "whatsNew": {
     "title": "What’s New in BSL-Timer {version}",
-    "windowsSounds": "Use Windows system sounds as the end signal for each timer.",
-    "customAudioFile": "Choose your own audio file through the native Windows file picker.",
-    "repeatCount": "Set the number of additional signal repeats.",
-    "singlePreview": "Preview the selected sound.",
-    "standaloneWindow": "Read What’s New in a normal, resizable application window.",
+    "warningSignals": "Get warning signals 15, 10, and 5 minutes before the countdown ends.",
+    "deliveryChannels": "Enable sound and the informer independently for every warning and for countdown completion.",
+    "timerDescriptions": "Give every timer a name and description, with the description available from the tab tooltip.",
+    "trayInformer": "See the timer name, description, and remaining time in an informer above the system tray that fades out smoothly.",
     "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {

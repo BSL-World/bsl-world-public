@@ -56,7 +56,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.9.0 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.10.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -66,7 +66,9 @@ installed Windows builds. Version 0.8.0 added configurable per-timer end-signal
 repeats, signal preview, and simultaneous or queued playback for different
 timers. Version 0.9.0 adds Windows system sounds and user audio files, simplifies
 signal repetition to a repeat count, and moves What’s New into a normal
-resizable window.
+resizable window. Version 0.10.0 adds per-timer descriptions, configurable
+15, 10, and 5 minute warning signals, independent sound and informer delivery,
+and a tray informer that identifies the timer requiring attention.
 
 ### Resolved Windows taskbar issue
 
