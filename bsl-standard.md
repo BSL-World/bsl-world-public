@@ -91,6 +91,27 @@ User preferences must be stored separately from business data and runtime state 
 
 Shared translations, palettes, utilities, and other genuinely reusable definitions may be moved to `bsl-core`. Product-specific behavior must remain in the corresponding product.
 
+### Shared desktop behavior
+
+- Behavior that must remain consistent across BSL-World desktop products must
+  first be defined as a shared contract in this standard.
+- The first implementation may remain inside its product while it has only one
+  real consumer. When a second product needs the same behavior, move the
+  implementation into `bsl-core` or another explicitly shared monorepository
+  package instead of copying it.
+- After extraction, products must consume the shared implementation. Divergent
+  product-local copies are prohibited unless the difference is an approved
+  product requirement and is expressed through configuration, callbacks,
+  design tokens, or localized resources.
+- Shared modules must expose stable product-neutral interfaces and keep
+  product names, product-specific text, and product-specific business rules in
+  the consuming application.
+- Fixes to shared behavior must be covered by shared tests and delivered to
+  each consuming product through an explicit shared-package version update.
+- Window placement, canonical themes, localization infrastructure, audio
+  sources, and audio output routing are preferred candidates for shared
+  desktop modules as soon as they have multiple consumers.
+
 ## Windows application requirements
 
 The following requirements are mandatory for every BSL-World Windows application intended for public distribution:
@@ -102,6 +123,27 @@ The following requirements are mandatory for every BSL-World Windows application
 - Release channels, editions, or licensed feature sets must not be crossed accidentally by the updater.
 - Before publishing a release, validate the real update path from the previous public version to the new version using production artifacts.
 - Update metadata and downloadable artifacts must use the approved BSL-World download infrastructure.
+
+### Window placement
+
+Every ordinary user-positioned window must preserve its own last position by a
+stable window identifier.
+
+- On the next opening, restore the saved position relative to the nearest
+  available monitor work area.
+- Negative desktop coordinates are valid and must not be normalized merely
+  because they are negative.
+- Correct the horizontal and vertical coordinates independently. If only one
+  axis would place part of the window outside the work area, keep the other
+  saved coordinate unchanged.
+- Keep the complete window inside the work area, excluding taskbars and other
+  reserved desktop areas, with a reasonable visible margin.
+- Account for per-monitor scaling when comparing physical window coordinates
+  with logical interface measurements.
+- An auxiliary window opened by the user must become visible, receive focus,
+  and appear above its parent window after its safe position is restored.
+- Automatically anchored transient surfaces, such as a tray informer, may use
+  application-controlled placement instead of saved user coordinates.
 
 ### Audio output
 
