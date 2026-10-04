@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Restore every standard application window to its last position, then adjust
+  only the coordinates needed to keep it inside the nearest monitor work area
+  with a margin, including desktop layouts with negative monitor coordinates.
+
 ## [0.10.0] - 2026-10-03
 
 ### Added

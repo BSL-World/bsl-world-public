@@ -119,6 +119,9 @@ const TRAY_PREVIEW_FADE_MS: u64 = 420;
 const TRAY_PREVIEW_WIDTH: f64 = 340.0;
 const TRAY_PREVIEW_HEIGHT: f64 = 190.0;
 const PULSE_LEVELS: [u8; 8] = [100, 92, 84, 76, 68, 76, 84, 92];
+const SETTINGS_WINDOW_OFFSET_X: f64 = 120.0;
+const SETTINGS_WINDOW_OFFSET_Y: f64 = 120.0;
+const SETTINGS_WINDOW_MARGIN: f64 = 30.0;
 
 #[derive(Clone, Default)]
 struct TrayPreviewState(Arc<AtomicU64>);
@@ -784,20 +787,121 @@ fn auxiliary_window_position(
     ))
 }
 
+fn clamp_window_coordinate(
+    candidate: f64,
+    work_area_start: i32,
+    work_area_span: u32,
+    window_span: u32,
+    margin: f64,
+) -> i32 {
+    let minimum = f64::from(work_area_start) + margin;
+    let maximum = (f64::from(work_area_start) + f64::from(work_area_span)
+        - f64::from(window_span)
+        - margin)
+        .max(minimum);
+
+    candidate.clamp(minimum, maximum).round() as i32
+}
+
+#[cfg(test)]
+mod window_position_tests {
+    use super::clamp_window_coordinate;
+
+    #[test]
+    fn keeps_valid_negative_coordinates_unchanged() {
+        assert_eq!(
+            clamp_window_coordinate(-1000.0, -1920, 1920, 460, 30.0),
+            -1000
+        );
+    }
+
+    #[test]
+    fn clamps_both_edges_of_a_left_hand_monitor() {
+        assert_eq!(
+            clamp_window_coordinate(-2500.0, -1920, 1920, 460, 30.0),
+            -1890
+        );
+        assert_eq!(
+            clamp_window_coordinate(-100.0, -1920, 1920, 460, 30.0),
+            -490
+        );
+    }
+
+    #[test]
+    fn clamps_the_bottom_edge_of_any_monitor() {
+        assert_eq!(
+            clamp_window_coordinate(900.0, 0, 1040, 680, 30.0),
+            330
+        );
+        assert_eq!(
+            clamp_window_coordinate(-200.0, -1080, 1080, 680, 30.0),
+            -710
+        );
+    }
+}
+
+fn settings_window_position(app: &tauri::AppHandle) -> Option<PhysicalPosition<i32>> {
+    let main_window = app.get_webview_window("main")?;
+    let settings_window = app.get_webview_window("settings")?;
+    let main_position = main_window.outer_position().ok()?;
+    let main_size = main_window.outer_size().ok()?;
+    let main_center_x =
+        f64::from(main_position.x) + f64::from(main_size.width) / 2.0;
+    let main_center_y =
+        f64::from(main_position.y) + f64::from(main_size.height) / 2.0;
+    let monitor = app
+        .monitor_from_point(main_center_x, main_center_y)
+        .ok()
+        .flatten()
+        .or_else(|| app.primary_monitor().ok().flatten())?;
+    let scale_factor = monitor.scale_factor();
+    let work_area = monitor.work_area();
+    let settings_size = settings_window.outer_size().ok()?;
+    let margin = SETTINGS_WINDOW_MARGIN * scale_factor;
+    let candidate_x =
+        f64::from(main_position.x) + SETTINGS_WINDOW_OFFSET_X * scale_factor;
+    let candidate_y =
+        f64::from(main_position.y) + SETTINGS_WINDOW_OFFSET_Y * scale_factor;
+
+    Some(PhysicalPosition::new(
+        clamp_window_coordinate(
+            candidate_x,
+            work_area.position.x,
+            work_area.size.width,
+            settings_size.width,
+            margin,
+        ),
+        clamp_window_coordinate(
+            candidate_y,
+            work_area.position.y,
+            work_area.size.height,
+            settings_size.height,
+            margin,
+        ),
+    ))
+}
+
+fn position_settings_window(app: &tauri::AppHandle) {
+    let Some(window) = app.get_webview_window("settings") else {
+        return;
+    };
+    let Some(position) = settings_window_position(app) else {
+        return;
+    };
+
+    let _ = window.set_position(position);
+}
+
 #[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
-        if let Some(position) = auxiliary_window_position(&app, 120.0, 120.0) {
-            let _ = window.set_position(position);
-        }
+        position_settings_window(&app);
         let _ = window.show();
         let _ = window.set_focus();
         return Ok(());
     }
 
-    let settings_position = auxiliary_window_position(&app, 120.0, 120.0);
-
-    let mut builder = tauri::WebviewWindowBuilder::new(
+    let builder = tauri::WebviewWindowBuilder::new(
         &app,
         "settings",
         tauri::WebviewUrl::App("settings.html".into()),
@@ -810,19 +914,13 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .decorations(true)
     .skip_taskbar(true)
     .always_on_top(false)
-    .prevent_overflow_with_margin(tauri::LogicalSize::new(30.0, 30.0));
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(30.0, 30.0))
+    .center();
 
-    builder = match settings_position {
-        Some(position) => builder.position(position.x, position.y),
-        None => builder.center(),
-    };
-
-    let settings_window = builder.build();
-
-    match settings_window {
-        Ok(_) => Ok(()),
-        Err(error) => Err(error.to_string()),
-    }
+    builder
+        .build()
+        .map(|_| position_settings_window(&app))
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]

@@ -131,7 +131,7 @@ export async function keepWindowInsideWorkArea(
   return safePosition;
 }
 
-export async function prepareWindowPosition(
+async function restoreAndTrackWindowPosition(
   appWindow,
   margin = DEFAULT_WINDOW_MARGIN
 ) {
@@ -146,6 +146,15 @@ export async function prepareWindowPosition(
   await appWindow.onMoved((event) => {
     saveWindowPosition(appWindow, event.payload);
   });
+
+  return safePosition;
+}
+
+export async function prepareWindowPosition(
+  appWindow,
+  margin = DEFAULT_WINDOW_MARGIN
+) {
+  await restoreAndTrackWindowPosition(appWindow, margin);
 }
 
 export async function prepareAuxiliaryWindow(
@@ -153,9 +162,9 @@ export async function prepareAuxiliaryWindow(
   margin = DEFAULT_WINDOW_MARGIN
 ) {
   try {
-    await keepWindowInsideWorkArea(appWindow, margin);
+    await restoreAndTrackWindowPosition(appWindow, margin);
   } catch (error) {
-    console.error('Failed to keep the window inside the work area:', error);
+    console.error('Failed to restore the window position:', error);
   } finally {
     await appWindow.show();
     await appWindow.setFocus();
