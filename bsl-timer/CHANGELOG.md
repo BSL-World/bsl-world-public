@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-04
+
 ### Fixed
 
 - Restore every standard application window to its last position, then adjust
