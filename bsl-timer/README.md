@@ -58,7 +58,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.10.1 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.11.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -73,11 +73,10 @@ resizable window. Version 0.10.0 adds per-timer descriptions, configurable
 and a tray informer that identifies the timer requiring attention.
 Version 0.10.1 restores every standard application window to its own last
 position and safely adjusts only the coordinates that would place it outside
-the nearest monitor work area.
-
-The current development version adds one application-wide audio output device
-setting for end signals, warning signals, and signal preview. A disconnected
-or unavailable saved device falls back safely to the Windows system default.
+the nearest monitor work area. Version 0.11.0 adds one application-wide audio
+output device setting for end signals, warning signals, and signal preview.
+A disconnected or unavailable saved device falls back safely to the Windows
+system default.
 
 ### Resolved Windows taskbar issue
 

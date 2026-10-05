@@ -159,7 +159,8 @@
   },
   "whatsNew": {
     "title": "What’s New in BSL-Timer {version}",
-    "windowPositions": "Application windows now remember their own positions and stay fully visible across multi-monitor desktop layouts.",
+    "audioOutputDevice": "Choose one application-wide Windows audio output device for all timer signals and signal preview.",
+    "audioOutputFallback": "If the selected output is unavailable, BSL-Timer reports it and safely uses the Windows system default.",
     "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {

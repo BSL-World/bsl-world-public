@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-05
+
 ### Added
 
 - Added one application-wide audio output device setting for end signals,
@@ -22,6 +24,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - Fall back safely to the Windows system default output and notify the user
   when a saved audio device is disconnected, removed, or unavailable.
+- Keep the current native audio stream open between signals to reduce playback
+  startup delay and avoid expected stream-lifecycle diagnostics in the console.
 
 ## [0.10.1] - 2026-10-04
 
