@@ -56,13 +56,23 @@ pub struct NativeAudioResult {
 struct ActivePlayback {
     token: u64,
     player: Arc<Player>,
-    _device_sink: MixerDeviceSink,
+    _device_sink: Arc<MixerDeviceSink>,
+}
+
+#[derive(Clone)]
+struct AudioOutputSession {
+    requested_output_device_id: String,
+    effective_output_device_id: String,
+    physical_output_device_id: Option<String>,
+    fell_back: bool,
+    device_sink: Arc<MixerDeviceSink>,
 }
 
 #[derive(Default)]
 struct AudioEngineState {
     active: HashMap<String, Arc<ActivePlayback>>,
     cancelled: HashSet<String>,
+    output_session: Option<AudioOutputSession>,
 }
 
 #[derive(Clone, Default)]
@@ -79,6 +89,20 @@ fn default_output_device() -> Result<cpal::Device, String> {
     cpal::default_host()
         .default_output_device()
         .ok_or_else(|| "No default audio output device is available".to_string())
+}
+
+fn normalize_output_device_id(device_id: &str) -> String {
+    let device_id = device_id.trim();
+
+    if device_id.is_empty() {
+        DEFAULT_AUDIO_OUTPUT_DEVICE_ID.to_string()
+    } else {
+        device_id.to_string()
+    }
+}
+
+fn physical_output_device_id(device: &cpal::Device) -> Option<String> {
+    device.id().ok().map(|id| id.to_string())
 }
 
 fn resolve_output_device(device_id: &str) -> Result<cpal::Device, String> {
@@ -99,34 +123,103 @@ fn resolve_output_device(device_id: &str) -> Result<cpal::Device, String> {
 }
 
 fn open_device_sink(device: cpal::Device) -> Result<MixerDeviceSink, String> {
-    DeviceSinkBuilder::from_device(device)
+    let mut device_sink = DeviceSinkBuilder::from_device(device)
         .and_then(|builder| builder.open_sink_or_fallback())
-        .map_err(|error| format!("Failed to open the audio output device: {error}"))
+        .map_err(|error| format!("Failed to open the audio output device: {error}"))?;
+
+    // The engine deliberately owns and closes this long-lived stream. Rodio's
+    // default diagnostic on drop is useful for accidental early drops, but it
+    // is noise for this controlled lifecycle.
+    device_sink.log_on_drop(false);
+    Ok(device_sink)
 }
 
-fn open_output_sink(device_id: &str) -> Result<(MixerDeviceSink, String, bool), String> {
-    let requested_id = device_id.trim();
+fn create_output_session(
+    device: cpal::Device,
+    requested_output_device_id: String,
+    effective_output_device_id: String,
+    fell_back: bool,
+) -> Result<AudioOutputSession, String> {
+    let physical_output_device_id = physical_output_device_id(&device);
+    let device_sink = Arc::new(open_device_sink(device)?);
 
-    if requested_id.is_empty() || requested_id == DEFAULT_AUDIO_OUTPUT_DEVICE_ID {
-        return DeviceSinkBuilder::open_default_sink()
-            .map(|sink| (
-                sink,
-                DEFAULT_AUDIO_OUTPUT_DEVICE_ID.to_string(),
-                false,
-            ))
+    Ok(AudioOutputSession {
+        requested_output_device_id,
+        effective_output_device_id,
+        physical_output_device_id,
+        fell_back,
+        device_sink,
+    })
+}
+
+fn open_output_session(device_id: &str) -> Result<AudioOutputSession, String> {
+    let requested_id = normalize_output_device_id(device_id);
+
+    if requested_id == DEFAULT_AUDIO_OUTPUT_DEVICE_ID {
+        return default_output_device()
+            .and_then(|device| {
+                create_output_session(
+                    device,
+                    requested_id,
+                    DEFAULT_AUDIO_OUTPUT_DEVICE_ID.to_string(),
+                    false,
+                )
+            })
             .map_err(|error| format!("Failed to open the default audio output: {error}"));
     }
 
-    match resolve_output_device(requested_id).and_then(open_device_sink) {
-        Ok(sink) => Ok((sink, requested_id.to_string(), false)),
-        Err(_) => DeviceSinkBuilder::open_default_sink()
-            .map(|sink| (
-                sink,
-                DEFAULT_AUDIO_OUTPUT_DEVICE_ID.to_string(),
-                true,
-            ))
+    let selected_session = resolve_output_device(&requested_id).and_then(|device| {
+        create_output_session(
+            device,
+            requested_id.clone(),
+            requested_id.clone(),
+            false,
+        )
+    });
+
+    match selected_session {
+        Ok(session) => Ok(session),
+        Err(_) => default_output_device()
+            .and_then(|device| {
+                create_output_session(
+                    device,
+                    requested_id,
+                    DEFAULT_AUDIO_OUTPUT_DEVICE_ID.to_string(),
+                    true,
+                )
+            })
             .map_err(|error| format!("Failed to open the fallback audio output: {error}")),
     }
+}
+
+fn output_session_is_current(session: &AudioOutputSession, requested_id: &str) -> bool {
+    if session.requested_output_device_id != requested_id {
+        return false;
+    }
+
+    let current_device = if session.fell_back {
+        // Keep using the cached fallback while the requested endpoint remains
+        // absent. As soon as it returns, retry it on the next playback.
+        if resolve_output_device(requested_id).is_ok() {
+            return false;
+        }
+
+        default_output_device()
+    } else {
+        resolve_output_device(requested_id)
+    };
+
+    let current_physical_id = current_device
+        .ok()
+        .and_then(|device| physical_output_device_id(&device));
+
+    matches!(
+        (
+            current_physical_id.as_deref(),
+            session.physical_output_device_id.as_deref(),
+        ),
+        (Some(current), Some(cached)) if current == cached
+    )
 }
 
 fn append_silence(player: &Player, duration: Duration) {
@@ -237,6 +330,23 @@ pub fn is_audio_output_device_available(device_id: &str) -> bool {
 }
 
 impl AudioEngine {
+    fn output_session(&self, output_device_id: &str) -> Result<AudioOutputSession, String> {
+        let requested_id = normalize_output_device_id(output_device_id);
+        let mut state = self.state.lock().map_err(|_| lock_error())?;
+
+        if let Some(session) = state
+            .output_session
+            .as_ref()
+            .filter(|session| output_session_is_current(session, &requested_id))
+        {
+            return Ok(session.clone());
+        }
+
+        let session = open_output_session(&requested_id)?;
+        state.output_session = Some(session.clone());
+        Ok(session)
+    }
+
     pub fn play(&self, request: NativeAudioRequest) -> Result<NativeAudioResult, String> {
         {
             let mut state = self.state.lock().map_err(|_| lock_error())?;
@@ -249,9 +359,8 @@ impl AudioEngine {
             }
         }
 
-        let (device_sink, effective_output_device_id, fell_back) =
-            open_output_sink(&request.output_device_id)?;
-        let player = Arc::new(Player::connect_new(device_sink.mixer()));
+        let output_session = self.output_session(&request.output_device_id)?;
+        let player = Arc::new(Player::connect_new(output_session.device_sink.mixer()));
 
         match request.signal {
             NativeAudioSignal::BuiltIn => append_built_in_signal(&player),
@@ -263,7 +372,7 @@ impl AudioEngine {
         let active_playback = Arc::new(ActivePlayback {
             token,
             player,
-            _device_sink: device_sink,
+            _device_sink: output_session.device_sink.clone(),
         });
 
         let previous = {
@@ -271,8 +380,10 @@ impl AudioEngine {
 
             if state.cancelled.remove(&request.playback_id) {
                 return Ok(NativeAudioResult {
-                    effective_output_device_id,
-                    fell_back,
+                    effective_output_device_id: output_session
+                        .effective_output_device_id
+                        .clone(),
+                    fell_back: output_session.fell_back,
                 });
             }
 
@@ -298,8 +409,8 @@ impl AudioEngine {
         }
 
         Ok(NativeAudioResult {
-            effective_output_device_id,
-            fell_back,
+            effective_output_device_id: output_session.effective_output_device_id,
+            fell_back: output_session.fell_back,
         })
     }
 
