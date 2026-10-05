@@ -1,57 +1,71 @@
 import { invoke } from '@tauri-apps/api/core';
+import {
+  DEFAULT_AUDIO_OUTPUT_DEVICE_ID,
+  NativeAudioSignal,
+  createNativeAudioRequest,
+  isAudioOutputDeviceAvailable,
+  normalizeAudioOutputDeviceId
+} from '@bsl-world/desktop-core/audio';
 
-import { getAudioMimeType } from './audio-file.js';
 import { getSelectedSignalPath } from './signal-settings.js';
+
+let nextSignalPlayerId = 0;
 
 export class SignalPlayer {
   constructor({
     invokeFn = invoke,
-    audioFactory = (url) => new Audio(url),
-    createObjectUrl = (blob) => URL.createObjectURL(blob),
     onFileError = () => {},
+    onOutputDeviceFallback = () => {},
+    outputDeviceId = DEFAULT_AUDIO_OUTPUT_DEVICE_ID,
     logger = console
   } = {}) {
     this.invoke = invokeFn;
-    this.audioFactory = audioFactory;
-    this.createObjectUrl = createObjectUrl;
     this.onFileError = onFileError;
+    this.onOutputDeviceFallback = onOutputDeviceFallback;
+    this.outputDeviceId = normalizeAudioOutputDeviceId(outputDeviceId);
     this.logger = logger;
-    this.audioContext = null;
-    this.activeOscillators = new Map();
-    this.activeAudioElements = new Map();
-    this.audioStopCallbacks = new WeakMap();
-    this.audioUrlCache = new Map();
+    this.clientId = `signal-player-${++nextSignalPlayerId}`;
+    this.nextPlaybackId = 0;
+    this.activePlaybackIds = new Map();
     this.stopGeneration = 0;
     this.sequenceStopGenerations = new Map();
   }
 
+  async setOutputDevice(outputDeviceId) {
+    this.outputDeviceId = normalizeAudioOutputDeviceId(outputDeviceId);
+    const available = await isAudioOutputDeviceAvailable(
+      this.outputDeviceId,
+      this.invoke
+    );
+
+    if (!available) {
+      this.onOutputDeviceFallback(this.outputDeviceId);
+      return DEFAULT_AUDIO_OUTPUT_DEVICE_ID;
+    }
+
+    return this.outputDeviceId;
+  }
+
   async prepare() {
-    if (!this.audioContext) {
-      const AudioContextClass =
-        window.AudioContext ?? window.webkitAudioContext;
-
-      if (!AudioContextClass) {
-        return false;
-      }
-
-      this.audioContext = new AudioContextClass();
-    }
-
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
-    }
-
-    return this.audioContext.state === 'running';
+    return true;
   }
 
   async play(sequenceId = 'default', settings = {}) {
     const soundPath = getSelectedSignalPath(settings);
 
     if (soundPath) {
+      const stopState = this.captureStopState(sequenceId);
+
       try {
-        await this.playAudioFile(sequenceId, soundPath);
-        return true;
+        return await this.playNative(sequenceId, {
+          signal: NativeAudioSignal.FILE,
+          path: soundPath
+        });
       } catch (error) {
+        if (this.wasStopped(sequenceId, stopState)) {
+          return true;
+        }
+
         this.onFileError(error, soundPath);
         this.logger.error(
           `Failed to play audio file "${soundPath}". Using the built-in signal.`,
@@ -63,45 +77,16 @@ export class SignalPlayer {
     return this.playBuiltIn(sequenceId);
   }
 
-  async playBuiltIn(sequenceId = 'default') {
-    const ready = await this.prepare();
-
-    if (!ready) {
-      return false;
-    }
-
-    const startTime = this.audioContext.currentTime;
-    const beepOffsets = [0, 0.35, 0.7];
-
-    await Promise.all(beepOffsets.map((offset) => (
-      this.scheduleBeep(sequenceId, startTime + offset)
-    )));
-
-    return true;
+  playBuiltIn(sequenceId = 'default') {
+    return this.playNative(sequenceId, {
+      signal: NativeAudioSignal.BUILT_IN
+    });
   }
 
-  async playWarning(sequenceId = 'warning') {
-    const ready = await this.prepare();
-
-    if (!ready) {
-      return false;
-    }
-
-    const startTime = this.audioContext.currentTime;
-    const warningNotes = [
-      { offset: 0, frequency: 660 },
-      { offset: 0.24, frequency: 880 }
-    ];
-
-    await Promise.all(warningNotes.map(({ offset, frequency }) => (
-      this.scheduleBeep(sequenceId, startTime + offset, {
-        frequency,
-        duration: 0.16,
-        volume: 0.2
-      })
-    )));
-
-    return true;
+  playWarning(sequenceId = 'warning') {
+    return this.playNative(sequenceId, {
+      signal: NativeAudioSignal.WARNING
+    });
   }
 
   stop(sequenceId = null) {
@@ -114,187 +99,80 @@ export class SignalPlayer {
       );
     }
 
-    const oscillatorEntries = sequenceId === null
-      ? [...this.activeOscillators.entries()]
-      : [[
-          sequenceId,
-          this.activeOscillators.get(sequenceId) ?? new Set()
-        ]];
+    const playbackIds = sequenceId === null
+      ? [...this.activePlaybackIds.values()].flatMap((ids) => [...ids])
+      : [...(this.activePlaybackIds.get(sequenceId) ?? [])];
 
-    oscillatorEntries.forEach(([ownerId, oscillators]) => {
-      oscillators.forEach((oscillator) => {
-        try {
-          oscillator.stop();
-        } catch {
-          // The oscillator has already stopped.
-        }
-      });
-
-      this.activeOscillators.delete(ownerId);
-    });
-
-    const audioEntries = sequenceId === null
-      ? [...this.activeAudioElements.entries()]
-      : [[
-          sequenceId,
-          this.activeAudioElements.get(sequenceId) ?? new Set()
-        ]];
-
-    audioEntries.forEach(([ownerId, audioElements]) => {
-      audioElements.forEach((audio) => {
-        audio.pause();
-        audio.currentTime = 0;
-        this.audioStopCallbacks.get(audio)?.();
-      });
-
-      this.activeAudioElements.delete(ownerId);
-    });
-  }
-
-  async getAudioUrl(path) {
-    if (!await this.invoke('audio_file_exists', { path })) {
-      throw new Error(`The selected audio file does not exist: ${path}`);
+    if (sequenceId === null) {
+      this.activePlaybackIds.clear();
+    } else {
+      this.activePlaybackIds.delete(sequenceId);
     }
 
-    if (this.audioUrlCache.has(path)) {
-      return this.audioUrlCache.get(path);
-    }
-
-    const audioBuffer = await this.invoke('read_audio_file', { path });
-    const audioUrl = this.createObjectUrl(new Blob(
-      [audioBuffer],
-      { type: getAudioMimeType(path) }
-    ));
-
-    this.audioUrlCache.set(path, audioUrl);
-    return audioUrl;
-  }
-
-  async playAudioFile(sequenceId, path) {
-    const stopGeneration = this.stopGeneration;
-    const sequenceStopGeneration = this.sequenceStopGenerations.get(
-      sequenceId
-    ) ?? 0;
-    const wasStopped = () => (
-      stopGeneration !== this.stopGeneration
-      || sequenceStopGeneration !== (
-        this.sequenceStopGenerations.get(sequenceId) ?? 0
-      )
-    );
-    let audioUrl;
-
-    try {
-      audioUrl = await this.getAudioUrl(path);
-    } catch (error) {
-      if (wasStopped()) {
-        return;
-      }
-
-      throw error;
-    }
-
-    if (wasStopped()) {
+    if (playbackIds.length === 0) {
       return;
     }
 
-    const audio = this.audioFactory(audioUrl);
-    const audioElements = this.activeAudioElements.get(sequenceId)
-      ?? new Set();
-
-    if (!this.activeAudioElements.has(sequenceId)) {
-      this.activeAudioElements.set(sequenceId, audioElements);
-    }
-
-    audio.preload = 'auto';
-
-    return new Promise((resolve, reject) => {
-      let settled = false;
-
-      const settle = (error = null) => {
-        if (settled) {
-          return;
-        }
-
-        settled = true;
-        audioElements.delete(audio);
-
-        if (audioElements.size === 0) {
-          this.activeAudioElements.delete(sequenceId);
-        }
-
-        audio.removeEventListener('ended', handleEnded);
-        audio.removeEventListener('error', handleError);
-        this.audioStopCallbacks.delete(audio);
-
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
-        }
-      };
-      const handleEnded = () => settle();
-      const handleError = () => settle(
-        new Error(`The audio file could not be decoded: ${path}`)
-      );
-
-      audio.addEventListener('ended', handleEnded, { once: true });
-      audio.addEventListener('error', handleError, { once: true });
-      this.audioStopCallbacks.set(audio, () => settle());
-      audioElements.add(audio);
-
-      Promise.resolve(audio.play()).catch(settle);
+    void this.invoke('stop_audio_playback', { playbackIds }).catch((error) => {
+      this.logger.error('Failed to stop native audio playback.', error);
     });
   }
 
-  scheduleBeep(sequenceId, startTime, {
-    frequency = 880,
-    duration = 0.2,
-    volume = 0.25
-  } = {}) {
-    const oscillators = this.activeOscillators.get(sequenceId)
-      ?? new Set();
+  captureStopState(sequenceId) {
+    return {
+      all: this.stopGeneration,
+      sequence: this.sequenceStopGenerations.get(sequenceId) ?? 0
+    };
+  }
 
-    if (!this.activeOscillators.has(sequenceId)) {
-      this.activeOscillators.set(sequenceId, oscillators);
+  wasStopped(sequenceId, stopState) {
+    return stopState.all !== this.stopGeneration
+      || stopState.sequence !== (
+        this.sequenceStopGenerations.get(sequenceId) ?? 0
+      );
+  }
+
+  async playNative(sequenceId, { signal, path = null }) {
+    const stopState = this.captureStopState(sequenceId);
+    const playbackId = `${this.clientId}:${++this.nextPlaybackId}`;
+    const request = createNativeAudioRequest({
+      playbackId,
+      outputDeviceId: this.outputDeviceId,
+      signal,
+      path
+    });
+
+    if (this.wasStopped(sequenceId, stopState)) {
+      return true;
     }
 
-    const oscillator = this.audioContext.createOscillator();
-    const gain = this.audioContext.createGain();
-    const endTime = startTime + duration;
+    const playbackIds = this.activePlaybackIds.get(sequenceId) ?? new Set();
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(frequency, startTime);
+    if (!this.activePlaybackIds.has(sequenceId)) {
+      this.activePlaybackIds.set(sequenceId, playbackIds);
+    }
 
-    gain.gain.setValueAtTime(0.0001, startTime);
-    gain.gain.exponentialRampToValueAtTime(
-      volume,
-      startTime + 0.01
-    );
-    gain.gain.setValueAtTime(volume, endTime - 0.03);
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      endTime
-    );
+    playbackIds.add(playbackId);
 
-    oscillator.connect(gain);
-    gain.connect(this.audioContext.destination);
+    let result;
 
-    return new Promise((resolve) => {
-      oscillator.addEventListener('ended', () => {
-        oscillators.delete(oscillator);
+    try {
+      result = await this.invoke('play_audio_signal', { request });
+    } finally {
+      playbackIds.delete(playbackId);
 
-        if (oscillators.size === 0) {
-          this.activeOscillators.delete(sequenceId);
-        }
+      if (playbackIds.size === 0) {
+        this.activePlaybackIds.delete(sequenceId);
+      }
+    }
 
-        oscillator.disconnect();
-        gain.disconnect();
-        resolve();
-      }, { once: true });
+    if (
+      result?.fellBack
+      && this.outputDeviceId !== DEFAULT_AUDIO_OUTPUT_DEVICE_ID
+    ) {
+      this.onOutputDeviceFallback(this.outputDeviceId);
+    }
 
-      oscillators.add(oscillator);
-      oscillator.start(startTime);
-      oscillator.stop(endTime);
-    });
+    return true;
   }
 }

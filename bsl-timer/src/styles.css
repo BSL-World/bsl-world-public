@@ -1157,6 +1157,10 @@ button {
   gap: 9px;
 }
 
+.audio-output-settings-card {
+  gap: 9px;
+}
+
 .signal-settings-card {
   gap: 9px;
 }

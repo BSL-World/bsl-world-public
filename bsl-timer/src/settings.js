@@ -57,6 +57,10 @@ import {
   saveAudioPreferences
 } from './audio-preferences.js';
 import {
+  DEFAULT_AUDIO_OUTPUT_DEVICE_ID,
+  listAudioOutputDevices
+} from '@bsl-world/desktop-core/audio';
+import {
   EVENT_DETAILS_EVENT,
   MAX_EVENT_DESCRIPTION_LENGTH,
   getEventDisplayName,
@@ -175,6 +179,12 @@ const signalPreviewButton =
 const allowConcurrentSignalsInput =
   document.getElementById('allow-concurrent-signals-input');
 
+const audioOutputDeviceSelect =
+  document.getElementById('audio-output-device-select');
+
+const audioOutputDeviceStatus =
+  document.getElementById('audio-output-device-status');
+
 const warningSoundInputs = [
   ...document.querySelectorAll('.warning-sound-input')
 ];
@@ -230,14 +240,20 @@ let pendingWarningSignalSettings = {
 };
 let committedAudioPreferences = getAudioPreferences();
 let pendingAudioPreferences = { ...committedAudioPreferences };
+let audioOutputDevices = [];
 let windowsSounds = [];
 const signalPreviewId = 'settings-preview';
+const signalPreviewPlayer = new SignalPlayer({
+  outputDeviceId: pendingAudioPreferences.outputDeviceId,
+  onFileError: () => {
+    setSignalSourceStatus('settings.signalFileUnavailable');
+  },
+  onOutputDeviceFallback: () => {
+    setAudioOutputStatus('settings.audioOutputFallback');
+  }
+});
 const signalPreviewService = new EndSignalService({
-  player: new SignalPlayer({
-    onFileError: () => {
-      setSignalSourceStatus('settings.signalFileUnavailable');
-    }
-  }),
+  player: signalPreviewPlayer,
   onComplete: (sequenceId) => {
     if (sequenceId !== signalPreviewId) {
       return;
@@ -352,6 +368,100 @@ function readEventDetailsControls() {
   updateApplyButton();
 }
 
+function setAudioOutputStatus(messageKey = null) {
+  audioOutputDeviceStatus.hidden = messageKey === null;
+  audioOutputDeviceStatus.textContent = messageKey ? t(messageKey) : '';
+}
+
+function getAudioOutputDeviceLabel(device, index) {
+  return device.label || t('settings.unnamedAudioOutputDevice')
+    .replace('{number}', String(index + 1));
+}
+
+function populateAudioOutputDevices() {
+  audioOutputDeviceSelect.replaceChildren();
+
+  const defaultOption = document.createElement('option');
+
+  defaultOption.value = DEFAULT_AUDIO_OUTPUT_DEVICE_ID;
+  defaultOption.textContent = t('settings.audioOutputSystemDefault');
+  audioOutputDeviceSelect.append(defaultOption);
+
+  audioOutputDevices.forEach((device, index) => {
+    const option = document.createElement('option');
+
+    option.value = device.id;
+    option.textContent = getAudioOutputDeviceLabel(device, index);
+    audioOutputDeviceSelect.append(option);
+  });
+
+  const selectedDeviceExists =
+    pendingAudioPreferences.outputDeviceId
+      === DEFAULT_AUDIO_OUTPUT_DEVICE_ID
+    || audioOutputDevices.some(
+      ({ id }) => id === pendingAudioPreferences.outputDeviceId
+    );
+
+  if (!selectedDeviceExists) {
+    const unavailableOption = document.createElement('option');
+
+    unavailableOption.value = pendingAudioPreferences.outputDeviceId;
+    unavailableOption.textContent = pendingAudioPreferences.outputDeviceLabel
+      ? `${pendingAudioPreferences.outputDeviceLabel} — ${t(
+          'settings.missingAudioOutputDevice'
+        )}`
+      : t('settings.missingAudioOutputDevice');
+    audioOutputDeviceSelect.append(unavailableOption);
+    setAudioOutputStatus('settings.audioOutputFallback');
+  }
+
+  audioOutputDeviceSelect.value = pendingAudioPreferences.outputDeviceId;
+}
+
+function updateAudioControls() {
+  allowConcurrentSignalsInput.checked =
+    pendingAudioPreferences.allowConcurrentSignals;
+  populateAudioOutputDevices();
+}
+
+async function loadAudioOutputDevices() {
+  try {
+    audioOutputDevices = await listAudioOutputDevices(invoke);
+    populateAudioOutputDevices();
+  } catch (error) {
+    audioOutputDevices = [];
+    populateAudioOutputDevices();
+    setAudioOutputStatus('settings.audioOutputListUnavailable');
+    console.error('Failed to load audio output devices:', error);
+  }
+}
+
+async function selectPendingAudioOutputDevice(deviceId, deviceLabel = '') {
+  pendingAudioPreferences = normalizeAudioPreferences({
+    ...pendingAudioPreferences,
+    outputDeviceId: deviceId,
+    outputDeviceLabel: deviceId === DEFAULT_AUDIO_OUTPUT_DEVICE_ID
+      ? ''
+      : deviceLabel
+  });
+
+  setAudioOutputStatus();
+  const effectiveDeviceId = await signalPreviewPlayer.setOutputDevice(
+    pendingAudioPreferences.outputDeviceId
+  );
+
+  if (
+    effectiveDeviceId === DEFAULT_AUDIO_OUTPUT_DEVICE_ID
+    && pendingAudioPreferences.outputDeviceId
+      !== DEFAULT_AUDIO_OUTPUT_DEVICE_ID
+  ) {
+    setAudioOutputStatus('settings.audioOutputFallback');
+  }
+
+  updateAudioControls();
+  updateApplyButton();
+}
+
 function updateSignalControls() {
   playEndSignalInput.checked = pendingSignalSettings.playSound;
   showEndInformerInput.checked = pendingSignalSettings.showInformer;
@@ -370,8 +480,6 @@ function updateSignalControls() {
     pendingSignalSettings.customSoundPath
   ) || t('settings.noAudioFileSelected');
   customSoundFileName.title = pendingSignalSettings.customSoundPath;
-  allowConcurrentSignalsInput.checked =
-    pendingAudioPreferences.allowConcurrentSignals;
   warningSoundInputs.forEach((input) => {
     input.checked = pendingWarningSignalSettings.soundThresholdMinutes
       .includes(Number(input.value));
@@ -621,8 +729,10 @@ async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
   populateWindowsSounds();
+  populateAudioOutputDevices();
   updateEventDetailsControls();
   updateSignalControls();
+  updateAudioControls();
   signalTimerName.textContent = pendingEventDetails.name
     || getEventDisplayName(
       { ...signalEvent, name: null },
@@ -765,6 +875,9 @@ async function applyPendingSettings() {
     pendingAudioPreferences
   );
   pendingAudioPreferences = { ...committedAudioPreferences };
+  await signalPreviewPlayer.setOutputDevice(
+    committedAudioPreferences.outputDeviceId
+  );
 
   await emitTo(
     'main',
@@ -781,6 +894,7 @@ async function applyPendingSettings() {
   updateBehaviorControls();
   updateEventDetailsControls();
   updateSignalControls();
+  updateAudioControls();
   updateApplyButton();
   await updateInterface();
   return true;
@@ -922,6 +1036,19 @@ allowConcurrentSignalsInput.addEventListener('change', () => {
   updateApplyButton();
 });
 
+audioOutputDeviceSelect.addEventListener('change', () => {
+  const selectedDeviceId = audioOutputDeviceSelect.value;
+  const selectedDevice = audioOutputDevices.find(
+    ({ id }) => id === selectedDeviceId
+  );
+
+  void selectPendingAudioOutputDevice(
+    selectedDeviceId,
+    selectedDevice?.label
+      ?? pendingAudioPreferences.outputDeviceLabel
+  );
+});
+
 [
   ...warningSoundInputs,
   ...warningInformerInputs
@@ -1019,9 +1146,17 @@ window.addEventListener('storage', async (event) => {
     committedAudioPreferences = getAudioPreferences();
     pendingAudioPreferences = { ...committedAudioPreferences };
 
+    await signalPreviewPlayer.setOutputDevice(
+      committedAudioPreferences.outputDeviceId
+    );
     updateSignalControls();
+    updateAudioControls();
     updateApplyButton();
   }
+});
+
+navigator.mediaDevices?.addEventListener?.('devicechange', () => {
+  void loadAudioOutputDevices();
 });
 
 applyTheme();
@@ -1029,10 +1164,12 @@ applyGlow();
 populateLanguageSelect();
 populateThemeSelect();
 await loadWindowsSounds();
+await loadAudioOutputDevices();
 updateVisualControls();
 updateAppearanceControls();
 updateBehaviorControls();
 updateSignalControls();
+updateAudioControls();
 updateApplyButton();
 await updateInterface();
 await loadAutostartState();

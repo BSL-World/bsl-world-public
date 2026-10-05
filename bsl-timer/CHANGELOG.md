@@ -7,6 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added one application-wide audio output device setting for end signals,
+  warning signals, and signal preview in both Free and Pro editions.
+- Added native output-device discovery so the complete Windows playback-device
+  list is available without microphone permission or WebView2 media access.
+- Connected BSL-Timer to the shared `@bsl-world/desktop-core` audio layer so
+  future BSL-World desktop products use the same routing and fallback logic.
+- Moved signal generation, file decoding, routing, and cancellation into the
+  shared native desktop audio engine.
+
+### Fixed
+
+- Fall back safely to the Windows system default output and notify the user
+  when a saved audio device is disconnected, removed, or unavailable.
+
 ## [0.10.1] - 2026-10-04
 
 ### Fixed
@@ -41,7 +57,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Planned
 
 - Create an original built-in BSL-World sound collection when production time is available.
-- Add explicit audio output device selection, with safe fallback to the Windows default device when the saved device is unavailable.
 - Redraw the master application icon as vector artwork in Inkscape using Bézier paths, then regenerate crisp icon assets for sizes down to 64x64.
 
 ## [0.9.0] - 2026-10-02

@@ -25,6 +25,8 @@ BSL-Timer Free includes:
 - Windows system tray integration;
 - tray timer preview;
 - optional Windows autostart;
+- one application-wide audio output device for every timer signal, with safe
+  fallback to the Windows system default;
 - automatic signed application updates.
 
 The Free edition supports one timer.
@@ -72,6 +74,10 @@ and a tray informer that identifies the timer requiring attention.
 Version 0.10.1 restores every standard application window to its own last
 position and safely adjusts only the coordinates that would place it outside
 the nearest monitor work area.
+
+The current development version adds one application-wide audio output device
+setting for end signals, warning signals, and signal preview. A disconnected
+or unavailable saved device falls back safely to the Windows system default.
 
 ### Resolved Windows taskbar issue
 

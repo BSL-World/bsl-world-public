@@ -67,6 +67,7 @@ import { prepareWindowPosition } from './window-position.js';
 import {
   AUDIO_PREFERENCES_EVENT,
   AUDIO_PREFERENCES_STORAGE_KEY,
+  audioPreferencesEqual,
   getAudioPreferences,
   normalizeAudioPreferences
 } from './audio-preferences.js';
@@ -100,13 +101,29 @@ const signalInformer = new TrayInformerService({
   }
 });
 
+const initialAudioPreferences = getAudioPreferences();
+let appliedAudioPreferences = initialAudioPreferences;
+let lastOutputDeviceFallback = null;
+const handleOutputDeviceFallback = (deviceId) => {
+  if (lastOutputDeviceFallback === deviceId) {
+    return;
+  }
+
+  lastOutputDeviceFallback = deviceId;
+  console.error(`Audio output device "${deviceId}" is unavailable.`);
+  showTabNotice(t('timer.audioOutputUnavailable'));
+};
+const endSignalPlayer = new SignalPlayer({
+  outputDeviceId: initialAudioPreferences.outputDeviceId,
+  onFileError: () => {
+    showTabNotice(t('timer.signalFileUnavailable'));
+  },
+  onOutputDeviceFallback: handleOutputDeviceFallback
+});
+
 const endSignalService = new EndSignalService({
-  player: new SignalPlayer({
-    onFileError: () => {
-      showTabNotice(t('timer.signalFileUnavailable'));
-    }
-  }),
-  allowConcurrentSignals: getAudioPreferences().allowConcurrentSignals,
+  player: endSignalPlayer,
+  allowConcurrentSignals: initialAudioPreferences.allowConcurrentSignals,
   onPlaybackStart: (eventId, playbackNumber, settings) => {
     if (!settings.showInformer) {
       return;
@@ -123,7 +140,10 @@ const endSignalService = new EndSignalService({
     }
   }
 });
-const warningSignalPlayer = new SignalPlayer();
+const warningSignalPlayer = new SignalPlayer({
+  outputDeviceId: initialAudioPreferences.outputDeviceId,
+  onOutputDeviceFallback: handleOutputDeviceFallback
+});
 const warningSignalController = new WarningSignalController({
   onWarning: (eventId, thresholdMinutes, _snapshot, delivery) => {
     const token = `warning:${eventId}:${thresholdMinutes}`;
@@ -540,6 +560,38 @@ function prepareSignal() {
   });
   void warningSignalPlayer.prepare().catch((error) => {
     console.error('Failed to prepare timer warning signal:', error);
+  });
+}
+
+function applyAudioPreferences(preferences, { force = false } = {}) {
+  const normalizedPreferences = normalizeAudioPreferences(preferences);
+
+  if (
+    !force
+    && audioPreferencesEqual(
+      normalizedPreferences,
+      appliedAudioPreferences
+    )
+  ) {
+    return;
+  }
+
+  appliedAudioPreferences = normalizedPreferences;
+  lastOutputDeviceFallback = null;
+
+  endSignalService.setAllowConcurrentSignals(
+    normalizedPreferences.allowConcurrentSignals
+  );
+
+  void Promise.all([
+    endSignalPlayer.setOutputDevice(
+      normalizedPreferences.outputDeviceId
+    ),
+    warningSignalPlayer.setOutputDevice(
+      normalizedPreferences.outputDeviceId
+    )
+  ]).catch((error) => {
+    console.error('Failed to update the audio output device:', error);
   });
 }
 
@@ -1651,9 +1703,7 @@ window.addEventListener('storage', (event) => {
     event.key === AUDIO_PREFERENCES_STORAGE_KEY
     && event.newValue
   ) {
-    endSignalService.setAllowConcurrentSignals(
-      getAudioPreferences().allowConcurrentSignals
-    );
+    applyAudioPreferences(getAudioPreferences());
   }
 });
 
@@ -1731,11 +1781,11 @@ await listen(WARNING_SIGNAL_SETTINGS_EVENT, (event) => {
 });
 
 await listen(AUDIO_PREFERENCES_EVENT, (event) => {
-  const preferences = normalizeAudioPreferences(event.payload);
+  applyAudioPreferences(event.payload);
+});
 
-  endSignalService.setAllowConcurrentSignals(
-    preferences.allowConcurrentSignals
-  );
+navigator.mediaDevices?.addEventListener?.('devicechange', () => {
+  applyAudioPreferences(appliedAudioPreferences, { force: true });
 });
 
 document.documentElement.dataset.edition = getEdition();

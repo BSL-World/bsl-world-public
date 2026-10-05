@@ -1,4 +1,9 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use bsl_desktop_audio::{
+    is_audio_output_device_available as shared_audio_output_device_available,
+    list_audio_output_devices as shared_list_audio_output_devices,
+    AudioEngine, AudioOutputDevice, NativeAudioRequest, NativeAudioResult,
+};
 use std::{
     ffi::OsStr,
     path::Path,
@@ -18,6 +23,36 @@ use tauri::{
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
+
+#[tauri::command]
+fn list_audio_output_devices() -> Result<Vec<AudioOutputDevice>, String> {
+    shared_list_audio_output_devices()
+}
+
+#[tauri::command]
+fn is_audio_output_device_available(device_id: String) -> bool {
+    shared_audio_output_device_available(&device_id)
+}
+
+#[tauri::command]
+async fn play_audio_signal(
+    audio_engine: tauri::State<'_, AudioEngine>,
+    request: NativeAudioRequest,
+) -> Result<NativeAudioResult, String> {
+    let audio_engine = audio_engine.inner().clone();
+
+    tauri::async_runtime::spawn_blocking(move || audio_engine.play(request))
+        .await
+        .map_err(|error| format!("The native audio task failed: {error}"))?
+}
+
+#[tauri::command]
+fn stop_audio_playback(
+    audio_engine: tauri::State<'_, AudioEngine>,
+    playback_ids: Vec<String>,
+) -> Result<(), String> {
+    audio_engine.stop(&playback_ids)
+}
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -76,30 +111,6 @@ fn list_windows_sounds() -> Result<Vec<AudioFileEntry>, String> {
     {
         Ok(Vec::new())
     }
-}
-
-#[tauri::command]
-fn read_audio_file(path: String) -> Result<tauri::ipc::Response, String> {
-    let audio_path = Path::new(&path);
-
-    if !is_supported_audio_path(audio_path) {
-        return Err("Unsupported audio file format".to_string());
-    }
-
-    if !audio_path.is_file() {
-        return Err("The selected audio file does not exist".to_string());
-    }
-
-    std::fs::read(audio_path)
-        .map(tauri::ipc::Response::new)
-        .map_err(|error| format!("Failed to read the selected audio file: {error}"))
-}
-
-#[tauri::command]
-fn audio_file_exists(path: String) -> bool {
-    let audio_path = Path::new(&path);
-
-    is_supported_audio_path(audio_path) && audio_path.is_file()
 }
 
 #[cfg(target_os = "windows")]
@@ -1023,6 +1034,7 @@ pub fn run() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(AudioEngine::default())
         .manage(tray_visual_state.clone())
         .manage(tray_preview_state.clone());
 
@@ -1049,7 +1061,6 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
-            audio_file_exists,
             greet,
             close_about_window,
             close_settings_window,
@@ -1057,14 +1068,17 @@ pub fn run() {
             get_app_version,
             hide_tray_informer,
             is_autostart_enabled,
+            is_audio_output_device_available,
+            list_audio_output_devices,
             list_windows_sounds,
             open_about_window,
             open_settings_window,
             open_whats_new_window,
-            read_audio_file,
+            play_audio_signal,
             set_autostart_enabled,
             set_main_window_transparency,
             show_tray_informer,
+            stop_audio_playback,
             update_taskbar_icon,
             update_tray_icon
         ])

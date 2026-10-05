@@ -14,7 +14,8 @@
     "restart": "Restart",
     "overdue": "Overdue",
     "invalidDuration": "Enter a duration greater than zero",
-    "signalFileUnavailable": "The selected signal file is unavailable. The built-in signal was used."
+    "signalFileUnavailable": "The selected signal file is unavailable. The built-in signal was used.",
+    "audioOutputUnavailable": "The selected audio output device is unavailable. The Windows system default device is being used."
   },
   "toolbar": {
     "alwaysOnTop": "Always on top",
@@ -68,6 +69,14 @@
     "startupAsk": "Ask",
     "startupResume": "Restore automatically",
     "startupReset": "Reset automatically",
+    "sound": "Sound",
+    "audioOutputDevice": "Audio output device",
+    "audioOutputSystemDefault": "Windows system default device",
+    "audioOutputDeviceDescription": "One application-wide setting for every timer, warning signal, and signal preview.",
+    "unnamedAudioOutputDevice": "Audio output device {number}",
+    "missingAudioOutputDevice": "Previously selected device is unavailable",
+    "audioOutputFallback": "The selected device is unavailable. The Windows system default device is being used.",
+    "audioOutputListUnavailable": "Could not retrieve the list of audio output devices.",
     "endSignal": "End signal",
     "signalForTimer": "Settings for timer:",
     "playEndSignal": "Play the countdown-complete signal",

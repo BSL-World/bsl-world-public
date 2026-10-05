@@ -95,10 +95,13 @@ Shared translations, palettes, utilities, and other genuinely reusable definitio
 
 - Behavior that must remain consistent across BSL-World desktop products must
   first be defined as a shared contract in this standard.
-- The first implementation may remain inside its product while it has only one
-  real consumer. When a second product needs the same behavior, move the
-  implementation into `bsl-core` or another explicitly shared monorepository
-  package instead of copying it.
+- Once behavior is approved as a BSL-World-wide requirement or has another
+  planned product consumer, its product-neutral implementation belongs in
+  `bsl-core` or another explicitly shared monorepository package even if only
+  one product consumes it today.
+- A product-local prototype may remain local only while the behavior has not
+  been approved as a shared standard. Copying an approved shared mechanism
+  into a second product is prohibited.
 - After extraction, products must consume the shared implementation. Divergent
   product-local copies are prohibited unless the difference is an approved
   product requirement and is expressed through configuration, callbacks,
@@ -109,8 +112,21 @@ Shared translations, palettes, utilities, and other genuinely reusable definitio
 - Fixes to shared behavior must be covered by shared tests and delivered to
   each consuming product through an explicit shared-package version update.
 - Window placement, canonical themes, localization infrastructure, audio
-  sources, and audio output routing are preferred candidates for shared
-  desktop modules as soon as they have multiple consumers.
+  sources, and audio output routing are preferred shared modules as soon as
+  they become family-wide requirements or gain another planned consumer.
+
+### Shared desktop package
+
+- `bsl-core` is the common source package for product-neutral BSL-World desktop
+  behavior. JavaScript applications consume it as
+  `@bsl-world/desktop-core` through an explicit local package dependency.
+- Shared modules are versioned. A consumer update must record the selected
+  package version in its dependency lock file.
+- Audio output enumeration, device selection, native playback, cancellation,
+  routing, and fallback to the operating-system default are owned by the
+  shared `audio` module and its native companion crate.
+- Products retain their own storage keys, localized text, settings layout,
+  signal timing, and other product-specific behavior.
 
 ## Windows application requirements
 

@@ -11,9 +11,13 @@ start-to-start intervals, and adds Windows system sounds and user audio files.
 Live preview and application-wide simultaneous or queued playback remain
 available.
 
+The current development version also implements one application-wide output
+device for every timer, warning signal, and signal preview. The selection is
+persisted, refreshed when Settings opens and when devices change, and falls
+back safely to the Windows system default with a clear notice when unavailable.
+
 An original BSL-World sound collection is postponed until production time is
-available. Explicit audio output device selection remains mandatory follow-up
-work. The About window can still open on the primary monitor in some
+available. The About window can still open on the primary monitor in some
 multi-monitor layouts and is tracked as a non-blocking known issue.
 
 ## Required user controls
@@ -30,19 +34,15 @@ multi-monitor layouts and is tracked as a non-blocking known issue.
 
 ## Output-device behavior
 
-Output-device selection has lower implementation priority than repeat and sound
-selection, but it is mandatory. The audio architecture must support it from the
-start rather than binding playback permanently to the current default device.
-
 The output device is an application-wide BSL-Timer setting. Every timer routes
 audio to the same selected device. Per-tab device selection is not part of the
 planned interface.
 
-The selected device should be persisted by a stable identifier where Windows
-provides one. If it is disconnected or missing, BSL-Timer must fall back safely
-to the Windows default device, inform the user, and continue operating. The
-available-device list should refresh when Settings opens and after a device
-change where practical.
+The selected device is persisted by its stable native audio-endpoint identifier
+and readable label.
+If it is disconnected or missing, BSL-Timer falls back safely to the Windows
+system default device, informs the user, and continues operating. The device
+list refreshes when Settings opens and after the available devices change.
 
 ## Sound-source behavior
 
@@ -67,10 +67,9 @@ sound-selection and playback architecture.
   the user's concurrent-playback setting.
 - No sound source may require a network connection during normal playback.
 
-The edition model exposes system sounds and custom files in both Free and Pro.
-The audio service currently routes the built-in signal and file-based sources
-to the Windows default destination. The next audio stage must route every
-source consistently to the application-wide selected output device.
+The edition model exposes system sounds, custom files, and output-device
+selection in both Free and Pro. The audio service routes built-in and file-based
+sources consistently to the application-wide selected output device.
 
 ## Approved product decisions
 
@@ -89,8 +88,8 @@ source consistently to the application-wide selected output device.
    application data. If it is missing, unreadable, or cannot be decoded,
    playback falls back to the existing built-in BSL-Timer signal.
 6. The picker accepts WAV, MP3, M4A, AAC, OGG, OGA, Opus, FLAC, WebM, and WMA.
-   Actual decoding is performed by WebView2 and therefore may also depend on
-   the codecs available in Windows.
+   Decoding and playback use the shared native desktop audio engine. Files
+   unsupported by its enabled codecs fail safely and use the built-in signal.
 7. Signals from several timers may play simultaneously by default. Settings
    provides an Allow signals from different timers to play simultaneously
    checkbox. When disabled, signals play sequentially in timer-completion order.
@@ -101,10 +100,8 @@ source consistently to the application-wide selected output device.
 
 ## Remaining technical details
 
-- Explicit application-wide audio output device selection and fallback to the
-  Windows default device.
-- Validation of the accepted format list across supported Windows and WebView2
-  versions.
+- Validation of the accepted format list against the shared native decoder on
+  supported Windows versions.
 - Production of the postponed original BSL-World sound collection.
 
 ## Warning signals and tray informer

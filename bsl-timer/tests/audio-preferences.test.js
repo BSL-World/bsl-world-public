@@ -33,12 +33,14 @@ test('saves global audio preferences', () => {
 
   saveAudioPreferences({
     allowConcurrentSignals: false,
-    outputDeviceId: 'speakers'
+    outputDeviceId: 'speakers',
+    outputDeviceLabel: 'Desktop speakers'
   }, storage);
 
   assert.deepEqual(getAudioPreferences(storage), {
     allowConcurrentSignals: false,
-    outputDeviceId: 'speakers'
+    outputDeviceId: 'speakers',
+    outputDeviceLabel: 'Desktop speakers'
   });
 });
 
@@ -49,6 +51,13 @@ test('compares normalized global audio preferences', () => {
   );
   assert.equal(
     audioPreferencesEqual({}, { allowConcurrentSignals: false }),
+    false
+  );
+  assert.equal(
+    audioPreferencesEqual(
+      { outputDeviceId: 'speakers', outputDeviceLabel: 'Speakers' },
+      { outputDeviceId: 'speakers', outputDeviceLabel: 'Headset' }
+    ),
     false
   );
 });

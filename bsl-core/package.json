@@ -1,0 +1,12 @@
+{
+  "name": "@bsl-world/desktop-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./audio": "./utils/audio.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

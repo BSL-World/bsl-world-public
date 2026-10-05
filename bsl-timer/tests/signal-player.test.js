@@ -3,122 +3,127 @@ import test from 'node:test';
 
 import { SignalPlayer } from '../src/signal.js';
 
-class FakeAudio {
-  constructor(url) {
-    this.url = url;
-    this.listeners = new Map();
-    this.currentTime = 0;
-  }
-
-  addEventListener(name, callback) {
-    this.listeners.set(name, callback);
-  }
-
-  removeEventListener(name) {
-    this.listeners.delete(name);
-  }
-
-  play() {
-    queueMicrotask(() => this.listeners.get('ended')?.());
-    return Promise.resolve();
-  }
-
-  pause() {}
-}
-
-test('plays a selected custom audio file', async () => {
-  const commands = [];
+test('plays a selected custom audio file through the native bridge', async () => {
+  const calls = [];
   const player = new SignalPlayer({
+    outputDeviceId: 'wasapi:usb-headset',
     invokeFn: async (command, arguments_) => {
-      commands.push({ command, arguments_ });
-
-      if (command === 'audio_file_exists') {
-        return true;
-      }
-
-      return new Uint8Array([1, 2, 3]).buffer;
-    },
-    audioFactory: (url) => new FakeAudio(url),
-    createObjectUrl: () => 'blob:signal-test'
+      calls.push({ command, arguments_ });
+      return {
+        effectiveOutputDeviceId: 'wasapi:usb-headset',
+        fellBack: false
+      };
+    }
   });
 
   assert.equal(await player.play('tea', {
     source: 'custom',
     customSoundPath: 'D:\\Sounds\\Tea.mp3'
   }), true);
-  assert.deepEqual(commands.map(({ command }) => command), [
-    'audio_file_exists',
-    'read_audio_file'
-  ]);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].command, 'play_audio_signal');
+  assert.deepEqual(calls[0].arguments_.request, {
+    playbackId: 'signal-player-1:1',
+    outputDeviceId: 'wasapi:usb-headset',
+    signal: 'file',
+    path: 'D:\\Sounds\\Tea.mp3'
+  });
 });
 
-test('falls back to the built-in signal when a file disappears', async () => {
-  const errors = [];
+test('checks a selected output device through the native bridge', async () => {
+  const calls = [];
+  const player = new SignalPlayer({
+    invokeFn: async (command, arguments_) => {
+      calls.push({ command, arguments_ });
+      return true;
+    }
+  });
+
+  assert.equal(
+    await player.setOutputDevice('wasapi:usb-headset'),
+    'wasapi:usb-headset'
+  );
+  assert.deepEqual(calls, [{
+    command: 'is_audio_output_device_available',
+    arguments_: { deviceId: 'wasapi:usb-headset' }
+  }]);
+});
+
+test('reports fallback when a selected output is unavailable', async () => {
+  const fallbacks = [];
   const player = new SignalPlayer({
     invokeFn: async () => false,
+    onOutputDeviceFallback: (deviceId) => fallbacks.push(deviceId)
+  });
+
+  assert.equal(
+    await player.setOutputDevice('wasapi:missing-device'),
+    'default'
+  );
+  assert.deepEqual(fallbacks, ['wasapi:missing-device']);
+});
+
+test('reports native fallback after playback', async () => {
+  const fallbacks = [];
+  const player = new SignalPlayer({
+    outputDeviceId: 'wasapi:disconnected-device',
+    invokeFn: async () => ({
+      effectiveOutputDeviceId: 'default',
+      fellBack: true
+    }),
+    onOutputDeviceFallback: (deviceId) => fallbacks.push(deviceId)
+  });
+
+  assert.equal(await player.playBuiltIn('tea'), true);
+  assert.deepEqual(fallbacks, ['wasapi:disconnected-device']);
+});
+
+test('falls back to the built-in signal when a file cannot be decoded', async () => {
+  const calls = [];
+  const errors = [];
+  const player = new SignalPlayer({
+    invokeFn: async (command, arguments_) => {
+      calls.push({ command, arguments_ });
+
+      if (arguments_.request.signal === 'file') {
+        throw new Error('decode failed');
+      }
+
+      return { effectiveOutputDeviceId: 'default', fellBack: false };
+    },
     onFileError: (error, path) => errors.push({ error, path }),
     logger: { error() {} }
   });
-  let builtInPlaybackCount = 0;
-
-  player.playBuiltIn = async () => {
-    builtInPlaybackCount += 1;
-    return true;
-  };
 
   assert.equal(await player.play('tea', {
     source: 'custom',
     customSoundPath: 'D:\\Sounds\\Missing.wav'
   }), true);
-  assert.equal(builtInPlaybackCount, 1);
+  assert.deepEqual(
+    calls.map(({ arguments_ }) => arguments_.request.signal),
+    ['file', 'builtIn']
+  );
   assert.equal(errors.length, 1);
   assert.equal(errors[0].path, 'D:\\Sounds\\Missing.wav');
 });
 
-test('does not start a file after its sequence is stopped while loading', async () => {
-  let finishReading;
-  let playbackCount = 0;
-  const player = new SignalPlayer({
-    invokeFn: async (command) => {
-      if (command === 'audio_file_exists') {
-        return true;
-      }
-
-      return new Promise((resolve) => {
-        finishReading = () => resolve(new Uint8Array([1, 2, 3]).buffer);
-      });
-    },
-    audioFactory: () => {
-      playbackCount += 1;
-      return new FakeAudio('blob:signal-test');
-    },
-    createObjectUrl: () => 'blob:signal-test'
-  });
-  const playback = player.play('tea', {
-    source: 'custom',
-    customSoundPath: 'D:\\Sounds\\Tea.mp3'
-  });
-
-  await Promise.resolve();
-  player.stop('tea');
-  finishReading();
-
-  assert.equal(await playback, true);
-  assert.equal(playbackCount, 0);
-});
-
-test('does not fall back after a stopped file load fails', async () => {
-  let failReading;
+test('does not fall back after stopped file playback fails', async () => {
+  let failPlayback;
   let builtInPlaybackCount = 0;
   let fileErrorCount = 0;
   const player = new SignalPlayer({
-    invokeFn: async (command) => {
-      if (command === 'audio_file_exists') {
-        return true;
+    invokeFn: async (command, arguments_) => {
+      if (command === 'stop_audio_playback') {
+        return;
+      }
+
+      if (arguments_.request.signal === 'builtIn') {
+        builtInPlaybackCount += 1;
+        return { effectiveOutputDeviceId: 'default', fellBack: false };
       }
 
       return new Promise((resolve, reject) => {
-        failReading = () => reject(new Error('read cancelled'));
+        failPlayback = () => reject(new Error('playback cancelled'));
       });
     },
     onFileError: () => {
@@ -126,12 +131,6 @@ test('does not fall back after a stopped file load fails', async () => {
     },
     logger: { error() {} }
   });
-
-  player.playBuiltIn = async () => {
-    builtInPlaybackCount += 1;
-    return true;
-  };
-
   const playback = player.play('tea', {
     source: 'custom',
     customSoundPath: 'D:\\Sounds\\Tea.mp3'
@@ -139,45 +138,55 @@ test('does not fall back after a stopped file load fails', async () => {
 
   await Promise.resolve();
   player.stop('tea');
-  failReading();
+  failPlayback();
 
   assert.equal(await playback, true);
   assert.equal(builtInPlaybackCount, 0);
   assert.equal(fileErrorCount, 0);
 });
 
-test('plays the fixed warning sound as a short rising pair', async () => {
-  const notes = [];
-  const player = new SignalPlayer();
-
-  player.audioContext = {
-    currentTime: 10,
-    state: 'running'
-  };
-  player.prepare = async () => true;
-  player.scheduleBeep = async (sequenceId, startTime, options) => {
-    notes.push({ sequenceId, startTime, options });
-  };
+test('plays the fixed warning signal through the native bridge', async () => {
+  const calls = [];
+  const player = new SignalPlayer({
+    invokeFn: async (command, arguments_) => {
+      calls.push({ command, arguments_ });
+      return { effectiveOutputDeviceId: 'default', fellBack: false };
+    }
+  });
 
   assert.equal(await player.playWarning('warning:tea:5'), true);
-  assert.deepEqual(notes, [
-    {
-      sequenceId: 'warning:tea:5',
-      startTime: 10,
-      options: {
-        frequency: 660,
-        duration: 0.16,
-        volume: 0.2
-      }
-    },
-    {
-      sequenceId: 'warning:tea:5',
-      startTime: 10.24,
-      options: {
-        frequency: 880,
-        duration: 0.16,
-        volume: 0.2
+  assert.equal(calls[0].command, 'play_audio_signal');
+  assert.equal(calls[0].arguments_.request.signal, 'warning');
+});
+
+test('stops native playbacks owned by one signal sequence', async () => {
+  const calls = [];
+  let finishPlayback;
+  const player = new SignalPlayer({
+    invokeFn: async (command, arguments_) => {
+      calls.push({ command, arguments_ });
+
+      if (command === 'play_audio_signal') {
+        return new Promise((resolve) => {
+          finishPlayback = () => resolve({
+            effectiveOutputDeviceId: 'default',
+            fellBack: false
+          });
+        });
       }
     }
-  ]);
+  });
+
+  const playback = player.playBuiltIn('tea');
+  await Promise.resolve();
+  player.stop('tea');
+  await Promise.resolve();
+  finishPlayback();
+  await playback;
+
+  assert.equal(calls[0].command, 'play_audio_signal');
+  assert.deepEqual(calls[1], {
+    command: 'stop_audio_playback',
+    arguments_: { playbackIds: [calls[0].arguments_.request.playbackId] }
+  });
 });

@@ -6,7 +6,8 @@ export const AUDIO_PREFERENCES_EVENT =
 
 export const DEFAULT_AUDIO_PREFERENCES = Object.freeze({
   allowConcurrentSignals: true,
-  outputDeviceId: 'default'
+  outputDeviceId: 'default',
+  outputDeviceLabel: ''
 });
 
 export function normalizeAudioPreferences(preferences = {}) {
@@ -18,11 +19,16 @@ export function normalizeAudioPreferences(preferences = {}) {
     && sourcePreferences.outputDeviceId.trim()
     ? sourcePreferences.outputDeviceId.trim()
     : DEFAULT_AUDIO_PREFERENCES.outputDeviceId;
+  const outputDeviceLabel = typeof sourcePreferences.outputDeviceLabel
+      === 'string'
+    ? sourcePreferences.outputDeviceLabel.trim()
+    : DEFAULT_AUDIO_PREFERENCES.outputDeviceLabel;
 
   return {
     allowConcurrentSignals:
       sourcePreferences.allowConcurrentSignals !== false,
-    outputDeviceId
+    outputDeviceId,
+    outputDeviceLabel
   };
 }
 
@@ -62,5 +68,7 @@ export function audioPreferencesEqual(first, second) {
 
   return normalizedFirst.allowConcurrentSignals
       === normalizedSecond.allowConcurrentSignals
-    && normalizedFirst.outputDeviceId === normalizedSecond.outputDeviceId;
+    && normalizedFirst.outputDeviceId === normalizedSecond.outputDeviceId
+    && normalizedFirst.outputDeviceLabel
+      === normalizedSecond.outputDeviceLabel;
 }
