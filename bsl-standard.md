@@ -125,8 +125,40 @@ Shared translations, palettes, utilities, and other genuinely reusable definitio
 - Audio output enumeration, device selection, native playback, cancellation,
   routing, and fallback to the operating-system default are owned by the
   shared `audio` module and its native companion crate.
-- Products retain their own storage keys, localized text, settings layout,
-  signal timing, and other product-specific behavior.
+- Window placement, canonical theme definitions, localization infrastructure,
+  regional formatting, and shared preference storage are owned by the
+  corresponding product-neutral `bsl-core` modules.
+- Products retain their own localized text, settings layout, signal timing,
+  business data, and other product-specific behavior.
+- `bsl-core` is a build-time dependency embedded into each product. It must not
+  require a separate end-user installer, shared DLL deployment, or background
+  service merely to reuse common behavior.
+
+### Regional date and time settings
+
+Interface language and regional presentation are independent preferences.
+Changing the interface language must never silently change the user's chosen
+time format, date format, or first day of the week.
+
+- Time format options must include the Windows system format, 24-hour time,
+  and 12-hour time.
+- Date format options must include the Windows system format and explicit
+  numeric and textual day/month orders.
+- First-day-of-week options must include the Windows system value, Monday, and
+  Sunday.
+- Settings interfaces must show a preview of the effective date and time.
+- Regional preferences have family-wide BSL-World defaults. A product may
+  store its own override without changing another product's effective value.
+- The shared versioned settings document must distinguish the `shared` scope
+  from the `applications` scope. Effective product settings are resolved from
+  the application override first and the shared default second.
+- On Windows, the shared document is
+  `%APPDATA%\BSL-World\desktop-settings.json`.
+- Product business data and settings unrelated to shared-core concerns must
+  remain in the owning product's storage.
+- Writers must preserve unknown sections, validate values, and replace the
+  settings document atomically so independently updated products cannot erase
+  one another's preferences.
 
 ## Windows application requirements
 

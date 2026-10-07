@@ -1,3 +1,5 @@
+@import "@bsl-world/desktop-core/themes.css";
+
 @font-face {
   font-family: "DSEG7 Classic";
   font-style: normal;
@@ -8,13 +10,6 @@
 }
 
 :root {
-  --theme-color: #0bdb04;
-  --theme-color-strong: #37ff31;
-  --theme-rgb: 11 219 4;
-  --theme-glow-color: #37ff31;
-  --theme-glow-rgb: 55 255 49;
-  --theme-deep-color: #067803;
-  --theme-inner-light-rgb: 55 255 49;
   --timer-active-color: var(--theme-color);
   --timer-overdue-color: #fa0206;
   --window-surface-alpha: 0.78;
@@ -30,56 +25,6 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-
-:root[data-theme="blue"] {
-  --theme-color: #0d6efd;
-  --theme-color-strong: #58b2ff;
-  --theme-rgb: 13 110 253;
-  --theme-glow-color: #168cff;
-  --theme-glow-rgb: 22 140 255;
-  --theme-deep-color: #044cd0;
-  --theme-inner-light-rgb: 88 178 255;
-}
-
-:root[data-theme="purple"] {
-  --theme-color: #ad5cff;
-  --theme-color-strong: #d09aff;
-  --theme-rgb: 173 92 255;
-  --theme-glow-color: #d09aff;
-  --theme-glow-rgb: 208 154 255;
-  --theme-deep-color: #6d2baa;
-  --theme-inner-light-rgb: 208 154 255;
-}
-
-:root[data-theme="magenta"] {
-  --theme-color: #e600a9;
-  --theme-color-strong: #ff00c8;
-  --theme-rgb: 230 0 169;
-  --theme-glow-color: #ff00c8;
-  --theme-glow-rgb: 255 0 200;
-  --theme-deep-color: #8d0068;
-  --theme-inner-light-rgb: 255 0 200;
-}
-
-:root[data-theme="neon-cyan"] {
-  --theme-color: #00bcd4;
-  --theme-color-strong: #18ffff;
-  --theme-rgb: 0 188 212;
-  --theme-glow-color: #18ffff;
-  --theme-glow-rgb: 24 255 255;
-  --theme-deep-color: #007c8d;
-  --theme-inner-light-rgb: 24 255 255;
-}
-
-:root[data-theme="tan"] {
-  --theme-color: #4d4d4b;
-  --theme-color-strong: #30302f;
-  --theme-rgb: 77 77 75;
-  --theme-glow-color: #ffe29a;
-  --theme-glow-rgb: 255 226 154;
-  --theme-deep-color: #30302f;
-  --theme-inner-light-rgb: 223 192 112;
 }
 
 :root[data-theme="neon-cyan"] .app-shell {
@@ -1071,6 +1016,29 @@ button {
 
 .appearance-settings-card {
   gap: 11px;
+}
+
+.regional-settings-card {
+  gap: 9px;
+}
+
+.regional-preview {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 8px;
+  background: rgb(0 0 0 / 16%);
+  color: #c9cad6;
+  font-size: 13px;
+}
+
+.regional-preview strong {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .range-setting {

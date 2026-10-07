@@ -19,6 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 bsl-desktop-audio = { path = "../../bsl-core/native/audio" }
+bsl-desktop-settings = { path = "../../bsl-core/native/settings" }
 tauri = { version = "2", features = ["image-png", "tray-icon"] }
 tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"

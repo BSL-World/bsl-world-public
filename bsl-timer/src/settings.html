@@ -31,6 +31,49 @@
                 <select id="language-select"></select>
             </section>
 
+            <section class="settings-card regional-settings-card">
+                <h2 data-i18n="settings.dateAndTime"></h2>
+
+                <p class="settings-card-note" data-i18n="settings.regionalDescription"></p>
+
+                <label for="time-format-select" data-i18n="settings.timeFormat"></label>
+
+                <select id="time-format-select">
+                    <option value="system" data-i18n="settings.formatSystem"></option>
+                    <option value="24-hour" data-i18n="settings.timeFormat24"></option>
+                    <option value="12-hour" data-i18n="settings.timeFormat12"></option>
+                </select>
+
+                <label for="date-format-select" data-i18n="settings.dateFormat"></label>
+
+                <select id="date-format-select">
+                    <option value="system" data-i18n="settings.formatSystem"></option>
+                    <option value="dd.mm.yyyy">04.09.2026</option>
+                    <option value="dd-mm-yyyy">04-09-2026</option>
+                    <option value="dd-mm-yy">04-09-26</option>
+                    <option value="yyyy-mm-dd">2026-09-04</option>
+                    <option value="d-mmm-yyyy">4 Sep 2026</option>
+                    <option value="mmm-d-yyyy">Sep 4, 2026</option>
+                    <option value="dd-mmm">04 Sep</option>
+                    <option value="mmm-dd">Sep-04</option>
+                </select>
+
+                <label for="first-day-of-week-select" data-i18n="settings.firstDayOfWeek"></label>
+
+                <select id="first-day-of-week-select">
+                    <option value="system" data-i18n="settings.formatSystem"></option>
+                    <option value="monday" data-i18n="settings.monday"></option>
+                    <option value="sunday" data-i18n="settings.sunday"></option>
+                </select>
+
+                <div class="regional-preview">
+                    <span data-i18n="settings.formatPreview"></span>
+                    <strong id="regional-format-preview"></strong>
+                </div>
+
+                <p id="regional-settings-status" class="settings-status" aria-live="polite" hidden></p>
+            </section>
+
             <section class="settings-card">
                 <label for="theme-select" data-i18n="settings.colorScheme"></label>
 

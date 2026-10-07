@@ -61,6 +61,12 @@ import {
   listAudioOutputDevices
 } from '@bsl-world/desktop-core/audio';
 import {
+  DateFormat,
+  formatDate,
+  formatTime,
+  regionalSettingsEqual
+} from '@bsl-world/desktop-core/regional';
+import {
   EVENT_DETAILS_EVENT,
   MAX_EVENT_DESCRIPTION_LENGTH,
   getEventDisplayName,
@@ -82,12 +88,32 @@ import {
 import {
   prepareAuxiliaryWindow
 } from './window-position.js';
+import {
+  REGIONAL_SETTINGS_EVENT,
+  loadRegionalSettings,
+  saveRegionalSettings
+} from './regional-settings.js';
 
 const settingsWindow = getCurrentWindow();
 const SETTINGS_WINDOW_MARGIN = 30;
 
 const languageSelect =
   document.getElementById('language-select');
+
+const timeFormatSelect =
+  document.getElementById('time-format-select');
+
+const dateFormatSelect =
+  document.getElementById('date-format-select');
+
+const firstDayOfWeekSelect =
+  document.getElementById('first-day-of-week-select');
+
+const regionalFormatPreview =
+  document.getElementById('regional-format-preview');
+
+const regionalSettingsStatus =
+  document.getElementById('regional-settings-status');
 
 const themeSelect =
   document.getElementById('theme-select');
@@ -203,6 +229,9 @@ const applyButton =
   document.getElementById('apply-settings-btn');
 
 let pendingLocale = getLocale();
+let committedRegionalSettings = null;
+let pendingRegionalSettings = null;
+let regionalSettingsLoaded = false;
 let committedTheme = getTheme();
 let pendingTheme = committedTheme;
 let committedGlowEnabled = getGlowEnabled();
@@ -280,6 +309,134 @@ function populateLanguageSelect() {
     option.selected = locale.code === pendingLocale;
 
     languageSelect.append(option);
+  }
+}
+
+function setRegionalSettingsStatus(messageKey = null) {
+  regionalSettingsStatus.hidden = messageKey === null;
+  regionalSettingsStatus.textContent = messageKey ? t(messageKey) : '';
+}
+
+function setRegionalControlsDisabled(disabled) {
+  timeFormatSelect.disabled = disabled;
+  dateFormatSelect.disabled = disabled;
+  firstDayOfWeekSelect.disabled = disabled;
+}
+
+function updateRegionalPreview() {
+  if (!pendingRegionalSettings) {
+    regionalFormatPreview.textContent = '—';
+    return;
+  }
+
+  const now = new Date();
+  const options = { locale: pendingLocale };
+
+  regionalFormatPreview.textContent = `${formatDate(
+    now,
+    pendingRegionalSettings,
+    options
+  )} · ${formatTime(now, pendingRegionalSettings, options)}`;
+
+  const sampleDate = new Date(2026, 8, 4, 17, 6);
+  const dayFirstTextOption = dateFormatSelect.querySelector(
+    `[value="${DateFormat.DAY_TEXT_MONTH_YEAR}"]`
+  );
+  const monthFirstTextOption = dateFormatSelect.querySelector(
+    `[value="${DateFormat.TEXT_MONTH_DAY_YEAR}"]`
+  );
+  const dayTextMonthOption = dateFormatSelect.querySelector(
+    `[value="${DateFormat.DAY_TEXT_MONTH}"]`
+  );
+  const textMonthDayOption = dateFormatSelect.querySelector(
+    `[value="${DateFormat.TEXT_MONTH_DAY}"]`
+  );
+
+  dayFirstTextOption.textContent = formatDate(sampleDate, {
+    ...pendingRegionalSettings,
+    dateFormat: DateFormat.DAY_TEXT_MONTH_YEAR
+  }, options);
+  monthFirstTextOption.textContent = formatDate(sampleDate, {
+    ...pendingRegionalSettings,
+    dateFormat: DateFormat.TEXT_MONTH_DAY_YEAR
+  }, options);
+  dayTextMonthOption.textContent = formatDate(sampleDate, {
+    ...pendingRegionalSettings,
+    dateFormat: DateFormat.DAY_TEXT_MONTH
+  }, options);
+  textMonthDayOption.textContent = formatDate(sampleDate, {
+    ...pendingRegionalSettings,
+    dateFormat: DateFormat.TEXT_MONTH_DAY
+  }, options);
+}
+
+function updateRegionalControls() {
+  if (!pendingRegionalSettings) {
+    return;
+  }
+
+  timeFormatSelect.value = pendingRegionalSettings.timeFormat;
+  dateFormatSelect.value = pendingRegionalSettings.dateFormat;
+  firstDayOfWeekSelect.value =
+    pendingRegionalSettings.firstDayOfWeek;
+  updateRegionalPreview();
+}
+
+function readRegionalControls() {
+  pendingRegionalSettings = {
+    timeFormat: timeFormatSelect.value,
+    dateFormat: dateFormatSelect.value,
+    firstDayOfWeek: firstDayOfWeekSelect.value
+  };
+  updateRegionalPreview();
+  updateApplyButton();
+}
+
+async function loadSharedRegionalSettings() {
+  setRegionalControlsDisabled(true);
+  setRegionalSettingsStatus();
+
+  try {
+    committedRegionalSettings = await loadRegionalSettings(invoke);
+    pendingRegionalSettings = { ...committedRegionalSettings };
+    regionalSettingsLoaded = true;
+    setRegionalControlsDisabled(false);
+    updateRegionalControls();
+  } catch (error) {
+    regionalSettingsLoaded = false;
+    setRegionalSettingsStatus('settings.regionalSettingsUnavailable');
+    console.error('Failed to load shared regional settings:', error);
+  }
+}
+
+async function applyRegionalSettings() {
+  if (
+    !regionalSettingsLoaded
+    || regionalSettingsEqual(
+      pendingRegionalSettings,
+      committedRegionalSettings
+    )
+  ) {
+    return true;
+  }
+
+  try {
+    committedRegionalSettings = await saveRegionalSettings(
+      pendingRegionalSettings,
+      invoke
+    );
+    pendingRegionalSettings = { ...committedRegionalSettings };
+    setRegionalSettingsStatus();
+    await emitTo(
+      'main',
+      REGIONAL_SETTINGS_EVENT,
+      committedRegionalSettings
+    );
+    return true;
+  } catch (error) {
+    setRegionalSettingsStatus('settings.regionalSettingsSaveFailed');
+    console.error('Failed to save shared regional settings:', error);
+    return false;
   }
 }
 
@@ -699,6 +856,13 @@ function updateApplyButton() {
 
   applyButton.disabled =
     pendingLocale === getLocale()
+    && (
+      !regionalSettingsLoaded
+      || regionalSettingsEqual(
+        pendingRegionalSettings,
+        committedRegionalSettings
+      )
+    )
     && pendingTheme === getTheme()
     && pendingGlowEnabled === getGlowEnabled()
     && appearanceEquals(
@@ -728,6 +892,7 @@ function updateApplyButton() {
 async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
+  updateRegionalControls();
   populateWindowsSounds();
   populateAudioOutputDevices();
   updateEventDetailsControls();
@@ -817,6 +982,11 @@ function restoreAppearanceDefault(property, value) {
 }
 
 async function applyPendingSettings() {
+  if (!await applyRegionalSettings()) {
+    updateApplyButton();
+    return false;
+  }
+
   if (!await applyAutostartSetting()) {
     updateApplyButton();
     return false;
@@ -927,8 +1097,13 @@ async function cancelPendingSettings() {
 
 languageSelect.addEventListener('change', () => {
   pendingLocale = languageSelect.value;
+  updateRegionalPreview();
   updateApplyButton();
 });
+
+timeFormatSelect.addEventListener('change', readRegionalControls);
+dateFormatSelect.addEventListener('change', readRegionalControls);
+firstDayOfWeekSelect.addEventListener('change', readRegionalControls);
 
 themeSelect.addEventListener('change', () => {
   pendingTheme = themeSelect.value;
@@ -1163,6 +1338,7 @@ applyTheme();
 applyGlow();
 populateLanguageSelect();
 populateThemeSelect();
+await loadSharedRegionalSettings();
 await loadWindowsSounds();
 await loadAudioOutputDevices();
 updateVisualControls();

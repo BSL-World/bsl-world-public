@@ -1,10 +1,16 @@
 {
   "name": "@bsl-world/desktop-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "exports": {
-    "./audio": "./utils/audio.js"
+    "./audio": "./utils/audio.js",
+    "./i18n": "./utils/i18n.js",
+    "./regional": "./utils/regional.js",
+    "./settings": "./utils/settings.js",
+    "./theme": "./utils/theme.js",
+    "./themes.css": "./styles/themes.css",
+    "./window": "./utils/window.js"
   },
   "scripts": {
     "test": "node --test"

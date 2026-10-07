@@ -4,6 +4,7 @@ use bsl_desktop_audio::{
     list_audio_output_devices as shared_list_audio_output_devices,
     AudioEngine, AudioOutputDevice, NativeAudioRequest, NativeAudioResult,
 };
+use bsl_desktop_settings::SharedSettingsStore;
 use std::{
     ffi::OsStr,
     path::Path,
@@ -32,6 +33,48 @@ fn list_audio_output_devices() -> Result<Vec<AudioOutputDevice>, String> {
 #[tauri::command]
 fn is_audio_output_device_available(device_id: String) -> bool {
     shared_audio_output_device_available(&device_id)
+}
+
+#[tauri::command]
+fn load_shared_desktop_settings_section(section: String) -> Result<serde_json::Value, String> {
+    SharedSettingsStore::for_current_user()?.load_shared_section(&section)
+}
+
+#[tauri::command]
+fn save_shared_desktop_settings_section(
+    section: String,
+    value: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    SharedSettingsStore::for_current_user()?.save_shared_section(&section, value)
+}
+
+#[tauri::command]
+fn load_application_desktop_settings_section(
+    application: String,
+    section: String,
+) -> Result<serde_json::Value, String> {
+    SharedSettingsStore::for_current_user()?.load_application_section(&application, &section)
+}
+
+#[tauri::command]
+fn save_application_desktop_settings_section(
+    application: String,
+    section: String,
+    value: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    SharedSettingsStore::for_current_user()?.save_application_section(
+        &application,
+        &section,
+        value,
+    )
+}
+
+#[tauri::command]
+fn remove_application_desktop_settings_section(
+    application: String,
+    section: String,
+) -> Result<bool, String> {
+    SharedSettingsStore::for_current_user()?.remove_application_section(&application, &section)
 }
 
 #[tauri::command]
@@ -1069,12 +1112,17 @@ pub fn run() {
             hide_tray_informer,
             is_autostart_enabled,
             is_audio_output_device_available,
+            load_application_desktop_settings_section,
+            load_shared_desktop_settings_section,
             list_audio_output_devices,
             list_windows_sounds,
             open_about_window,
             open_settings_window,
             open_whats_new_window,
             play_audio_signal,
+            remove_application_desktop_settings_section,
+            save_application_desktop_settings_section,
+            save_shared_desktop_settings_section,
             set_autostart_enabled,
             set_main_window_transparency,
             show_tray_informer,

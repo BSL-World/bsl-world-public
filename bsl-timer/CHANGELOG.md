@@ -7,6 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added family-wide date, time, and first-day-of-week preferences that remain
+  independent from the BSL-Timer interface language.
+- Added a live date and time format preview to Settings.
+
+### Changed
+
+- Moved localization infrastructure, canonical themes and CSS tokens, and
+  reusable window-position behavior into `@bsl-world/desktop-core`.
+- Connected BSL-Timer to the shared versioned BSL-World desktop settings store.
+- Split shared defaults from optional per-application overrides so future
+  BSL-World products can inherit common preferences or keep their own values.
+
 ## [0.11.0] - 2026-10-05
 
 ### Added

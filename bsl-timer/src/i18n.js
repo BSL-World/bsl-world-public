@@ -1,81 +1,17 @@
+import { createI18n } from '@bsl-world/desktop-core/i18n';
+
 import en from './locales/en.json';
 import ru from './locales/ru.json';
 
-const locales = { en, ru };
-const defaultLocale = 'en';
-const storageKey = 'bsl-timer.locale';
+const i18n = createI18n({
+  locales: { en, ru },
+  defaultLocale: 'en',
+  storageKey: 'bsl-timer.locale',
+  eventName: 'bsl-timer:locale-changed'
+});
 
-function detectLocale() {
-  const savedLocale = localStorage.getItem(storageKey);
-
-  if (savedLocale && locales[savedLocale]) {
-    return savedLocale;
-  }
-
-  const browserLocale = navigator.language.toLowerCase().split('-')[0];
-  return locales[browserLocale] ? browserLocale : defaultLocale;
-}
-
-function resolveTranslation(locale, key) {
-  return key
-    .split('.')
-    .reduce((value, part) => value?.[part], locales[locale]);
-}
-
-let currentLocale = detectLocale();
-
-export function t(key) {
-  return (
-    resolveTranslation(currentLocale, key)
-    ?? resolveTranslation(defaultLocale, key)
-    ?? key
-  );
-}
-
-export function getLocale() {
-  return currentLocale;
-}
-
-export function getSupportedLocales() {
-  return Object.entries(locales).map(([code, messages]) => ({
-    code,
-    name: messages.localeName
-  }));
-}
-
-export function applyTranslations(root = document) {
-  document.documentElement.lang = currentLocale;
-
-  root.querySelectorAll('[data-i18n]').forEach((element) => {
-    element.textContent = t(element.dataset.i18n);
-  });
-
-  root.querySelectorAll('[data-i18n-title]').forEach((element) => {
-    element.title = t(element.dataset.i18nTitle);
-  });
-
-  root.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
-    element.setAttribute(
-      'aria-label',
-      t(element.dataset.i18nAriaLabel)
-    );
-  });
-}
-
-export function setLocale(locale) {
-  if (!locales[locale]) {
-    return false;
-  }
-
-  currentLocale = locale;
-  localStorage.setItem(storageKey, locale);
-  applyTranslations();
-
-  window.dispatchEvent(
-    new CustomEvent('bsl-timer:locale-changed', {
-      detail: { locale }
-    })
-  );
-
-  return true;
-}
+export const applyTranslations = i18n.applyTranslations;
+export const getLocale = i18n.getLocale;
+export const getSupportedLocales = i18n.getSupportedLocales;
+export const setLocale = i18n.setLocale;
+export const t = i18n.t;
