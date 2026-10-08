@@ -34,6 +34,11 @@
                     <span aria-hidden="true">⚙</span>
                 </button>
 
+                <button id="date-countdowns-btn" class="titlebar-button" type="button"
+                    data-i18n-title="toolbar.dateCountdowns" data-i18n-aria-label="toolbar.dateCountdowns">
+                    <span aria-hidden="true">▣</span>
+                </button>
+
                 <button id="about-btn" class="titlebar-button" type="button" data-i18n-title="toolbar.about"
                     data-i18n-aria-label="toolbar.about">
                     <span class="about-titlebar-icon" aria-hidden="true">i</span>
@@ -117,6 +122,114 @@
                 <button id="restart-btn" class="control-button" type="button" data-i18n="timer.restart" hidden></button>
             </div>
         </main>
+
+        <section id="date-countdown-ribbon" class="date-countdown-ribbon" hidden
+            data-i18n-aria-label="dateCountdowns.list">
+            <button id="scroll-date-countdowns-left-btn" class="date-countdown-scroll-button" type="button" hidden
+                data-i18n-title="dateCountdowns.scrollLeft" data-i18n-aria-label="dateCountdowns.scrollLeft">
+                <span aria-hidden="true">◀</span>
+            </button>
+
+            <div id="date-countdown-list" class="date-countdown-list"></div>
+
+            <button id="scroll-date-countdowns-right-btn" class="date-countdown-scroll-button" type="button" hidden
+                data-i18n-title="dateCountdowns.scrollRight" data-i18n-aria-label="dateCountdowns.scrollRight">
+                <span aria-hidden="true">▶</span>
+            </button>
+
+            <button id="add-date-countdown-btn" class="add-date-countdown-button" type="button"
+                data-i18n-title="dateCountdowns.add" data-i18n-aria-label="dateCountdowns.add">
+                <span aria-hidden="true">+</span>
+            </button>
+
+            <button id="toggle-date-countdown-ribbon-btn" class="date-countdown-ribbon-toggle" type="button"
+                data-i18n-title="dateCountdowns.collapse" data-i18n-aria-label="dateCountdowns.collapse">
+                <span aria-hidden="true">⌄</span>
+            </button>
+        </section>
+
+        <div id="date-countdown-dialog-backdrop" class="dialog-backdrop date-countdown-dialog-backdrop" hidden>
+            <form id="date-countdown-form" class="date-countdown-dialog">
+                <header class="confirmation-dialog-header">
+                    <h2 id="date-countdown-dialog-title"></h2>
+
+                    <button id="date-countdown-dialog-x-btn" class="confirmation-dialog-x" type="button"
+                        data-i18n-title="window.close" data-i18n-aria-label="window.close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </header>
+
+                <label class="date-countdown-field">
+                    <span data-i18n="dateCountdowns.name"></span>
+                    <input id="date-countdown-name-input" type="text" maxlength="40"
+                        data-i18n-placeholder="dateCountdowns.namePlaceholder">
+                </label>
+
+                <label class="date-countdown-field">
+                    <span data-i18n="dateCountdowns.description"></span>
+                    <textarea id="date-countdown-description-input" rows="2" maxlength="300"
+                        data-i18n-placeholder="dateCountdowns.descriptionPlaceholder"></textarea>
+                </label>
+
+                <div class="date-countdown-target-fields">
+                    <div class="date-countdown-field">
+                        <span data-i18n="dateCountdowns.date"></span>
+                        <button id="date-countdown-date-button" class="date-time-value-button" type="button"></button>
+                    </div>
+
+                    <div class="date-countdown-field">
+                        <span data-i18n="dateCountdowns.time"></span>
+                        <div class="date-countdown-time-control" role="group" data-i18n-aria-label="dateCountdowns.time">
+                            <button id="date-countdown-hour-button" class="date-time-segment" type="button"></button>
+                            <span aria-hidden="true">:</span>
+                            <button id="date-countdown-minute-button" class="date-time-segment" type="button"></button>
+                            <button id="date-countdown-period-button" class="date-time-period" type="button" hidden></button>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="date-countdown-picker" class="date-countdown-picker">
+                    <div id="date-countdown-calendar" class="date-countdown-calendar">
+                        <header class="calendar-month-header">
+                            <button id="previous-calendar-month-btn" type="button"
+                                data-i18n-title="dateCountdowns.previousMonth"
+                                data-i18n-aria-label="dateCountdowns.previousMonth">◀</button>
+                            <strong id="calendar-month-label"></strong>
+                            <button id="next-calendar-month-btn" type="button"
+                                data-i18n-title="dateCountdowns.nextMonth"
+                                data-i18n-aria-label="dateCountdowns.nextMonth">▶</button>
+                        </header>
+                        <div id="calendar-weekdays" class="calendar-weekdays" aria-hidden="true"></div>
+                        <div id="calendar-days" class="calendar-days"></div>
+                    </div>
+
+                    <div id="date-countdown-time-dial" class="date-countdown-time-dial" hidden>
+                        <div id="date-countdown-clock-face" class="date-countdown-clock-face"></div>
+                        <div id="date-countdown-period-switch" class="date-countdown-period-switch" hidden>
+                            <button type="button" data-period="am">AM</button>
+                            <button type="button" data-period="pm">PM</button>
+                        </div>
+                    </div>
+                </section>
+
+                <label class="date-countdown-show-seconds">
+                    <input id="date-countdown-show-seconds-input" type="checkbox">
+                    <span data-i18n="dateCountdowns.showSeconds"></span>
+                </label>
+
+                <p id="date-countdown-validation-message" class="date-countdown-validation" hidden></p>
+
+                <footer class="date-countdown-dialog-actions">
+                    <button id="delete-date-countdown-btn" class="control-button danger-button" type="button"
+                        data-i18n="dateCountdowns.delete"></button>
+                    <span class="date-countdown-dialog-actions-spacer"></span>
+                    <button id="cancel-date-countdown-btn" class="control-button" type="button"
+                        data-i18n="window.cancel"></button>
+                    <button class="control-button primary-button" type="submit"
+                        data-i18n="dateCountdowns.save"></button>
+                </footer>
+            </form>
+        </div>
 
         <div id="confirmation-dialog-backdrop" class="dialog-backdrop" hidden>
             <section class="confirmation-dialog" role="dialog" aria-modal="true"

@@ -20,6 +20,7 @@
   "toolbar": {
     "alwaysOnTop": "Always on top",
     "settings": "Settings",
+    "dateCountdowns": "Events and date countdowns",
     "about": "About BSL-Timer"
   },
   "tabs": {
@@ -34,6 +35,36 @@
     "scrollLeft": "Scroll tabs left",
     "scrollRight": "Scroll tabs right",
     "proLimit": "Multiple timers are available in BSL-Timer Pro."
+  },
+  "dateCountdowns": {
+    "list": "Event countdowns",
+    "defaultName": "Event",
+    "add": "Add event",
+    "edit": "Edit event",
+    "createTitle": "New event",
+    "editTitle": "Edit event",
+    "name": "Name",
+    "namePlaceholder": "For example, holiday",
+    "description": "Description",
+    "descriptionPlaceholder": "What happens on this date",
+    "date": "Date",
+    "time": "Time",
+    "showSeconds": "Show seconds",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDeleteTitle": "Delete event?",
+    "confirmDelete": "Delete “{name}”? This event countdown will be lost.",
+    "occurred": "Event has started",
+    "dayShort": "d",
+    "invalidTarget": "Enter a valid date and time.",
+    "pastTarget": "The event date and time must be in the future.",
+    "proLimit": "Multiple events are available in BSL-Timer Pro.",
+    "scrollLeft": "Scroll events left",
+    "scrollRight": "Scroll events right",
+    "collapse": "Hide event ribbon",
+    "expand": "Show event ribbon",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "window": {
     "minimize": "Minimize",

@@ -9,6 +9,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- Added a separate compact event ribbon for countdowns to a specific local
+  date and time, hidden until the first event is created.
+- Added persistent event names, descriptions, targets, and optional
+  second-by-second display, with one event in Free and multiple events in Pro.
 - Added family-wide date, time, and first-day-of-week preferences that remain
   independent from the BSL-Timer interface language.
 - Added a live date and time format preview to Settings.

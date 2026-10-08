@@ -6,6 +6,7 @@ export const Edition = Object.freeze({
 const capabilities = Object.freeze({
   [Edition.FREE]: Object.freeze({
     maxTimers: 1,
+    maxDateCountdowns: 1,
     multipleTimers: false,
     selectableSoundDevice: true,
     systemSounds: true,
@@ -15,6 +16,7 @@ const capabilities = Object.freeze({
   }),
   [Edition.PRO]: Object.freeze({
     maxTimers: Number.POSITIVE_INFINITY,
+    maxDateCountdowns: Number.POSITIVE_INFINITY,
     multipleTimers: true,
     selectableSoundDevice: true,
     systemSounds: true,
@@ -46,6 +48,10 @@ export function getCapability(name) {
 
 export function canCreateTimer(currentTimerCount) {
   return currentTimerCount < getCapability('maxTimers');
+}
+
+export function canCreateDateCountdown(currentCountdownCount) {
+  return currentCountdownCount < getCapability('maxDateCountdowns');
 }
 
 export function setDevelopmentEdition(edition) {

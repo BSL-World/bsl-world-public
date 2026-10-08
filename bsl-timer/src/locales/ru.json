@@ -20,6 +20,7 @@
   "toolbar": {
     "alwaysOnTop": "Поверх остальных окон",
     "settings": "Настройки",
+    "dateCountdowns": "События и отсчёт до даты",
     "about": "О программе BSL-Timer"
   },
   "tabs": {
@@ -34,6 +35,36 @@
     "scrollLeft": "Прокрутить вкладки влево",
     "scrollRight": "Прокрутить вкладки вправо",
     "proLimit": "Несколько таймеров доступны в BSL-Timer Pro."
+  },
+  "dateCountdowns": {
+    "list": "Отсчёт до событий",
+    "defaultName": "Событие",
+    "add": "Добавить событие",
+    "edit": "Изменить событие",
+    "createTitle": "Новое событие",
+    "editTitle": "Изменить событие",
+    "name": "Название",
+    "namePlaceholder": "Например, отпуск",
+    "description": "Описание",
+    "descriptionPlaceholder": "Что произойдёт в этот день",
+    "date": "Дата",
+    "time": "Время",
+    "showSeconds": "Показывать секунды",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "confirmDeleteTitle": "Удалить событие?",
+    "confirmDelete": "Удалить «{name}»? Отсчёт до этого события будет потерян.",
+    "occurred": "Событие наступило",
+    "dayShort": "дн",
+    "invalidTarget": "Укажите существующие дату и время.",
+    "pastTarget": "Дата и время события должны быть в будущем.",
+    "proLimit": "Несколько событий доступны в BSL-Timer Pro.",
+    "scrollLeft": "Прокрутить события влево",
+    "scrollRight": "Прокрутить события вправо",
+    "collapse": "Скрыть ленту событий",
+    "expand": "Показать ленту событий",
+    "previousMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц"
   },
   "window": {
     "minimize": "Свернуть",
