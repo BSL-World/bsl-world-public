@@ -203,8 +203,11 @@
   },
   "whatsNew": {
     "title": "What’s New in BSL-Timer {version}",
-    "audioOutputDevice": "Choose one application-wide Windows audio output device for all timer signals and signal preview.",
-    "audioOutputFallback": "If the selected output is unavailable, BSL-Timer reports it and safely uses the Windows system default.",
+    "dateCountdowns": "Added countdowns to a specified local date and time.",
+    "eventDetails": "Save an event name, description, and optional seconds. Free includes one event; Pro supports multiple events.",
+    "dateTimePicker": "Choose dates in a calendar with horizontal month navigation and times on a clock face with precise arrow-key and mouse-wheel adjustment.",
+    "eventRibbon": "Collapse or restore the compact event ribbon; BSL-Timer remembers the selected state.",
+    "regionalFormats": "Date and time formats and the first day of the week can now be selected independently from the interface language for all BSL-World applications.",
     "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {

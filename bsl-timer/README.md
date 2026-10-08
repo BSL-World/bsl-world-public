@@ -24,16 +24,22 @@ BSL-Timer Free includes:
 - configurable startup behavior for active timers;
 - Windows system tray integration;
 - tray timer preview;
+- one persistent countdown to a specified local date and time, with a compact
+  collapsible event ribbon, name, description, and optional seconds;
+- a custom calendar and clock-face time picker with precise keyboard and mouse
+  wheel adjustment;
+- date, time, and first-day-of-week preferences that remain independent from
+  the selected interface language;
 - optional Windows autostart;
 - one application-wide audio output device for every timer signal, with safe
   fallback to the Windows system default;
 - automatic signed application updates.
 
-The Free edition supports one timer.
+The Free edition supports one timer and one dated event countdown.
 
-Multiple independent timer tabs are a Pro edition feature. The Pro edition is
-maintained as a separate build and is not currently available for public
-distribution.
+Multiple independent timer tabs and multiple dated event countdowns are Pro
+edition features. The Pro edition is maintained as a separate build and is not
+currently available for public distribution.
 
 ## System requirements
 
@@ -58,7 +64,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.11.0 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.12.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -76,7 +82,10 @@ position and safely adjusts only the coordinates that would place it outside
 the nearest monitor work area. Version 0.11.0 adds one application-wide audio
 output device setting for end signals, warning signals, and signal preview.
 A disconnected or unavailable saved device falls back safely to the Windows
-system default.
+system default. Version 0.12.0 adds persistent countdowns to specified dates
+and times, a compact collapsible event ribbon, a custom calendar and clock-face
+time picker, and shared regional formats that remain independent from the
+interface language.
 
 ### Resolved Windows taskbar issue
 

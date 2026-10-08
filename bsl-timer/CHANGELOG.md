@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-08
+
 ### Added
 
 - Added a separate compact event ribbon for countdowns to a specific local
@@ -16,6 +18,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added family-wide date, time, and first-day-of-week preferences that remain
   independent from the BSL-Timer interface language.
 - Added a live date and time format preview to Settings.
+- Added a custom calendar with horizontal month navigation and a clock-face
+  time picker with five-minute marks plus exact keyboard and wheel adjustment.
+- Added a remembered control for collapsing and restoring the event ribbon.
 
 ### Changed
 
