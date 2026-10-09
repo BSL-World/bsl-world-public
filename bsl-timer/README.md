@@ -68,7 +68,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.12.1 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.13.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -90,9 +90,10 @@ system default. Version 0.12.0 adds persistent countdowns to specified dates
 and times, a compact collapsible event ribbon, a custom calendar and clock-face
 time picker, and shared regional formats that remain independent from the
 interface language.
-Version 0.12.1 adds shared font-size choices, moves dated-event editing into a
-separate resizable window with Apply and unsaved-change protection, and
-restores clear theme-tinted icon contours at small Windows sizes.
+Version 0.13.0 adds shared font-size choices, moves dated-event editing into a
+separate resizable window with Apply and unsaved-change protection, restores
+clear theme-tinted icon contours at small Windows sizes, and adds light and
+dark window appearances with an option to follow the Windows system theme.
 
 ### Resolved Windows taskbar issue
 

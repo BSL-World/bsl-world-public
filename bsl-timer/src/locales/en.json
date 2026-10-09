@@ -225,6 +225,7 @@
     "dateTimePicker": "Choose dates in a calendar with horizontal month navigation and times on a clock face with precise arrow-key and mouse-wheel adjustment.",
     "eventRibbon": "Collapse or restore the compact event ribbon; BSL-Timer remembers the selected state.",
     "regionalFormats": "Date and time formats and the first day of the week can now be selected independently from the interface language for all BSL-World applications.",
+    "windowAppearance": "Added light and dark window appearances with an option to follow the Windows system theme automatically.",
     "iconOutline": "Tray and taskbar icons now have a clear dark outline tinted for the selected theme.",
     "eventEditor": "The event editor is now a separate resizable window with Apply, remembered placement, and unsaved-change protection.",
     "fontSizes": "Settings now offer Small, Normal, and Large font sizes.",

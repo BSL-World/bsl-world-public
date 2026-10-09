@@ -7,22 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-09
+
 ### Added
 
 - Added a shared `System`, `Light`, and `Dark` window-appearance preference for
   BSL-World desktop applications.
 - Added a Hi-End-inspired light surface with matte-metal panels, restrained
   borders, and independent accent colors across every BSL-Timer window.
-
-### Changed
-
-- Moved appearance-mode normalization, system-theme tracking, and shared
-  surface tokens into `@bsl-world/desktop-core` for reuse by future products.
-
-## [0.12.1] - 2026-10-08
-
-### Added
-
 - Added shared `Small`, `Normal`, and `Large` font-size choices that change
   application typography without scaling window geometry or controls.
 - Added an Apply action to the dated-event editor so changes can be saved
@@ -30,6 +22,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Changed
 
+- Moved appearance-mode normalization, system-theme tracking, and shared
+  surface tokens into `@bsl-world/desktop-core` for reuse by future products.
 - Moved the dated-event editor into a normal resizable application window with
   its own native title bar, remembered position, and multi-monitor correction.
 - Keep the dated-event editor open when other windows are clicked and request
