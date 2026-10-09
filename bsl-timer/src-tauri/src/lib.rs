@@ -1045,23 +1045,36 @@ async fn open_about_window(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn open_whats_new_window(app: tauri::AppHandle) -> Result<(), String> {
+async fn open_whats_new_window(
+    app: tauri::AppHandle,
+    take_focus: Option<bool>,
+) -> Result<(), String> {
+    let should_take_focus = take_focus.unwrap_or(true);
+
     if let Some(window) = app.get_webview_window("whats-new") {
         if let Some(position) = auxiliary_window_position(&app, 80.0, 60.0) {
             let _ = window.set_position(position);
         }
         let _ = window.show();
         let _ = window.unminimize();
-        let _ = window.set_focus();
+        if should_take_focus {
+            let _ = window.set_focus();
+        }
         return Ok(());
     }
 
     let whats_new_position = auxiliary_window_position(&app, 80.0, 60.0);
 
+    let whats_new_url = if should_take_focus {
+        "whats-new.html?takeFocus=true"
+    } else {
+        "whats-new.html?takeFocus=false"
+    };
+
     let mut builder = tauri::WebviewWindowBuilder::new(
         &app,
         "whats-new",
-        tauri::WebviewUrl::App("whats-new.html".into()),
+        tauri::WebviewUrl::App(whats_new_url.into()),
     )
     .title("What’s New in BSL-Timer")
     .inner_size(430.0, 380.0)

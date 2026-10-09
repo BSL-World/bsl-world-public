@@ -1265,7 +1265,7 @@ button {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  padding: 22px;
+  padding: 22px 22px 0;
 }
 
 .whats-new-window-body.is-measuring {
@@ -1316,10 +1316,13 @@ button {
 
 .whats-new-window-footer {
   display: flex;
+  min-height: 52px;
+  align-items: center;
   justify-content: flex-end;
-  margin-top: auto;
-  padding-top: 12px;
+  margin: auto -22px 0;
+  padding: 10px 22px;
   border-top: 1px solid rgb(255 255 255 / 9%);
+  background: rgb(255 255 255 / 4%);
 }
 
 .about-window-body {
@@ -1340,6 +1343,15 @@ button {
   padding: 16px 16px 16px;
   flex-direction: column;
   gap: 11px;
+}
+
+.about-window-body.is-measuring {
+  min-height: 0;
+}
+
+.about-window-body.is-measuring .about-page {
+  height: auto;
+  min-height: 0;
 }
 
 .about-page-header {
@@ -1632,8 +1644,8 @@ button {
   flex: none;
   gap: 8px;
   justify-content: flex-end;
-  margin-top: 0;
-  padding-top: 9px;
+  margin: 0 4px 0 0;
+  padding: 9px 0;
   border-top: 1px solid rgb(255 255 255 / 9%);
   background: #171827;
 }

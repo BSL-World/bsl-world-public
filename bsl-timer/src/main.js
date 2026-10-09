@@ -1223,9 +1223,9 @@ function hideUpdaterDialog() {
   requestAnimationFrame(focusActiveTimerControl);
 }
 
-async function openWhatsNewWindow() {
+async function openWhatsNewWindow({ takeFocus = true } = {}) {
   try {
-    await invoke('open_whats_new_window');
+    await invoke('open_whats_new_window', { takeFocus });
   } catch (error) {
     console.error('Failed to open What’s New:', error);
   }
@@ -2254,5 +2254,5 @@ if (availableUpdate) {
 }
 
 if (!updateFlowStarted && shouldShowWhatsNew(WHATS_NEW_VERSION)) {
-  await openWhatsNewWindow();
+  await openWhatsNewWindow({ takeFocus: false });
 }

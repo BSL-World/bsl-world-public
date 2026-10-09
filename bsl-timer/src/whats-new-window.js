@@ -42,6 +42,8 @@ const dontShowAgain = document.getElementById(
 );
 const closeButton = document.getElementById('whats-new-close-btn');
 const page = document.querySelector('.whats-new-page');
+const takeFocus = new URLSearchParams(window.location.search)
+  .get('takeFocus') !== 'false';
 let isClosing = false;
 
 const MIN_WINDOW_HEIGHT = 320;
@@ -149,8 +151,10 @@ applyFontSize();
 dontShowAgain.checked = !shouldShowWhatsNew(WHATS_NEW_VERSION);
 await updateInterface();
 await fitWindowToContent();
-await prepareAuxiliaryWindow(appWindow);
-closeButton.focus();
+await prepareAuxiliaryWindow(appWindow, undefined, { takeFocus });
+if (takeFocus) {
+  closeButton.focus();
+}
 
 closeButton.addEventListener('click', () => {
   void closeWindow();

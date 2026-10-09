@@ -34,7 +34,8 @@ export async function prepareWindowPosition(
 
 export async function prepareAuxiliaryWindow(
   appWindow,
-  margin = DEFAULT_WINDOW_MARGIN
+  margin = DEFAULT_WINDOW_MARGIN,
+  { takeFocus = true } = {}
 ) {
   try {
     await windowPositionManager.restoreAndTrack(appWindow, margin);
@@ -42,6 +43,8 @@ export async function prepareAuxiliaryWindow(
     console.error('Failed to restore the window position:', error);
   } finally {
     await appWindow.show();
-    await appWindow.setFocus();
+    if (takeFocus) {
+      await appWindow.setFocus();
+    }
   }
 }
