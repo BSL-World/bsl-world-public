@@ -17,8 +17,16 @@ function createMemoryStorage(savedLocale = null) {
 }
 
 const locales = {
-  en: { localeName: 'English', greeting: 'Hello' },
-  ru: { localeName: 'Русский', greeting: 'Привет' }
+  en: {
+    localeName: 'English',
+    greeting: 'Hello',
+    deleteEvent: 'Delete “{name}”?'
+  },
+  ru: {
+    localeName: 'Русский',
+    greeting: 'Привет',
+    deleteEvent: 'Удалить «{name}»?'
+  }
 };
 
 test('detects a supported saved locale', () => {
@@ -53,4 +61,28 @@ test('uses the browser language and falls back to the default', () => {
   assert.equal(russian.getLocale(), 'ru');
   assert.equal(unsupported.getLocale(), 'en');
   assert.equal(unsupported.t('missing.key'), 'missing.key');
+});
+
+test('substitutes named values in translated messages', () => {
+  const english = createI18n({
+    locales,
+    defaultLocale: 'en',
+    storageKey: 'locale',
+    storage: createMemoryStorage('en')
+  });
+  const russian = createI18n({
+    locales,
+    defaultLocale: 'en',
+    storageKey: 'locale',
+    storage: createMemoryStorage('ru')
+  });
+
+  assert.equal(
+    english.t('deleteEvent', { name: 'Tea' }),
+    'Delete “Tea”?'
+  );
+  assert.equal(
+    russian.t('deleteEvent', { name: 'Чай' }),
+    'Удалить «Чай»?'
+  );
 });

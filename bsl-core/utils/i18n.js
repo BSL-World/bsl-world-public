@@ -16,6 +16,17 @@ function resolveTranslation(locales, locale, key) {
     .reduce((value, part) => value?.[part], locales[locale]);
 }
 
+function interpolateTranslation(message, values) {
+  if (typeof message !== 'string') {
+    return message;
+  }
+
+  return Object.entries(values ?? {}).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+    message
+  );
+}
+
 export function createI18n({
   locales,
   defaultLocale,
@@ -46,12 +57,14 @@ export function createI18n({
 
   let currentLocale = detectLocale();
 
-  function t(key) {
-    return (
+  function t(key, values = {}) {
+    const message = (
       resolveTranslation(locales, currentLocale, key)
       ?? resolveTranslation(locales, defaultLocale, key)
       ?? key
     );
+
+    return interpolateTranslation(message, values);
   }
 
   function getLocale() {

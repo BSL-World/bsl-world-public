@@ -5,8 +5,6 @@ import {
   getCurrentWindow
 } from '@tauri-apps/api/window';
 import {
-  FirstDayOfWeek,
-  TimeFormat,
   formatDate,
   formatTime
 } from '@bsl-world/desktop-core/regional';
@@ -86,16 +84,28 @@ import {
   DateCountdownStore
 } from './date-countdown-store.js';
 import {
-  clockDialPosition,
-  createCalendarDays,
-  minuteDialValues,
-  shiftCalendarMonth,
-  wrapClockValue
-} from './date-time-picker.js';
+  DATE_COUNTDOWN_CHANGED_EVENT,
+  DATE_COUNTDOWN_EDITOR_LABEL,
+  DATE_COUNTDOWN_EDITOR_OPEN_EVENT,
+  DATE_COUNTDOWN_EDITOR_REQUEST_KEY
+} from './date-countdown-editor.js';
 import {
   REGIONAL_SETTINGS_EVENT,
   loadRegionalSettings
 } from './regional-settings.js';
+import {
+  FONT_SIZE_SETTINGS_EVENT,
+  FONT_SIZE_STORAGE_KEY,
+  applyFontSize,
+  loadFontSizeSettings
+} from './font-size-settings.js';
+import {
+  APPEARANCE_MODE_SETTINGS_EVENT,
+  APPEARANCE_MODE_STORAGE_KEY,
+  applyAppearanceMode,
+  loadAppearanceModeSettings,
+  watchAppearanceMode
+} from './appearance-mode-settings.js';
 import {
   AUDIO_PREFERENCES_EVENT,
   AUDIO_PREFERENCES_STORAGE_KEY,
@@ -115,7 +125,6 @@ const MAIN_WINDOW_WIDTH = 360;
 const MAIN_WINDOW_BASE_HEIGHT = 260;
 const MAIN_WINDOW_COLLAPSED_RIBBON_HEIGHT = 286;
 const MAIN_WINDOW_RIBBON_HEIGHT = 330;
-const MAIN_WINDOW_EDITOR_HEIGHT = 620;
 const appWindow = getCurrentWindow();
 try {
   await prepareWindowPosition(appWindow);
@@ -267,53 +276,6 @@ const scrollDateCountdownsRightButton =
   document.getElementById('scroll-date-countdowns-right-btn');
 const toggleDateCountdownRibbonButton =
   document.getElementById('toggle-date-countdown-ribbon-btn');
-const dateCountdownDialogBackdrop =
-  document.getElementById('date-countdown-dialog-backdrop');
-const dateCountdownForm =
-  document.getElementById('date-countdown-form');
-const dateCountdownDialogTitle =
-  document.getElementById('date-countdown-dialog-title');
-const dateCountdownDialogXButton =
-  document.getElementById('date-countdown-dialog-x-btn');
-const dateCountdownNameInput =
-  document.getElementById('date-countdown-name-input');
-const dateCountdownDescriptionInput =
-  document.getElementById('date-countdown-description-input');
-const dateCountdownDateButton =
-  document.getElementById('date-countdown-date-button');
-const dateCountdownHourButton =
-  document.getElementById('date-countdown-hour-button');
-const dateCountdownMinuteButton =
-  document.getElementById('date-countdown-minute-button');
-const dateCountdownPeriodButton =
-  document.getElementById('date-countdown-period-button');
-const dateCountdownPicker =
-  document.getElementById('date-countdown-picker');
-const dateCountdownCalendar =
-  document.getElementById('date-countdown-calendar');
-const previousCalendarMonthButton =
-  document.getElementById('previous-calendar-month-btn');
-const nextCalendarMonthButton =
-  document.getElementById('next-calendar-month-btn');
-const calendarMonthLabel =
-  document.getElementById('calendar-month-label');
-const calendarWeekdays =
-  document.getElementById('calendar-weekdays');
-const calendarDays = document.getElementById('calendar-days');
-const dateCountdownTimeDial =
-  document.getElementById('date-countdown-time-dial');
-const dateCountdownClockFace =
-  document.getElementById('date-countdown-clock-face');
-const dateCountdownPeriodSwitch =
-  document.getElementById('date-countdown-period-switch');
-const dateCountdownShowSecondsInput =
-  document.getElementById('date-countdown-show-seconds-input');
-const dateCountdownValidationMessage =
-  document.getElementById('date-countdown-validation-message');
-const deleteDateCountdownButton =
-  document.getElementById('delete-date-countdown-btn');
-const cancelDateCountdownButton =
-  document.getElementById('cancel-date-countdown-btn');
 
 let isAlwaysOnTop =
   localStorage.getItem(ALWAYS_ON_TOP_STORAGE_KEY) === 'true';
@@ -327,7 +289,6 @@ let isClosingApplication = false;
 let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
-let editingDateCountdownId = null;
 let dateCountdownRefreshId = null;
 let mainWindowHeight = null;
 let regionalSettings = null;
@@ -335,12 +296,6 @@ let isDateCountdownRibbonCollapsed =
   localStorage.getItem(
     DATE_COUNTDOWN_RIBBON_COLLAPSED_STORAGE_KEY
   ) === 'true';
-let dateCountdownPickerMode = 'date';
-let selectedDateCountdownDate = null;
-let selectedDateCountdownHours = 0;
-let selectedDateCountdownMinutes = 0;
-let calendarDisplayYear = 0;
-let calendarDisplayMonth = 0;
 
 const dateCountdownStore = new DateCountdownStore();
 
@@ -855,7 +810,6 @@ function renderActiveTimer() {
 function focusActiveTimerControl() {
   if (
     !confirmationDialogBackdrop.hidden
-    || !dateCountdownDialogBackdrop.hidden
     || editingEventId
   ) {
     return;
@@ -1340,315 +1294,6 @@ async function setMainWindowHeight(height) {
   }
 }
 
-function getDefaultDateCountdownTarget() {
-  const target = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-  target.setSeconds(0, 0);
-  target.setMinutes(Math.ceil(target.getMinutes() / 5) * 5);
-  return target.getTime();
-}
-
-function getCalendarFirstDayOfWeek() {
-  const configuredFirstDay = regionalSettings?.firstDayOfWeek;
-
-  if (configuredFirstDay === FirstDayOfWeek.MONDAY) {
-    return 1;
-  }
-
-  if (configuredFirstDay === FirstDayOfWeek.SUNDAY) {
-    return 0;
-  }
-
-  try {
-    const systemLocale = new Intl.Locale(
-      Intl.DateTimeFormat().resolvedOptions().locale
-    );
-    const firstDay = systemLocale.weekInfo?.firstDay
-      ?? systemLocale.getWeekInfo?.().firstDay;
-
-    return firstDay === 7 ? 0 : 1;
-  } catch {
-    return getLocale().toLowerCase().startsWith('en') ? 0 : 1;
-  }
-}
-
-function usesTwelveHourClock() {
-  const configuredFormat = regionalSettings?.timeFormat;
-
-  if (configuredFormat === TimeFormat.HOUR_12) {
-    return true;
-  }
-
-  if (configuredFormat === TimeFormat.HOUR_24) {
-    return false;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric'
-  }).resolvedOptions().hour12 === true;
-}
-
-function selectedDateCountdownTarget() {
-  if (!selectedDateCountdownDate) {
-    return null;
-  }
-
-  const target = new Date(
-    selectedDateCountdownDate.year,
-    selectedDateCountdownDate.month,
-    selectedDateCountdownDate.day,
-    selectedDateCountdownHours,
-    selectedDateCountdownMinutes,
-    0,
-    0
-  );
-
-  return Number.isNaN(target.getTime()) ? null : target.getTime();
-}
-
-function renderDateCountdownTargetControls() {
-  if (!selectedDateCountdownDate) {
-    return;
-  }
-
-  const targetTimestamp = selectedDateCountdownTarget();
-  const target = new Date(targetTimestamp);
-  const twelveHourClock = usesTwelveHourClock();
-  const displayHours = twelveHourClock
-    ? selectedDateCountdownHours % 12 || 12
-    : selectedDateCountdownHours;
-
-  dateCountdownDateButton.textContent = regionalSettings
-    ? formatDate(target, regionalSettings, { locale: getLocale() })
-    : target.toLocaleDateString(getLocale());
-  dateCountdownHourButton.textContent = String(displayHours)
-    .padStart(2, '0');
-  dateCountdownMinuteButton.textContent = String(
-    selectedDateCountdownMinutes
-  ).padStart(2, '0');
-  dateCountdownPeriodButton.hidden = !twelveHourClock;
-  dateCountdownPeriodButton.textContent =
-    selectedDateCountdownHours < 12 ? 'AM' : 'PM';
-
-  dateCountdownDateButton.classList.toggle(
-    'is-active',
-    dateCountdownPickerMode === 'date'
-  );
-  dateCountdownHourButton.classList.toggle(
-    'is-active',
-    dateCountdownPickerMode === 'hours'
-  );
-  dateCountdownMinuteButton.classList.toggle(
-    'is-active',
-    dateCountdownPickerMode === 'minutes'
-  );
-}
-
-function renderDateCountdownCalendar() {
-  const firstDayOfWeek = getCalendarFirstDayOfWeek();
-  const monthDate = new Date(
-    calendarDisplayYear,
-    calendarDisplayMonth,
-    1
-  );
-  const weekdayFormatter = new Intl.DateTimeFormat(getLocale(), {
-    weekday: 'short'
-  });
-
-  calendarMonthLabel.textContent = new Intl.DateTimeFormat(
-    getLocale(),
-    { month: 'long', year: 'numeric' }
-  ).format(monthDate);
-
-  calendarWeekdays.replaceChildren(
-    ...Array.from({ length: 7 }, (_, index) => {
-      const label = document.createElement('span');
-      const weekday = new Date(2024, 0, 7 + firstDayOfWeek + index);
-
-      label.textContent = weekdayFormatter.format(weekday)
-        .replace(/\.$/, '');
-      return label;
-    })
-  );
-
-  calendarDays.replaceChildren(
-    ...createCalendarDays(
-      calendarDisplayYear,
-      calendarDisplayMonth,
-      { firstDayOfWeek }
-    ).map((day) => {
-      const button = document.createElement('button');
-      const isSelected =
-        day.year === selectedDateCountdownDate?.year
-        && day.month === selectedDateCountdownDate?.month
-        && day.day === selectedDateCountdownDate?.day;
-
-      button.type = 'button';
-      button.textContent = String(day.day);
-      button.className = 'calendar-day';
-      button.classList.toggle('is-adjacent', !day.inCurrentMonth);
-      button.classList.toggle('is-today', day.isToday);
-      button.classList.toggle('is-selected', isSelected);
-      button.setAttribute('aria-pressed', String(isSelected));
-      button.addEventListener('click', () => {
-        selectedDateCountdownDate = {
-          year: day.year,
-          month: day.month,
-          day: day.day
-        };
-        calendarDisplayYear = day.year;
-        calendarDisplayMonth = day.month;
-        setDateCountdownPickerMode('hours');
-        dateCountdownHourButton.focus();
-      });
-      return button;
-    })
-  );
-}
-
-function createClockDialButton({
-  label,
-  value,
-  index,
-  count = 12,
-  radius = 82,
-  inner = false,
-  selected = false,
-  onSelect
-}) {
-  const button = document.createElement('button');
-  const position = clockDialPosition(index, count, radius);
-
-  button.type = 'button';
-  button.className = 'clock-dial-value';
-  button.classList.toggle('is-inner', inner);
-  button.classList.toggle('is-selected', selected);
-  button.style.setProperty('--dial-x', `${position.x}px`);
-  button.style.setProperty('--dial-y', `${position.y}px`);
-  button.textContent = String(label).padStart(2, '0');
-  button.dataset.value = String(value);
-  button.addEventListener('click', onSelect);
-  return button;
-}
-
-function renderDateCountdownTimeDial() {
-  const twelveHourClock = usesTwelveHourClock();
-  const isHourMode = dateCountdownPickerMode === 'hours';
-  const values = [];
-
-  if (isHourMode && twelveHourClock) {
-    for (let displayHour = 1; displayHour <= 12; displayHour += 1) {
-      const hour = displayHour % 12
-        + (selectedDateCountdownHours >= 12 ? 12 : 0);
-
-      values.push(createClockDialButton({
-        label: displayHour,
-        value: hour,
-        index: displayHour % 12,
-        selected: hour === selectedDateCountdownHours,
-        onSelect: () => {
-          selectedDateCountdownHours = hour;
-          setDateCountdownPickerMode('minutes');
-          dateCountdownMinuteButton.focus();
-        }
-      }));
-    }
-  } else if (isHourMode) {
-    for (let hour = 0; hour < 24; hour += 1) {
-      const inner = hour >= 12;
-
-      values.push(createClockDialButton({
-        label: hour,
-        value: hour,
-        index: hour % 12,
-        radius: inner ? 51 : 84,
-        inner,
-        selected: hour === selectedDateCountdownHours,
-        onSelect: () => {
-          selectedDateCountdownHours = hour;
-          setDateCountdownPickerMode('minutes');
-          dateCountdownMinuteButton.focus();
-        }
-      }));
-    }
-  } else {
-    const minutes = minuteDialValues();
-
-    values.push(...minutes.map((minute, index) =>
-      createClockDialButton({
-        label: minute,
-        value: minute,
-        index,
-        selected: minute === selectedDateCountdownMinutes,
-        onSelect: () => {
-          selectedDateCountdownMinutes = minute;
-          renderDateCountdownPicker();
-        }
-      })
-    ));
-  }
-
-  dateCountdownClockFace.replaceChildren(...values);
-  dateCountdownPeriodSwitch.hidden = !twelveHourClock || !isHourMode;
-
-  for (const button of dateCountdownPeriodSwitch.querySelectorAll('button')) {
-    const selectedPeriod = selectedDateCountdownHours < 12 ? 'am' : 'pm';
-
-    button.classList.toggle(
-      'is-selected',
-      button.dataset.period === selectedPeriod
-    );
-  }
-}
-
-function renderDateCountdownPicker() {
-  const isDateMode = dateCountdownPickerMode === 'date';
-
-  dateCountdownPicker.dataset.mode = dateCountdownPickerMode;
-  dateCountdownCalendar.hidden = !isDateMode;
-  dateCountdownTimeDial.hidden = isDateMode;
-  renderDateCountdownTargetControls();
-
-  if (isDateMode) {
-    renderDateCountdownCalendar();
-  } else {
-    renderDateCountdownTimeDial();
-  }
-}
-
-function setDateCountdownPickerMode(mode) {
-  dateCountdownPickerMode = mode;
-  renderDateCountdownPicker();
-}
-
-function moveCalendarMonth(offset) {
-  const shifted = shiftCalendarMonth(
-    calendarDisplayYear,
-    calendarDisplayMonth,
-    offset
-  );
-
-  calendarDisplayYear = shifted.year;
-  calendarDisplayMonth = shifted.month;
-  renderDateCountdownCalendar();
-}
-
-function adjustDateCountdownTime(part, amount) {
-  if (part === 'hours') {
-    selectedDateCountdownHours = wrapClockValue(
-      selectedDateCountdownHours + amount,
-      24
-    );
-  } else {
-    selectedDateCountdownMinutes = wrapClockValue(
-      selectedDateCountdownMinutes + amount,
-      60
-    );
-  }
-
-  renderDateCountdownPicker();
-}
-
 function getDateCountdownName(countdown) {
   return getDateCountdownDisplayName(
     countdown,
@@ -1743,7 +1388,7 @@ function createDateCountdownCard(countdown) {
   updateDateCountdownCard(card, countdown, Date.now());
 
   card.addEventListener('click', () => {
-    openDateCountdownEditor(countdown.id);
+    void openDateCountdownEditor(countdown.id);
   });
 
   return card;
@@ -1796,28 +1441,16 @@ function renderDateCountdowns() {
     : t('dateCountdowns.proLimit');
 
   requestAnimationFrame(updateDateCountdownScrollButtons);
-
-  if (!dateCountdownDialogBackdrop.hidden) {
-    void setMainWindowHeight(MAIN_WINDOW_EDITOR_HEIGHT);
-  } else {
-    void setMainWindowHeight(
-      hasCountdowns
-        ? isDateCountdownRibbonCollapsed
-          ? MAIN_WINDOW_COLLAPSED_RIBBON_HEIGHT
-          : MAIN_WINDOW_RIBBON_HEIGHT
-        : MAIN_WINDOW_BASE_HEIGHT
-    );
-  }
+  void setMainWindowHeight(
+    hasCountdowns
+      ? isDateCountdownRibbonCollapsed
+        ? MAIN_WINDOW_COLLAPSED_RIBBON_HEIGHT
+        : MAIN_WINDOW_RIBBON_HEIGHT
+      : MAIN_WINDOW_BASE_HEIGHT
+  );
 }
 
-function setDateCountdownValidation(messageKey = null) {
-  dateCountdownValidationMessage.hidden = messageKey === null;
-  dateCountdownValidationMessage.textContent = messageKey
-    ? t(messageKey)
-    : '';
-}
-
-function openDateCountdownEditor(countdownId = null) {
+async function openDateCountdownEditor(countdownId = null) {
   const countdowns = dateCountdownStore.getAll();
   const countdown = countdownId
     ? dateCountdownStore.get(countdownId)
@@ -1828,78 +1461,23 @@ function openDateCountdownEditor(countdownId = null) {
     return;
   }
 
-  editingDateCountdownId = countdown?.id ?? null;
-  const targetTimestamp = countdown?.targetTimestamp
-    ?? getDefaultDateCountdownTarget();
-  const target = new Date(targetTimestamp);
+  const request = { countdownId: countdown?.id ?? null };
 
-  dateCountdownDialogTitle.textContent = t(
-    countdown
-      ? 'dateCountdowns.editTitle'
-      : 'dateCountdowns.createTitle'
+  localStorage.setItem(
+    DATE_COUNTDOWN_EDITOR_REQUEST_KEY,
+    JSON.stringify(request)
   );
-  dateCountdownNameInput.value = countdown?.name ?? '';
-  dateCountdownDescriptionInput.value =
-    countdown?.description ?? '';
-  selectedDateCountdownDate = {
-    year: target.getFullYear(),
-    month: target.getMonth(),
-    day: target.getDate()
-  };
-  selectedDateCountdownHours = target.getHours();
-  selectedDateCountdownMinutes = target.getMinutes();
-  calendarDisplayYear = target.getFullYear();
-  calendarDisplayMonth = target.getMonth();
-  dateCountdownPickerMode = 'date';
-  dateCountdownShowSecondsInput.checked =
-    countdown?.showSeconds === true;
-  deleteDateCountdownButton.hidden = !countdown;
-  setDateCountdownValidation();
-  dateCountdownDialogBackdrop.hidden = false;
-  renderDateCountdownPicker();
-  void setMainWindowHeight(MAIN_WINDOW_EDITOR_HEIGHT);
 
-  requestAnimationFrame(() => {
-    dateCountdownNameInput.focus();
-    dateCountdownNameInput.select();
-  });
-}
-
-function closeDateCountdownEditor() {
-  editingDateCountdownId = null;
-  dateCountdownDialogBackdrop.hidden = true;
-  setDateCountdownValidation();
-  renderDateCountdowns();
-}
-
-function saveDateCountdownFromEditor() {
-  const targetTimestamp = selectedDateCountdownTarget();
-
-  if (targetTimestamp === null) {
-    setDateCountdownValidation('dateCountdowns.invalidTarget');
-    return false;
+  try {
+    await invoke('open_date_countdown_editor_window');
+    await emitTo(
+      DATE_COUNTDOWN_EDITOR_LABEL,
+      DATE_COUNTDOWN_EDITOR_OPEN_EVENT,
+      request
+    );
+  } catch (error) {
+    console.error('Failed to open the event editor:', error);
   }
-
-  if (targetTimestamp <= Date.now()) {
-    setDateCountdownValidation('dateCountdowns.pastTarget');
-    return false;
-  }
-
-  const value = {
-    name: dateCountdownNameInput.value,
-    description: dateCountdownDescriptionInput.value,
-    targetTimestamp,
-    showSeconds: dateCountdownShowSecondsInput.checked
-  };
-
-  if (editingDateCountdownId) {
-    dateCountdownStore.update(editingDateCountdownId, value);
-  } else {
-    dateCountdownStore.add(value);
-  }
-
-  closeDateCountdownEditor();
-  return true;
 }
 
 async function requestApplicationClose({
@@ -2010,15 +1588,6 @@ function refreshLocalizedContent() {
   renderTabs();
   renderActiveTimer();
   renderDateCountdowns();
-
-  if (!dateCountdownDialogBackdrop.hidden) {
-    dateCountdownDialogTitle.textContent = t(
-      editingDateCountdownId
-        ? 'dateCountdowns.editTitle'
-        : 'dateCountdowns.createTitle'
-    );
-    renderDateCountdownPicker();
-  }
 
   void refreshTrayPreview({ force: true });
 }
@@ -2330,86 +1899,6 @@ toggleDateCountdownRibbonButton.addEventListener('click', () => {
   renderDateCountdowns();
 });
 
-dateCountdownDateButton.addEventListener('click', () => {
-  setDateCountdownPickerMode('date');
-});
-
-dateCountdownHourButton.addEventListener('click', () => {
-  setDateCountdownPickerMode('hours');
-});
-
-dateCountdownMinuteButton.addEventListener('click', () => {
-  setDateCountdownPickerMode('minutes');
-});
-
-for (const [button, part] of [
-  [dateCountdownHourButton, 'hours'],
-  [dateCountdownMinuteButton, 'minutes']
-]) {
-  button.addEventListener('focus', () => {
-    setDateCountdownPickerMode(part);
-  });
-
-  button.addEventListener('keydown', (event) => {
-    const direction = ['ArrowUp', 'ArrowRight'].includes(event.key)
-      ? 1
-      : ['ArrowDown', 'ArrowLeft'].includes(event.key)
-        ? -1
-        : 0;
-
-    if (direction === 0) {
-      return;
-    }
-
-    event.preventDefault();
-    adjustDateCountdownTime(part, direction);
-  });
-
-  button.addEventListener('wheel', (event) => {
-    event.preventDefault();
-    adjustDateCountdownTime(part, event.deltaY > 0 ? 1 : -1);
-  }, { passive: false });
-}
-
-dateCountdownPeriodButton.addEventListener('click', () => {
-  selectedDateCountdownHours = selectedDateCountdownHours < 12
-    ? selectedDateCountdownHours + 12
-    : selectedDateCountdownHours - 12;
-  renderDateCountdownPicker();
-});
-
-dateCountdownPeriodSwitch.addEventListener('click', (event) => {
-  const period = event.target.closest('button')?.dataset.period;
-
-  if (!period) {
-    return;
-  }
-
-  const baseHour = selectedDateCountdownHours % 12;
-
-  selectedDateCountdownHours = baseHour + (period === 'pm' ? 12 : 0);
-  renderDateCountdownPicker();
-});
-
-previousCalendarMonthButton.addEventListener('click', () => {
-  moveCalendarMonth(-1);
-});
-
-nextCalendarMonthButton.addEventListener('click', () => {
-  moveCalendarMonth(1);
-});
-
-dateCountdownCalendar.addEventListener('wheel', (event) => {
-  const movement = event.deltaX || event.deltaY;
-
-  if (movement === 0) {
-    return;
-  }
-
-  event.preventDefault();
-  moveCalendarMonth(movement > 0 ? 1 : -1);
-}, { passive: false });
-
 addTimerButton.addEventListener('click', () => {
   if (!canCreateTimer(workspace.getEvents().length)) {
     showTabNotice(t('tabs.proLimit'));
@@ -2432,70 +1921,15 @@ dateCountdownsButton.addEventListener('click', () => {
     countdowns.length === 1
     && !canCreateDateCountdown(countdowns.length)
   ) {
-    openDateCountdownEditor(countdowns[0].id);
+    void openDateCountdownEditor(countdowns[0].id);
     return;
   }
 
-  openDateCountdownEditor();
+  void openDateCountdownEditor();
 });
 
 addDateCountdownButton.addEventListener('click', () => {
-  openDateCountdownEditor();
-});
-
-dateCountdownForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  saveDateCountdownFromEditor();
-});
-
-dateCountdownDialogXButton.addEventListener(
-  'click',
-  closeDateCountdownEditor
-);
-
-cancelDateCountdownButton.addEventListener(
-  'click',
-  closeDateCountdownEditor
-);
-
-deleteDateCountdownButton.addEventListener('click', async () => {
-  if (!editingDateCountdownId) {
-    return;
-  }
-
-  const countdown = dateCountdownStore.get(editingDateCountdownId);
-  const confirmed = await requestConfirmation({
-    titleKey: 'dateCountdowns.confirmDeleteTitle',
-    messageKey: 'dateCountdowns.confirmDelete',
-    primaryKey: 'dateCountdowns.delete',
-    secondaryKey: 'window.cancel',
-    values: {
-      name: countdown
-        ? getDateCountdownName(countdown)
-        : t('dateCountdowns.defaultName')
-    },
-    destructive: true
-  });
-
-  if (!confirmed) {
-    return;
-  }
-
-  dateCountdownStore.remove(editingDateCountdownId);
-  closeDateCountdownEditor();
-});
-
-dateCountdownDialogBackdrop.addEventListener('click', (event) => {
-  if (event.target === dateCountdownDialogBackdrop) {
-    closeDateCountdownEditor();
-  }
-});
-
-dateCountdownDialogBackdrop.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') {
-    event.preventDefault();
-    closeDateCountdownEditor();
-  }
+  void openDateCountdownEditor();
 });
 
 alwaysOnTopButton.addEventListener('click', async () => {
@@ -2588,6 +2022,20 @@ window.addEventListener('storage', (event) => {
       { glowEnabled }
     );
     void refreshTrayPreview({ force: true });
+  }
+
+  if (
+    event.key === FONT_SIZE_STORAGE_KEY
+    && event.newValue
+  ) {
+    applyFontSize(event.newValue);
+  }
+
+  if (
+    event.key === APPEARANCE_MODE_STORAGE_KEY
+    && event.newValue
+  ) {
+    applyAppearanceMode(event.newValue);
   }
 
   if (
@@ -2689,10 +2137,19 @@ await listen(WARNING_SIGNAL_SETTINGS_EVENT, (event) => {
 await listen(REGIONAL_SETTINGS_EVENT, (event) => {
   regionalSettings = event.payload;
   renderDateCountdowns();
+});
 
-  if (!dateCountdownDialogBackdrop.hidden) {
-    renderDateCountdownPicker();
-  }
+await listen(DATE_COUNTDOWN_CHANGED_EVENT, () => {
+  dateCountdownStore.load();
+  renderDateCountdowns();
+});
+
+await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
+  applyFontSize(event.payload?.fontSize);
+});
+
+await listen(APPEARANCE_MODE_SETTINGS_EVENT, (event) => {
+  applyAppearanceMode(event.payload?.mode);
 });
 
 await listen(AUDIO_PREFERENCES_EVENT, (event) => {
@@ -2707,6 +2164,9 @@ document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
 applyGlow();
+applyAppearanceMode();
+watchAppearanceMode();
+applyFontSize();
 await applyAppearance(getAppearance());
 applyTranslations();
 document.title = t('app.title');
@@ -2720,6 +2180,18 @@ try {
   regionalSettings = await loadRegionalSettings(invoke);
 } catch (error) {
   console.error('Failed to load shared regional settings:', error);
+}
+
+try {
+  await loadFontSizeSettings(invoke);
+} catch (error) {
+  console.error('Failed to load shared font-size settings:', error);
+}
+
+try {
+  await loadAppearanceModeSettings(invoke);
+} catch (error) {
+  console.error('Failed to load shared appearance mode:', error);
 }
 
 migrateTimerVisualSettings();

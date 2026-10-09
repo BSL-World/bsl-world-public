@@ -15,12 +15,19 @@ Available modules:
   the operating-system default output.
 - `window` owns monitor selection, independent X/Y correction, margins, and
   reusable window-position persistence.
-- `theme` owns canonical theme identifiers, normalization, glow behavior, and
-  shared CSS design tokens.
+- `theme` owns canonical accent-theme identifiers, normalization, glow
+  behavior, and shared CSS design tokens.
+- `appearance` owns the separate family-wide `system`, `light`, and `dark`
+  window-surface preference, system-theme resolution, live operating-system
+  change tracking, and the shared matte-metal surface tokens. Products must not
+  couple window appearance to their accent palette or interface language.
 - `i18n` owns locale detection, translation lookup, DOM translation, language
   switching, and fallback behavior while products supply their own strings.
 - `regional` owns date, time, and first-day-of-week preferences independently
   from the interface language.
+- `typography` owns the shared `Small`, `Normal`, and `Large` font-size values,
+  validation, comparison, and document-root application without scaling window
+  geometry or controls.
 - `settings` defines the native bridge for layered preferences stored in
   `%APPDATA%\BSL-World\desktop-settings.json`. The `shared` scope provides
   BSL-World defaults while `applications` contains optional product-specific

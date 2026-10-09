@@ -263,6 +263,29 @@ resolved.
 - Adding or redefining a canonical theme is an architectural decision and must be recorded in this standard.
 - Canonical colors must not be reconstructed approximately from screenshots.
 
+### Window surface appearance
+
+Window surface appearance is independent from the canonical accent theme,
+glow, interface language, and regional formats. Every BSL-World desktop
+product must use the shared appearance model with these technical IDs:
+
+- `system` — follow the operating-system light or dark preference and react to
+  supported changes without requiring an application restart;
+- `light` — use light window surfaces and controls;
+- `dark` — use dark window surfaces and controls.
+
+The selected accent palette continues to control displays, highlights, glow,
+status accents, and themed icons in every surface mode. Selecting a light or
+dark surface must not silently replace the product's accent palette.
+
+The effective surface mode applies consistently to every product window,
+including auxiliary windows, native title bars where the platform supports
+them, dialogs, and informers. Shared code and design tokens belong in
+`bsl-core`; products supply only product-specific markup and localized text.
+The model must remain platform-neutral so Windows and Linux products expose the
+same three user-facing choices even when their native window implementations
+differ.
+
 ### Glow model
 
 Glow is a separate visual property, not a separate theme.

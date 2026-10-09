@@ -10,6 +10,14 @@
             localStorage.getItem('bsl-timer.theme') || 'green';
         document.documentElement.dataset.glow =
             localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
+        document.documentElement.dataset.fontSize =
+            localStorage.getItem('bsl-world.font-size') || 'normal';
+        const appearanceMode =
+            localStorage.getItem('bsl-world.appearance-mode') || 'system';
+        document.documentElement.dataset.appearanceMode = appearanceMode;
+        document.documentElement.dataset.appearance = appearanceMode === 'system'
+            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : appearanceMode;
     </script>
     <link rel="stylesheet" href="/styles.css">
 </head>
@@ -87,6 +95,22 @@
 
             <section class="settings-card appearance-settings-card">
                 <h2 data-i18n="settings.appearance"></h2>
+
+                <label for="appearance-mode-select" data-i18n="settings.appearanceMode"></label>
+
+                <select id="appearance-mode-select"></select>
+
+                <p class="settings-card-note" data-i18n="settings.appearanceModeDescription"></p>
+
+                <p id="appearance-mode-settings-status" class="settings-status" aria-live="polite" hidden></p>
+
+                <label for="font-size-select" data-i18n="settings.fontSize"></label>
+
+                <select id="font-size-select"></select>
+
+                <p class="settings-card-note" data-i18n="settings.fontSizeDescription"></p>
+
+                <p id="font-size-settings-status" class="settings-status" aria-live="polite" hidden></p>
 
                 <div class="range-setting">
                     <div class="range-setting-header">

@@ -25,6 +25,15 @@ import {
   dismissWhatsNew,
   shouldShowWhatsNew
 } from './whats-new.js';
+import {
+  FONT_SIZE_STORAGE_KEY,
+  applyFontSize
+} from './font-size-settings.js';
+import {
+  APPEARANCE_MODE_STORAGE_KEY,
+  applyAppearanceMode,
+  watchAppearanceMode
+} from './appearance-mode-settings.js';
 
 const appWindow = getCurrentWindow();
 const title = document.getElementById('whats-new-title');
@@ -134,6 +143,9 @@ async function closeWindow() {
 
 applyTheme();
 applyGlow();
+applyAppearanceMode();
+watchAppearanceMode();
+applyFontSize();
 dontShowAgain.checked = !shouldShowWhatsNew(WHATS_NEW_VERSION);
 await updateInterface();
 await fitWindowToContent();
@@ -163,6 +175,15 @@ window.addEventListener('storage', async (event) => {
 
   if (event.key === GLOW_STORAGE_KEY && event.newValue) {
     applyGlow(event.newValue);
+  }
+
+  if (event.key === FONT_SIZE_STORAGE_KEY && event.newValue) {
+    applyFontSize(event.newValue);
+    void fitWindowToContent();
+  }
+
+  if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
+    applyAppearanceMode(event.newValue);
   }
 
   if (event.key === 'bsl-timer.locale' && event.newValue) {

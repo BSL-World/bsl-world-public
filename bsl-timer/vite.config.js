@@ -22,6 +22,10 @@ const whatsNewEntry = fileURLToPath(
   new URL('./src/whats-new.html', import.meta.url)
 );
 
+const dateCountdownEditorEntry = fileURLToPath(
+  new URL('./src/date-countdown-editor.html', import.meta.url)
+);
+
 export default defineConfig({
   root: 'src',
   build: {
@@ -33,7 +37,8 @@ export default defineConfig({
         settings: settingsEntry,
         about: aboutEntry,
         trayPreview: trayPreviewEntry,
-        whatsNew: whatsNewEntry
+        whatsNew: whatsNewEntry,
+        dateCountdownEditor: dateCountdownEditorEntry
       }
     }
   }

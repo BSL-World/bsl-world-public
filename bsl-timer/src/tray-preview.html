@@ -9,6 +9,14 @@
         localStorage.getItem('bsl-timer.theme') || 'green';
       document.documentElement.dataset.glow =
         localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
+      document.documentElement.dataset.fontSize =
+        localStorage.getItem('bsl-world.font-size') || 'normal';
+        const appearanceMode =
+            localStorage.getItem('bsl-world.appearance-mode') || 'system';
+        document.documentElement.dataset.appearanceMode = appearanceMode;
+        document.documentElement.dataset.appearance = appearanceMode === 'system'
+            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : appearanceMode;
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/tray-preview.css" />

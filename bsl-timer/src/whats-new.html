@@ -10,6 +10,14 @@
             localStorage.getItem('bsl-timer.theme') || 'green';
         document.documentElement.dataset.glow =
             localStorage.getItem('bsl-timer.glow') === 'false' ? 'off' : 'on';
+        document.documentElement.dataset.fontSize =
+            localStorage.getItem('bsl-world.font-size') || 'normal';
+        const appearanceMode =
+            localStorage.getItem('bsl-world.appearance-mode') || 'system';
+        document.documentElement.dataset.appearanceMode = appearanceMode;
+        document.documentElement.dataset.appearance = appearanceMode === 'system'
+            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : appearanceMode;
     </script>
     <link rel="stylesheet" href="/styles.css">
 </head>
@@ -19,11 +27,9 @@
         <h1 id="whats-new-title"></h1>
 
         <ul class="whats-new-list">
-            <li data-i18n="whatsNew.dateCountdowns"></li>
-            <li data-i18n="whatsNew.eventDetails"></li>
-            <li data-i18n="whatsNew.dateTimePicker"></li>
-            <li data-i18n="whatsNew.eventRibbon"></li>
-            <li data-i18n="whatsNew.regionalFormats"></li>
+            <li data-i18n="whatsNew.iconOutline"></li>
+            <li data-i18n="whatsNew.eventEditor"></li>
+            <li data-i18n="whatsNew.fontSizes"></li>
         </ul>
 
         <label class="whats-new-dismiss-option">

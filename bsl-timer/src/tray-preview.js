@@ -11,6 +11,15 @@ import {
   applyGlow,
   applyTheme
 } from './theme.js';
+import {
+  FONT_SIZE_STORAGE_KEY,
+  applyFontSize
+} from './font-size-settings.js';
+import {
+  APPEARANCE_MODE_STORAGE_KEY,
+  applyAppearanceMode,
+  watchAppearanceMode
+} from './appearance-mode-settings.js';
 
 const card = document.getElementById('tray-preview-card');
 const name = document.getElementById('tray-preview-name');
@@ -109,9 +118,20 @@ window.addEventListener('storage', (event) => {
   if (event.key === GLOW_STORAGE_KEY && event.newValue) {
     applyGlow(event.newValue);
   }
+
+  if (event.key === FONT_SIZE_STORAGE_KEY && event.newValue) {
+    applyFontSize(event.newValue);
+  }
+
+  if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
+    applyAppearanceMode(event.newValue);
+  }
 });
 
 applyTheme();
 applyGlow();
+applyAppearanceMode();
+watchAppearanceMode();
+applyFontSize();
 applyTranslations();
 render();

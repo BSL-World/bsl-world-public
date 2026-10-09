@@ -167,6 +167,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
 const AUTOSTART_ARG: &str = "--from-autostart";
 const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_PREVIEW_LABEL: &str = "tray-preview";
+const DATE_COUNTDOWN_EDITOR_LABEL: &str = "date-countdown-editor";
 const TRAY_PREVIEW_DELAY_MS: u64 = 350;
 const TRAY_PREVIEW_HIDE_DELAY_MS: u64 = 600;
 const TRAY_PREVIEW_FADE_MS: u64 = 420;
@@ -253,8 +254,8 @@ fn scale_color(color: [u8; 3], level: u8) -> [u8; 3] {
     result
 }
 
-fn contrast_color(color: [u8; 3]) -> [u8; 3] {
-    mix_color(color, [232, 232, 232], 190)
+fn outline_color(color: [u8; 3]) -> [u8; 3] {
+    mix_color(color, [10, 18, 12], 185)
 }
 
 fn recolor_icon(
@@ -270,7 +271,7 @@ fn recolor_icon(
     let center_y = f64::from(height) / 2.0;
     let dial_radius = f64::from(width.min(height)) * 0.44;
     let pale_color = mix_color(color, [245, 245, 245], 205);
-    let outline_color = contrast_color(color);
+    let outline_color = outline_color(color);
 
     for (index, pixel) in rgba.chunks_exact_mut(4).enumerate() {
         if pixel[3] == 0 {
@@ -858,6 +859,32 @@ fn clamp_window_coordinate(
 }
 
 #[cfg(test)]
+mod icon_color_tests {
+    use super::outline_color;
+
+    #[test]
+    fn creates_a_dark_tint_from_each_theme_color() {
+        for color in [
+            [11, 219, 4],
+            [0, 168, 255],
+            [173, 92, 255],
+            [255, 0, 194],
+            [0, 229, 255],
+            [202, 171, 119],
+        ] {
+            let outline = outline_color(color);
+            let luminance = (u16::from(outline[0])
+                + u16::from(outline[1])
+                + u16::from(outline[2]))
+                / 3;
+
+            assert!(luminance < 80);
+            assert_ne!(outline[0], outline[1]);
+        }
+    }
+}
+
+#[cfg(test)]
 mod window_position_tests {
     use super::clamp_window_coordinate;
 
@@ -1058,6 +1085,38 @@ async fn open_whats_new_window(app: tauri::AppHandle) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+async fn open_date_countdown_editor_window(
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(DATE_COUNTDOWN_EDITOR_LABEL) {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+        return Ok(());
+    }
+
+    tauri::WebviewWindowBuilder::new(
+        &app,
+        DATE_COUNTDOWN_EDITOR_LABEL,
+        tauri::WebviewUrl::App("date-countdown-editor.html".into()),
+    )
+    .title("Event")
+    .inner_size(460.0, 650.0)
+    .min_inner_size(420.0, 540.0)
+    .resizable(true)
+    .visible(false)
+    .focused(false)
+    .decorations(true)
+    .skip_taskbar(true)
+    .always_on_top(false)
+    .prevent_overflow_with_margin(tauri::LogicalSize::new(24.0, 24.0))
+    .center()
+    .build()
+    .map(|_| ())
+    .map_err(|error| error.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Keep the live window separate from the installed shortcut identity so
@@ -1117,6 +1176,7 @@ pub fn run() {
             list_audio_output_devices,
             list_windows_sounds,
             open_about_window,
+            open_date_countdown_editor_window,
             open_settings_window,
             open_whats_new_window,
             play_audio_signal,

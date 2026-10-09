@@ -16,7 +16,9 @@ BSL-Timer Free includes:
 - visual overdue indication and an audible signal;
 - Always on Top mode;
 - multiple color themes;
+- System, Light, and Dark window appearance with a matte Hi-End light surface;
 - optional Glow effects;
+- shared Small, Normal, and Large font-size choices;
 - adjustable window transparency and display brightness;
 - English and Russian interface languages;
 - saved appearance settings and window positions;
@@ -28,6 +30,8 @@ BSL-Timer Free includes:
   collapsible event ribbon, name, description, and optional seconds;
 - a custom calendar and clock-face time picker with precise keyboard and mouse
   wheel adjustment;
+- a separate resizable dated-event editor with Apply, remembered position, and
+  unsaved-change confirmation;
 - date, time, and first-day-of-week preferences that remain independent from
   the selected interface language;
 - optional Windows autostart;
@@ -64,7 +68,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.12.0 Free. A separate Pro build
+The current public stable release is BSL-Timer 0.12.1 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -86,6 +90,9 @@ system default. Version 0.12.0 adds persistent countdowns to specified dates
 and times, a compact collapsible event ribbon, a custom calendar and clock-face
 time picker, and shared regional formats that remain independent from the
 interface language.
+Version 0.12.1 adds shared font-size choices, moves dated-event editing into a
+separate resizable window with Apply and unsaved-change protection, and
+restores clear theme-tinted icon contours at small Windows sizes.
 
 ### Resolved Windows taskbar issue
 

@@ -1,15 +1,18 @@
 {
   "name": "@bsl-world/desktop-core",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "exports": {
+    "./appearance": "./utils/appearance.js",
+    "./appearance.css": "./styles/appearance.css",
     "./audio": "./utils/audio.js",
     "./i18n": "./utils/i18n.js",
     "./regional": "./utils/regional.js",
     "./settings": "./utils/settings.js",
     "./theme": "./utils/theme.js",
     "./themes.css": "./styles/themes.css",
+    "./typography": "./utils/typography.js",
     "./window": "./utils/window.js"
   },
   "scripts": {

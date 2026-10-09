@@ -1,7 +1,7 @@
 {
   "identifier": "default",
-  "description": "Capabilities for the main, settings, About, What’s New, and tray preview windows",
-  "windows": ["main", "settings", "about", "whats-new", "tray-preview"],
+  "description": "Capabilities for BSL-Timer application windows",
+  "windows": ["main", "settings", "about", "whats-new", "date-countdown-editor", "tray-preview"],
   "permissions": [
     "core:event:allow-emit-to",
     "core:event:allow-listen",
@@ -24,6 +24,7 @@
     "core:window:allow-start-dragging",
     "core:webview:allow-internal-toggle-devtools",
     "dialog:allow-open",
+    "dialog:allow-message",
     {
       "identifier": "opener:allow-open-url",
       "allow": [

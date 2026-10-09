@@ -1,0 +1,33 @@
+:root {
+  color-scheme: dark;
+  --bsl-canvas: #171827;
+  --bsl-canvas-deep: #0c1019;
+  --bsl-surface: rgb(255 255 255 / 6%);
+  --bsl-surface-raised: #202131;
+  --bsl-surface-muted: rgb(0 0 0 / 16%);
+  --bsl-titlebar: rgb(8 11 18 / 56%);
+  --bsl-border: rgb(255 255 255 / 16%);
+  --bsl-border-soft: rgb(255 255 255 / 10%);
+  --bsl-text: #f5f5f7;
+  --bsl-text-secondary: #c9cad6;
+  --bsl-text-muted: rgb(255 255 255 / 62%);
+  --bsl-shadow: rgb(0 0 0 / 42%);
+  --bsl-scrollbar-track: rgb(255 255 255 / 8%);
+}
+
+:root[data-appearance="light"] {
+  color-scheme: light;
+  --bsl-canvas: #d9dadc;
+  --bsl-canvas-deep: #c9cbce;
+  --bsl-surface: rgb(249 249 246 / 72%);
+  --bsl-surface-raised: #f3f3ef;
+  --bsl-surface-muted: rgb(83 88 94 / 9%);
+  --bsl-titlebar: rgb(196 199 202 / 76%);
+  --bsl-border: rgb(84 89 96 / 30%);
+  --bsl-border-soft: rgb(84 89 96 / 20%);
+  --bsl-text: #23272c;
+  --bsl-text-secondary: #4f565e;
+  --bsl-text-muted: rgb(35 39 44 / 66%);
+  --bsl-shadow: rgb(43 47 52 / 24%);
+  --bsl-scrollbar-track: rgb(70 75 81 / 14%);
+}

@@ -93,6 +93,27 @@ import {
   loadRegionalSettings,
   saveRegionalSettings
 } from './regional-settings.js';
+import {
+  FONT_SIZE_SETTINGS_EVENT,
+  FONT_SIZE_STORAGE_KEY,
+  FONT_SIZE_OPTIONS,
+  applyFontSize,
+  fontSizeSettingsEqual,
+  getCachedFontSize,
+  loadFontSizeSettings,
+  saveFontSizeSettings
+} from './font-size-settings.js';
+import {
+  APPEARANCE_MODE_OPTIONS,
+  APPEARANCE_MODE_SETTINGS_EVENT,
+  APPEARANCE_MODE_STORAGE_KEY,
+  appearanceModeSettingsEqual,
+  applyAppearanceMode,
+  getCachedAppearanceMode,
+  loadAppearanceModeSettings,
+  saveAppearanceModeSettings,
+  watchAppearanceMode
+} from './appearance-mode-settings.js';
 
 const settingsWindow = getCurrentWindow();
 const SETTINGS_WINDOW_MARGIN = 30;
@@ -117,6 +138,18 @@ const regionalSettingsStatus =
 
 const themeSelect =
   document.getElementById('theme-select');
+
+const appearanceModeSelect =
+  document.getElementById('appearance-mode-select');
+
+const appearanceModeSettingsStatus =
+  document.getElementById('appearance-mode-settings-status');
+
+const fontSizeSelect =
+  document.getElementById('font-size-select');
+
+const fontSizeSettingsStatus =
+  document.getElementById('font-size-settings-status');
 
 const glowEnabledInput =
   document.getElementById('glow-enabled-input');
@@ -236,6 +269,18 @@ let committedTheme = getTheme();
 let pendingTheme = committedTheme;
 let committedGlowEnabled = getGlowEnabled();
 let pendingGlowEnabled = committedGlowEnabled;
+let committedAppearanceModeSettings = {
+  mode: getCachedAppearanceMode()
+};
+let pendingAppearanceModeSettings = {
+  ...committedAppearanceModeSettings
+};
+let appearanceModeSettingsLoaded = false;
+let committedFontSizeSettings = {
+  fontSize: getCachedFontSize()
+};
+let pendingFontSizeSettings = { ...committedFontSizeSettings };
+let fontSizeSettingsLoaded = false;
 let committedAppearance = getAppearance();
 let pendingAppearance = { ...committedAppearance };
 let committedBehavior = getBehavior();
@@ -451,6 +496,152 @@ function populateThemeSelect() {
     option.selected = theme.code === pendingTheme;
 
     themeSelect.append(option);
+  }
+}
+
+function setAppearanceModeSettingsStatus(messageKey = null) {
+  appearanceModeSettingsStatus.hidden = messageKey === null;
+  appearanceModeSettingsStatus.textContent = messageKey
+    ? t(messageKey)
+    : '';
+}
+
+function populateAppearanceModeSelect() {
+  appearanceModeSelect.replaceChildren();
+
+  for (const optionDefinition of APPEARANCE_MODE_OPTIONS) {
+    const option = document.createElement('option');
+
+    option.value = optionDefinition.code;
+    option.textContent = t(optionDefinition.nameKey);
+    option.selected = optionDefinition.code
+      === pendingAppearanceModeSettings.mode;
+    appearanceModeSelect.append(option);
+  }
+}
+
+async function loadSharedAppearanceModeSettings() {
+  appearanceModeSelect.disabled = true;
+  setAppearanceModeSettingsStatus();
+
+  try {
+    committedAppearanceModeSettings =
+      await loadAppearanceModeSettings(invoke);
+    pendingAppearanceModeSettings = {
+      ...committedAppearanceModeSettings
+    };
+    appearanceModeSettingsLoaded = true;
+    appearanceModeSelect.disabled = false;
+    populateAppearanceModeSelect();
+  } catch (error) {
+    appearanceModeSettingsLoaded = false;
+    setAppearanceModeSettingsStatus(
+      'settings.appearanceModeUnavailable'
+    );
+    console.error('Failed to load shared appearance mode:', error);
+  }
+}
+
+async function applyAppearanceModeSettings() {
+  if (
+    !appearanceModeSettingsLoaded
+    || appearanceModeSettingsEqual(
+      pendingAppearanceModeSettings,
+      committedAppearanceModeSettings
+    )
+  ) {
+    return true;
+  }
+
+  try {
+    committedAppearanceModeSettings =
+      await saveAppearanceModeSettings(
+        pendingAppearanceModeSettings,
+        invoke
+      );
+    pendingAppearanceModeSettings = {
+      ...committedAppearanceModeSettings
+    };
+    setAppearanceModeSettingsStatus();
+    await emitTo(
+      'main',
+      APPEARANCE_MODE_SETTINGS_EVENT,
+      committedAppearanceModeSettings
+    );
+    return true;
+  } catch (error) {
+    setAppearanceModeSettingsStatus(
+      'settings.appearanceModeSaveFailed'
+    );
+    console.error('Failed to save shared appearance mode:', error);
+    return false;
+  }
+}
+
+function setFontSizeSettingsStatus(messageKey = null) {
+  fontSizeSettingsStatus.hidden = messageKey === null;
+  fontSizeSettingsStatus.textContent = messageKey ? t(messageKey) : '';
+}
+
+function populateFontSizeSelect() {
+  fontSizeSelect.replaceChildren();
+
+  for (const optionDefinition of FONT_SIZE_OPTIONS) {
+    const option = document.createElement('option');
+
+    option.value = optionDefinition.code;
+    option.textContent = t(optionDefinition.nameKey);
+    option.selected = optionDefinition.code
+      === pendingFontSizeSettings.fontSize;
+    fontSizeSelect.append(option);
+  }
+}
+
+async function loadSharedFontSizeSettings() {
+  fontSizeSelect.disabled = true;
+  setFontSizeSettingsStatus();
+
+  try {
+    committedFontSizeSettings = await loadFontSizeSettings(invoke);
+    pendingFontSizeSettings = { ...committedFontSizeSettings };
+    fontSizeSettingsLoaded = true;
+    fontSizeSelect.disabled = false;
+    populateFontSizeSelect();
+  } catch (error) {
+    fontSizeSettingsLoaded = false;
+    setFontSizeSettingsStatus('settings.fontSizeUnavailable');
+    console.error('Failed to load shared font-size settings:', error);
+  }
+}
+
+async function applyFontSizeSettings() {
+  if (
+    !fontSizeSettingsLoaded
+    || fontSizeSettingsEqual(
+      pendingFontSizeSettings,
+      committedFontSizeSettings
+    )
+  ) {
+    return true;
+  }
+
+  try {
+    committedFontSizeSettings = await saveFontSizeSettings(
+      pendingFontSizeSettings,
+      invoke
+    );
+    pendingFontSizeSettings = { ...committedFontSizeSettings };
+    setFontSizeSettingsStatus();
+    await emitTo(
+      'main',
+      FONT_SIZE_SETTINGS_EVENT,
+      committedFontSizeSettings
+    );
+    return true;
+  } catch (error) {
+    setFontSizeSettingsStatus('settings.fontSizeSaveFailed');
+    console.error('Failed to save shared font-size settings:', error);
+    return false;
   }
 }
 
@@ -865,6 +1056,20 @@ function updateApplyButton() {
     )
     && pendingTheme === getTheme()
     && pendingGlowEnabled === getGlowEnabled()
+    && (
+      !appearanceModeSettingsLoaded
+      || appearanceModeSettingsEqual(
+        pendingAppearanceModeSettings,
+        committedAppearanceModeSettings
+      )
+    )
+    && (
+      !fontSizeSettingsLoaded
+      || fontSizeSettingsEqual(
+        pendingFontSizeSettings,
+        committedFontSizeSettings
+      )
+    )
     && appearanceEquals(
       pendingAppearance,
       committedAppearance
@@ -893,6 +1098,8 @@ async function updateInterface() {
   applyTranslations();
   document.title = t('settings.title');
   updateRegionalControls();
+  populateAppearanceModeSelect();
+  populateFontSizeSelect();
   populateWindowsSounds();
   populateAudioOutputDevices();
   updateEventDetailsControls();
@@ -987,6 +1194,16 @@ async function applyPendingSettings() {
     return false;
   }
 
+  if (!await applyFontSizeSettings()) {
+    updateApplyButton();
+    return false;
+  }
+
+  if (!await applyAppearanceModeSettings()) {
+    updateApplyButton();
+    return false;
+  }
+
   if (!await applyAutostartSetting()) {
     updateApplyButton();
     return false;
@@ -997,6 +1214,9 @@ async function applyPendingSettings() {
   pendingTheme = committedTheme;
   committedGlowEnabled = setGlowEnabled(pendingGlowEnabled);
   pendingGlowEnabled = committedGlowEnabled;
+  pendingAppearanceModeSettings = {
+    ...committedAppearanceModeSettings
+  };
 
   committedAppearance = saveAppearance(pendingAppearance);
   pendingAppearance = { ...committedAppearance };
@@ -1059,6 +1279,7 @@ async function applyPendingSettings() {
 
   populateLanguageSelect();
   populateThemeSelect();
+  populateFontSizeSelect();
   updateVisualControls();
   updateAppearanceControls();
   updateBehaviorControls();
@@ -1088,8 +1309,11 @@ async function cancelPendingSettings() {
 
   pendingTheme = committedTheme;
   pendingGlowEnabled = committedGlowEnabled;
+  pendingFontSizeSettings = { ...committedFontSizeSettings };
   applyTheme(committedTheme);
   applyGlow(committedGlowEnabled);
+  applyAppearanceMode(committedAppearanceModeSettings.mode);
+  applyFontSize(committedFontSizeSettings.fontSize);
   await emitVisualPreview();
   await emitAppearancePreview(committedAppearance);
   await closeSettings();
@@ -1111,10 +1335,25 @@ themeSelect.addEventListener('change', () => {
   void emitVisualPreview();
 });
 
+appearanceModeSelect.addEventListener('change', () => {
+  pendingAppearanceModeSettings = {
+    mode: appearanceModeSelect.value
+  };
+  applyAppearanceMode(pendingAppearanceModeSettings.mode);
+  updateApplyButton();
+});
+
 glowEnabledInput.addEventListener('change', () => {
   pendingGlowEnabled = glowEnabledInput.checked;
   updateApplyButton();
   void emitVisualPreview();
+});
+
+fontSizeSelect.addEventListener('change', () => {
+  pendingFontSizeSettings = {
+    fontSize: applyFontSize(fontSizeSelect.value)
+  };
+  updateApplyButton();
 });
 
 windowTransparencyInput.addEventListener(
@@ -1301,6 +1540,26 @@ window.addEventListener('storage', async (event) => {
     updateApplyButton();
   }
 
+  if (event.key === APPEARANCE_MODE_STORAGE_KEY) {
+    committedAppearanceModeSettings = {
+      mode: applyAppearanceMode(event.newValue).mode
+    };
+    pendingAppearanceModeSettings = {
+      ...committedAppearanceModeSettings
+    };
+    populateAppearanceModeSelect();
+    updateApplyButton();
+  }
+
+  if (event.key === FONT_SIZE_STORAGE_KEY) {
+    committedFontSizeSettings = {
+      fontSize: applyFontSize(event.newValue)
+    };
+    pendingFontSizeSettings = { ...committedFontSizeSettings };
+    populateFontSizeSelect();
+    updateApplyButton();
+  }
+
   if (event.key === APPEARANCE_STORAGE_KEY) {
     committedAppearance = getAppearance();
     pendingAppearance = { ...committedAppearance };
@@ -1336,9 +1595,14 @@ navigator.mediaDevices?.addEventListener?.('devicechange', () => {
 
 applyTheme();
 applyGlow();
+applyAppearanceMode();
+watchAppearanceMode();
+applyFontSize();
 populateLanguageSelect();
 populateThemeSelect();
 await loadSharedRegionalSettings();
+await loadSharedAppearanceModeSettings();
+await loadSharedFontSizeSettings();
 await loadWindowsSounds();
 await loadAudioOutputDevices();
 updateVisualControls();

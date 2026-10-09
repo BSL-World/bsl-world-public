@@ -15,6 +15,15 @@ import {
   applyTheme
 } from './theme.js';
 import { prepareAuxiliaryWindow } from './window-position.js';
+import {
+  FONT_SIZE_STORAGE_KEY,
+  applyFontSize
+} from './font-size-settings.js';
+import {
+  APPEARANCE_MODE_STORAGE_KEY,
+  applyAppearanceMode,
+  watchAppearanceMode
+} from './appearance-mode-settings.js';
 
 const appWindow = getCurrentWindow();
 const okButton = document.getElementById('about-ok-btn');
@@ -84,6 +93,14 @@ window.addEventListener('storage', (event) => {
     applyGlow(event.newValue);
   }
 
+  if (event.key === FONT_SIZE_STORAGE_KEY && event.newValue) {
+    applyFontSize(event.newValue);
+  }
+
+  if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
+    applyAppearanceMode(event.newValue);
+  }
+
   if (event.key === 'bsl-timer.locale' && event.newValue) {
     setLocale(event.newValue);
     void appWindow.setTitle(t('about.windowTitle'));
@@ -92,5 +109,8 @@ window.addEventListener('storage', (event) => {
 
 applyTheme();
 applyGlow();
+applyAppearanceMode();
+watchAppearanceMode();
+applyFontSize();
 await prepareAuxiliaryWindow(appWindow);
 okButton.focus();
