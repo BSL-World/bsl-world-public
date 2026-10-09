@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Kept the main timer content vertically balanced and resized the main window
+  for the selected font size and event-ribbon state.
+- Unified regular interface text sizes across the main, Settings, About, and
+  dated-event windows while making the event calendar more compact.
+- Closed auxiliary windows when the main window is closed or hidden to the
+  notification area.
+
 ## [0.13.0] - 2026-10-09
 
 ### Added

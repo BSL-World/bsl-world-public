@@ -97,8 +97,13 @@ import {
   FONT_SIZE_SETTINGS_EVENT,
   FONT_SIZE_STORAGE_KEY,
   applyFontSize,
+  getCachedFontSize,
   loadFontSizeSettings
 } from './font-size-settings.js';
+import {
+  DateCountdownRibbonState,
+  getMainWindowSize
+} from './main-window-layout.js';
 import {
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
@@ -121,10 +126,6 @@ import {
 const ALWAYS_ON_TOP_STORAGE_KEY = 'bsl-timer.always-on-top';
 const DATE_COUNTDOWN_RIBBON_COLLAPSED_STORAGE_KEY =
   'bsl-timer.date-countdown-ribbon-collapsed';
-const MAIN_WINDOW_WIDTH = 360;
-const MAIN_WINDOW_BASE_HEIGHT = 260;
-const MAIN_WINDOW_COLLAPSED_RIBBON_HEIGHT = 286;
-const MAIN_WINDOW_RIBBON_HEIGHT = 330;
 const appWindow = getCurrentWindow();
 try {
   await prepareWindowPosition(appWindow);
@@ -290,7 +291,7 @@ let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
 let dateCountdownRefreshId = null;
-let mainWindowHeight = null;
+let mainWindowSizeKey = null;
 let regionalSettings = null;
 let isDateCountdownRibbonCollapsed =
   localStorage.getItem(
@@ -1275,21 +1276,34 @@ function showTabNotice(message) {
   }, 2800);
 }
 
-async function setMainWindowHeight(height) {
-  if (mainWindowHeight === height) {
+async function setMainWindowLayout({
+  hasCountdowns = dateCountdownStore.getAll().length > 0,
+  fontSize = getCachedFontSize()
+} = {}) {
+  const ribbonState = !hasCountdowns
+    ? DateCountdownRibbonState.HIDDEN
+    : isDateCountdownRibbonCollapsed
+      ? DateCountdownRibbonState.COLLAPSED
+      : DateCountdownRibbonState.EXPANDED;
+  const size = getMainWindowSize(fontSize, ribbonState);
+  const sizeKey = `${size.width}x${size.height}`;
+
+  if (mainWindowSizeKey === sizeKey) {
     return;
   }
 
-  mainWindowHeight = height;
+  mainWindowSizeKey = sizeKey;
 
   try {
     await appWindow.setSize(new LogicalSize(
-      MAIN_WINDOW_WIDTH,
-      height
+      size.width,
+      size.height
     ));
     await keepWindowInsideWorkArea(appWindow);
+    refreshTabOverflow();
+    updateDateCountdownScrollButtons();
   } catch (error) {
-    mainWindowHeight = null;
+    mainWindowSizeKey = null;
     console.error('Failed to resize the main window:', error);
   }
 }
@@ -1441,13 +1455,7 @@ function renderDateCountdowns() {
     : t('dateCountdowns.proLimit');
 
   requestAnimationFrame(updateDateCountdownScrollButtons);
-  void setMainWindowHeight(
-    hasCountdowns
-      ? isDateCountdownRibbonCollapsed
-        ? MAIN_WINDOW_COLLAPSED_RIBBON_HEIGHT
-        : MAIN_WINDOW_RIBBON_HEIGHT
-      : MAIN_WINDOW_BASE_HEIGHT
-  );
+  void setMainWindowLayout({ hasCountdowns });
 }
 
 async function openDateCountdownEditor(countdownId = null) {
@@ -1549,6 +1557,11 @@ async function requestMainWindowClose() {
     === CloseButtonAction.MINIMIZE_TO_TRAY
   ) {
     workspace.save();
+    try {
+      await invoke('close_auxiliary_windows');
+    } catch (error) {
+      console.error('Failed to close auxiliary windows:', error);
+    }
     await appWindow.hide();
     return;
   }
@@ -2028,7 +2041,8 @@ window.addEventListener('storage', (event) => {
     event.key === FONT_SIZE_STORAGE_KEY
     && event.newValue
   ) {
-    applyFontSize(event.newValue);
+    const fontSize = applyFontSize(event.newValue);
+    void setMainWindowLayout({ fontSize });
   }
 
   if (
@@ -2145,7 +2159,8 @@ await listen(DATE_COUNTDOWN_CHANGED_EVENT, () => {
 });
 
 await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
-  applyFontSize(event.payload?.fontSize);
+  const fontSize = applyFontSize(event.payload?.fontSize);
+  void setMainWindowLayout({ fontSize });
 });
 
 await listen(APPEARANCE_MODE_SETTINGS_EVENT, (event) => {

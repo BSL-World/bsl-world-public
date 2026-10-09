@@ -28,6 +28,7 @@ import {
   FONT_SIZE_SETTINGS_EVENT,
   FONT_SIZE_STORAGE_KEY,
   applyFontSize,
+  getCachedFontSize,
   loadFontSizeSettings
 } from './font-size-settings.js';
 import {
@@ -455,6 +456,24 @@ async function updateWindowTitle() {
 
 async function fitWindowToContent() {
   try {
+    const widthByFontSize = {
+      small: 440,
+      normal: 460,
+      large: 520
+    };
+    const targetWidth = widthByFontSize[getCachedFontSize()] ?? 460;
+    const initialScaleFactor = window.devicePixelRatio ?? 1;
+    const initialSize = (await appWindow.innerSize()).toLogical(
+      initialScaleFactor
+    );
+
+    if (Math.abs(initialSize.width - targetWidth) > 1) {
+      await appWindow.setSize(new LogicalSize(
+        targetWidth,
+        initialSize.height
+      ));
+    }
+
     await new Promise((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
@@ -471,14 +490,18 @@ async function fitWindowToContent() {
       : 760;
     const maximumHeight = Math.max(480, workAreaHeight - 80);
     const contentHeight = Math.ceil(editorPage.scrollHeight) + 24;
+    const minimumHeight = getCachedFontSize() === 'large' ? 600 : 520;
     const targetHeight = Math.min(
       maximumHeight,
-      Math.max(currentSize.height, contentHeight)
+      Math.max(minimumHeight, contentHeight)
     );
 
-    if (targetHeight > currentSize.height + 1) {
+    if (
+      Math.abs(currentSize.width - targetWidth) > 1
+      || Math.abs(currentSize.height - targetHeight) > 1
+    ) {
       await appWindow.setSize(new LogicalSize(
-        currentSize.width,
+        targetWidth,
         targetHeight
       ));
     }

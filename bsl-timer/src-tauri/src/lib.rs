@@ -758,6 +758,22 @@ fn close_about_window(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn close_auxiliary_windows(app: tauri::AppHandle) -> Result<(), String> {
+    for label in [
+        "settings",
+        "about",
+        "whats-new",
+        DATE_COUNTDOWN_EDITOR_LABEL,
+    ] {
+        if let Some(window) = app.get_webview_window(label) {
+            let _ = window.destroy();
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 fn is_autostart_enabled(app: tauri::AppHandle) -> Result<bool, String> {
     app.autolaunch()
         .is_enabled()
@@ -1115,8 +1131,8 @@ async fn open_date_countdown_editor_window(
         tauri::WebviewUrl::App("date-countdown-editor.html".into()),
     )
     .title("Event")
-    .inner_size(460.0, 650.0)
-    .min_inner_size(420.0, 540.0)
+    .inner_size(460.0, 560.0)
+    .min_inner_size(420.0, 500.0)
     .resizable(true)
     .visible(false)
     .focused(false)
@@ -1178,6 +1194,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             close_about_window,
+            close_auxiliary_windows,
             close_settings_window,
             exit_application,
             get_app_version,

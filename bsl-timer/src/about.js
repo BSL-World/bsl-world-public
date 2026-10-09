@@ -59,8 +59,15 @@ async function fitWindowToContent() {
     const scaleFactor = monitor?.scaleFactor
       ?? window.devicePixelRatio
       ?? 1;
-    const currentSize = (await appWindow.innerSize()).toLogical(
-      scaleFactor
+    const [innerPhysicalSize, outerPhysicalSize] = await Promise.all([
+      appWindow.innerSize(),
+      appWindow.outerSize()
+    ]);
+    const currentInnerSize = innerPhysicalSize.toLogical(scaleFactor);
+    const currentOuterSize = outerPhysicalSize.toLogical(scaleFactor);
+    const windowFrameHeight = Math.max(
+      0,
+      currentOuterSize.height - currentInnerSize.height
     );
     const fontSizeScale = Number.parseFloat(
       getComputedStyle(document.documentElement)
@@ -70,6 +77,7 @@ async function fitWindowToContent() {
       MIN_WINDOW_HEIGHT * Math.max(1, fontSizeScale)
     );
     const contentHeight = Math.ceil(page.scrollHeight)
+      + windowFrameHeight
       + CONTENT_HEIGHT_ALLOWANCE;
     const workAreaHeight = monitor
       ? monitor.workArea.size.toLogical(monitor.scaleFactor).height
@@ -93,7 +101,7 @@ async function fitWindowToContent() {
 
     document.body.classList.remove('is-measuring');
     await appWindow.setSize(new LogicalSize(
-      currentSize.width,
+      currentOuterSize.width,
       targetHeight
     ));
     await keepWindowInsideWorkArea(appWindow);
