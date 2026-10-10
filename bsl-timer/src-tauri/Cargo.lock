@@ -382,7 +382,7 @@ dependencies = [
 
 [[package]]
 name = "bsl-timer"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "bsl-desktop-audio",
  "bsl-desktop-settings",

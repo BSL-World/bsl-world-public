@@ -229,6 +229,9 @@
     "iconOutline": "Tray and taskbar icons now have a clear dark outline tinted for the selected theme.",
     "eventEditor": "The event editor is now a separate resizable window with Apply, remembered placement, and unsaved-change protection.",
     "fontSizes": "Settings now offer Small, Normal, and Large font sizes.",
+    "compactTypography": "Small, Normal, and Large text sizes are now applied consistently while the timer display and main window remain compact.",
+    "auxiliaryLayout": "Improved sizing and element placement in the About, What’s New, and event-editor windows.",
+    "windowLifecycle": "Closing the main window now also closes every auxiliary BSL-Timer window.",
     "dontShowAgain": "Don’t show again for this version"
   },
   "updater": {
