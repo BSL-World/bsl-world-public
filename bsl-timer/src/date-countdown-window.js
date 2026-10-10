@@ -53,7 +53,8 @@ import {
   DATE_COUNTDOWN_EDITOR_LABEL,
   DATE_COUNTDOWN_EDITOR_OPEN_EVENT,
   DATE_COUNTDOWN_EDITOR_REQUEST_KEY,
-  dateCountdownEditorValuesEqual
+  dateCountdownEditorValuesEqual,
+  getDateCountdownEditorMinimumHeight
 } from './date-countdown-editor.js';
 import {
   clockDialPosition,
@@ -490,7 +491,9 @@ async function fitWindowToContent() {
       : 760;
     const maximumHeight = Math.max(480, workAreaHeight - 80);
     const contentHeight = Math.ceil(editorPage.scrollHeight) + 24;
-    const minimumHeight = getCachedFontSize() === 'large' ? 600 : 520;
+    const minimumHeight = getDateCountdownEditorMinimumHeight(
+      getCachedFontSize()
+    );
     const targetHeight = Math.min(
       maximumHeight,
       Math.max(minimumHeight, contentHeight)
