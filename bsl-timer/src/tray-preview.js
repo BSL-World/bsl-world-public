@@ -1,7 +1,10 @@
-import { listen } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { fitScaledWindow } from './scaled-window.js';
+import { emitTo, listen } from '@tauri-apps/api/event';
 
 import {
   applyTranslations,
+  getLocale,
   setLocale,
   t
 } from './i18n.js';
@@ -21,12 +24,16 @@ import {
   watchAppearanceMode
 } from './appearance-mode-settings.js';
 
+const informerWindow = getCurrentWindow();
 const card = document.getElementById('tray-preview-card');
 const name = document.getElementById('tray-preview-name');
 const status = document.getElementById('tray-preview-status');
 const description = document.getElementById('tray-preview-description');
 const time = document.getElementById('tray-preview-time');
 const summary = document.getElementById('tray-preview-summary');
+
+let lastLayoutKey = null;
+let informerFit = Promise.resolve();
 
 let currentData = {
   name: 'BSL-Timer',
@@ -46,6 +53,12 @@ function format(key, values = {}) {
 }
 
 function render() {
+  // Seconds are text updates, never a reason to alter the card or window.
+  time.textContent = currentData.time;
+  const { time: ignoredTime, themeId, glowEnabled, layoutRequestId, ...layoutData } = currentData;
+  const layoutKey = JSON.stringify([getLocale(), layoutData]);
+  if (layoutKey === lastLayoutKey) return;
+  lastLayoutKey = layoutKey;
   const {
     mode,
     otherActiveCount,
@@ -87,16 +100,22 @@ function render() {
 
   summary.textContent = details.join(' · ');
   summary.hidden = details.length === 0;
+  informerFit = fitInformer();
 }
 
-await listen('tray-preview-data', (event) => {
+await listen('tray-preview-data', async (event) => {
   currentData = event.payload;
   applyTheme(currentData.themeId);
   applyGlow(currentData.glowEnabled);
   render();
+  if (Number.isFinite(event.payload.layoutRequestId)) {
+    if (await informerFit === false) return;
+    await emitTo('main', 'tray-preview-ready', event.payload.layoutRequestId);
+  }
 });
 
-await listen('tray-preview-show', () => {
+await listen('tray-preview-show', async () => {
+  await informerFit;
   card.classList.remove('is-hiding');
 });
 
@@ -135,3 +154,15 @@ watchAppearanceMode();
 applyFontSize();
 applyTranslations();
 render();
+
+async function fitInformer() {
+  try {
+    await fitScaledWindow(informerWindow, { width: 340, page: card, requireAllContent: true });
+    return true;
+  } catch (error) {
+    console.error('Failed to resize the informer:', error);
+    return false;
+  }
+}
+window.addEventListener('bsl-world:font-size-applied', () => { informerFit = fitInformer(); });
+await informerFit;

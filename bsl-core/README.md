@@ -26,8 +26,16 @@ Available modules:
 - `regional` owns date, time, and first-day-of-week preferences independently
   from the interface language.
 - `typography` owns the shared `Small`, `Normal`, and `Large` font-size values,
-  validation, comparison, and document-root application without scaling window
-  geometry or controls.
+  validation, comparison, shared UI/display scales, and window-size calculation.
+  Import `typography.css` and express text, fields, controls and spacing in `rem`
+  so all dimensions follow the same root scale. `scaleInterfaceSize` converts
+  a product's Normal window dimensions into logical window units. Large numeric
+  readouts may use the gentler `displayScale`. Native OS title bars follow the
+  operating system's own text and DPI settings.
+- `layout` measures natural DOM contents without modifying the visible page,
+  derives a common action-button width from product-provided labels, and converts
+  CSS geometry to physical window pixels. Use the measured native/CSS ratio;
+  monitor DPI alone does not account for WebView text zoom.
 - `settings` defines the native bridge for layered preferences stored in
   `%APPDATA%\BSL-World\desktop-settings.json`. The `shared` scope provides
   BSL-World defaults while `applications` contains optional product-specific

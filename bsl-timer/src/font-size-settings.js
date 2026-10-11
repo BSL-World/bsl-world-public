@@ -10,6 +10,8 @@ import {
   saveSharedSettingsSection
 } from '@bsl-world/desktop-core/settings';
 
+export const FONT_SIZE_APPLIED_EVENT = 'bsl-world:font-size-applied';
+
 export const FONT_SIZE_SETTINGS_SECTION = 'typography';
 export const FONT_SIZE_STORAGE_KEY = 'bsl-world.font-size';
 export const FONT_SIZE_SETTINGS_EVENT =
@@ -40,6 +42,7 @@ export function applyFontSize(
   const normalizedFontSize = applyCoreFontSize(fontSize, document);
 
   storage?.setItem(FONT_SIZE_STORAGE_KEY, normalizedFontSize);
+  document?.defaultView?.dispatchEvent(new CustomEvent(FONT_SIZE_APPLIED_EVENT));
   return normalizedFontSize;
 }
 

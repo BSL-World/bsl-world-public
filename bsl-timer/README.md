@@ -68,7 +68,7 @@ the application.
 
 ## Current status
 
-The current public stable release is BSL-Timer 0.13.1 Free. A separate Pro build
+The current public stable release is BSL-Timer 1.0.0 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1
@@ -97,6 +97,13 @@ dark window appearances with an option to follow the Windows system theme.
 Version 0.13.1 keeps the main timer compact while applying the selected text
 size consistently, improves auxiliary-window layout, and closes auxiliary
 windows together with the main window.
+
+Version 1.0.0 completes the planned feature set and scales text, fields,
+buttons, spacing, and window dimensions together. Window sizes follow their
+actual contents; About, What’s New, and the event editor fit without scrolling.
+Action buttons share compact dimensions, and the tray informer keeps its
+geometry unchanged when seconds update. The shared mechanisms are provided by
+BSL Desktop Core 0.5.0, embedded into the application during the build.
 
 ### Resolved Windows taskbar issue
 

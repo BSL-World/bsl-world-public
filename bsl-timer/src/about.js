@@ -1,7 +1,7 @@
+import './action-button-layout.js';
+import { fitScaledWindow } from './scaled-window.js';
 import { invoke } from '@tauri-apps/api/core';
-import { LogicalSize } from '@tauri-apps/api/dpi';
 import {
-  currentMonitor,
   getCurrentWindow
 } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -19,7 +19,6 @@ import {
   applyTheme
 } from './theme.js';
 import {
-  keepWindowInsideWorkArea,
   prepareAuxiliaryWindow
 } from './window-position.js';
 import {
@@ -42,73 +41,12 @@ const links = Array.from(
   document.querySelectorAll('.about-link[data-url]')
 );
 
-const MIN_WINDOW_HEIGHT = 335;
-const MAX_WINDOW_HEIGHT = 640;
-const WORK_AREA_MARGIN = 80;
-const CONTENT_HEIGHT_ALLOWANCE = 8;
 
 async function fitWindowToContent() {
   try {
-    document.body.classList.add('is-measuring');
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
-
-    const monitor = await currentMonitor();
-    const scaleFactor = monitor?.scaleFactor
-      ?? window.devicePixelRatio
-      ?? 1;
-    const [innerPhysicalSize, outerPhysicalSize] = await Promise.all([
-      appWindow.innerSize(),
-      appWindow.outerSize()
-    ]);
-    const currentInnerSize = innerPhysicalSize.toLogical(scaleFactor);
-    const currentOuterSize = outerPhysicalSize.toLogical(scaleFactor);
-    const windowFrameHeight = Math.max(
-      0,
-      currentOuterSize.height - currentInnerSize.height
-    );
-    const fontSizeScale = Number.parseFloat(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue('--font-size-scale')
-    ) || 1;
-    const preferredMinimumHeight = Math.ceil(
-      MIN_WINDOW_HEIGHT * Math.max(1, fontSizeScale)
-    );
-    const contentHeight = Math.ceil(page.scrollHeight)
-      + windowFrameHeight
-      + CONTENT_HEIGHT_ALLOWANCE;
-    const workAreaHeight = monitor
-      ? monitor.workArea.size.toLogical(monitor.scaleFactor).height
-      : MAX_WINDOW_HEIGHT + WORK_AREA_MARGIN;
-    const availableHeight = Math.max(
-      MIN_WINDOW_HEIGHT,
-      workAreaHeight - WORK_AREA_MARGIN
-    );
-    const minimumHeight = Math.min(
-      preferredMinimumHeight,
-      availableHeight
-    );
-    const maximumHeight = Math.max(
-      minimumHeight,
-      Math.min(MAX_WINDOW_HEIGHT, availableHeight)
-    );
-    const targetHeight = Math.max(
-      minimumHeight,
-      Math.min(contentHeight, maximumHeight)
-    );
-
-    document.body.classList.remove('is-measuring');
-    await appWindow.setSize(new LogicalSize(
-      currentOuterSize.width,
-      targetHeight
-    ));
-    await keepWindowInsideWorkArea(appWindow);
+    await fitScaledWindow(appWindow, { width: 360, height: 0, page: page, requireAllContent: true });
   } catch (error) {
-    console.error('Failed to fit About to its content:', error);
-  } finally {
-    document.body.classList.remove('is-measuring');
+    console.error('Failed to fit the window:', error);
   }
 }
 
@@ -195,3 +133,10 @@ applyFontSize();
 await fitWindowToContent();
 await prepareAuxiliaryWindow(appWindow);
 okButton.focus();
+
+window.addEventListener('bsl-world:font-size-applied', () => { void fitWindowToContent(); });
+
+// Refit when localization, validation or picker contents change height.
+new MutationObserver(() => { void fitWindowToContent(); }).observe(
+  page, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] }
+);

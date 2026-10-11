@@ -1,8 +1,8 @@
+import './action-button-layout.js';
+import { fitScaledWindow } from './scaled-window.js';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
-import { LogicalSize } from '@tauri-apps/api/dpi';
 import {
-  currentMonitor,
   getCurrentWindow
 } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
@@ -43,7 +43,6 @@ import {
   loadRegionalSettings
 } from './regional-settings.js';
 import {
-  keepWindowInsideWorkArea,
   prepareAuxiliaryWindow
 } from './window-position.js';
 import { getDateCountdownDisplayName } from './date-countdown.js';
@@ -53,8 +52,7 @@ import {
   DATE_COUNTDOWN_EDITOR_LABEL,
   DATE_COUNTDOWN_EDITOR_OPEN_EVENT,
   DATE_COUNTDOWN_EDITOR_REQUEST_KEY,
-  dateCountdownEditorValuesEqual,
-  getDateCountdownEditorMinimumHeight
+  dateCountdownEditorValuesEqual
 } from './date-countdown-editor.js';
 import {
   clockDialPosition,
@@ -303,8 +301,8 @@ function createDialButton({
   button.className = 'clock-dial-value';
   button.classList.toggle('is-inner', inner);
   button.classList.toggle('is-selected', selected);
-  button.style.setProperty('--dial-x', `${position.x}px`);
-  button.style.setProperty('--dial-y', `${position.y}px`);
+  button.style.setProperty('--dial-x', `${position.x / 16}rem`);
+  button.style.setProperty('--dial-y', `${position.y / 16}rem`);
   button.textContent = String(label).padStart(2, '0');
   button.dataset.value = String(value);
   button.addEventListener('click', onSelect);
@@ -313,7 +311,7 @@ function createDialButton({
 
 function renderTimeDial() {
   const twelveHourClock = usesTwelveHourClock();
-  const isHourMode = pickerMode === 'hours';
+  const isHourMode = pickerMode !== 'minutes';
   const values = [];
 
   if (isHourMode && twelveHourClock) {
@@ -387,11 +385,10 @@ function renderPicker() {
   timeDial.hidden = isDateMode;
   renderTargetControls();
 
-  if (isDateMode) {
-    renderCalendar();
-  } else {
-    renderTimeDial();
-  }
+  // Lay out both variants before measuring, including the dial values and
+  // AM/PM controls. The inactive variant remains invisible in the same cell.
+  renderCalendar();
+  renderTimeDial();
 
   if (committedEditorValue !== null) {
     updateActions();
@@ -401,6 +398,7 @@ function renderPicker() {
 function setPickerMode(mode) {
   pickerMode = mode;
   renderPicker();
+  void fitWindowToContent();
 }
 
 function moveMonth(offset) {
@@ -457,61 +455,9 @@ async function updateWindowTitle() {
 
 async function fitWindowToContent() {
   try {
-    const widthByFontSize = {
-      small: 440,
-      normal: 460,
-      large: 520
-    };
-    const targetWidth = widthByFontSize[getCachedFontSize()] ?? 460;
-    const initialScaleFactor = window.devicePixelRatio ?? 1;
-    const initialSize = (await appWindow.innerSize()).toLogical(
-      initialScaleFactor
-    );
-
-    if (Math.abs(initialSize.width - targetWidth) > 1) {
-      await appWindow.setSize(new LogicalSize(
-        targetWidth,
-        initialSize.height
-      ));
-    }
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
-
-    const monitor = await currentMonitor();
-    const scaleFactor = monitor?.scaleFactor
-      ?? window.devicePixelRatio
-      ?? 1;
-    const currentSize = (await appWindow.innerSize()).toLogical(
-      scaleFactor
-    );
-    const workAreaHeight = monitor
-      ? monitor.workArea.size.toLogical(monitor.scaleFactor).height
-      : 760;
-    const maximumHeight = Math.max(480, workAreaHeight - 80);
-    const contentHeight = Math.ceil(editorPage.scrollHeight) + 24;
-    const minimumHeight = getDateCountdownEditorMinimumHeight(
-      getCachedFontSize()
-    );
-    const targetHeight = Math.min(
-      maximumHeight,
-      Math.max(minimumHeight, contentHeight)
-    );
-
-    if (
-      Math.abs(currentSize.width - targetWidth) > 1
-      || Math.abs(currentSize.height - targetHeight) > 1
-    ) {
-      await appWindow.setSize(new LogicalSize(
-        targetWidth,
-        targetHeight
-      ));
-    }
-
-    await keepWindowInsideWorkArea(appWindow);
+    await fitScaledWindow(appWindow, { width: 460, height: 0, page: editorPage, requireAllContent: true });
   } catch (error) {
-    console.error('Failed to fit the event editor:', error);
+    console.error('Failed to fit the window:', error);
   }
 }
 
@@ -809,6 +755,7 @@ await listen(DATE_COUNTDOWN_EDITOR_OPEN_EVENT, (event) => {
 await listen(REGIONAL_SETTINGS_EVENT, (event) => {
   regionalSettings = event.payload;
   renderPicker();
+  void fitWindowToContent();
 });
 
 await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
@@ -851,3 +798,10 @@ await prepareAuxiliaryWindow(appWindow);
 if (appWindow.label !== DATE_COUNTDOWN_EDITOR_LABEL) {
   console.warn('Unexpected event editor window label:', appWindow.label);
 }
+
+window.addEventListener('bsl-world:font-size-applied', () => { void fitWindowToContent(); });
+
+// Refit when localization, validation or picker contents change height.
+new MutationObserver(() => { void fitWindowToContent(); }).observe(
+  editorPage, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] }
+);

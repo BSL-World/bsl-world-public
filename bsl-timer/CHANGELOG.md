@@ -7,6 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-11
+
+### Changed
+
+- Complete the planned feature set with the first 1.0 release, preserving
+  existing timer data, dated events, preferences, and edition-specific updates.
+- Update the embedded BSL Desktop Core package to 0.5.0 for shared typography
+  and content-based window measurement.
+
+### Fixed
+
+- Obtain window heights from natural DOM layout without changing visible page
+  styles or relying on animation frames while a WebView is hidden.
+- Convert content geometry using the measured CSS/native pixel ratio, including
+  WebView zoom and resize acknowledgement, without accumulating rounding errors.
+- Reserve both event-picker variants, validation space and all four action slots.
+- Derive one compact action-button width from actual caption measurements and
+  reduce horizontal padding without reducing the font size.
+- Keep the informer geometry unchanged during second ticks and wait for its
+  content to be ready before showing automatic notifications.
+- Give every action button the same compact geometry across application windows.
+- Fit About, What's New and the event editor to their intrinsic content without
+  scrolling, wait for WebView client resizing, and verify the final visible bounds.
+- Scale all application text, fields, buttons and spacing together with both
+  window dimensions using shared BSL Desktop Core typography metrics.
+- Scale the main numeric display more gently while preserving panel padding
+  in idle, running, paused, validation and overdue states.
+- Fit auxiliary windows using inner dimensions and measured minimum sizes,
+  and position tray informers using their actual window size.
+
+
 ## [0.13.1] - 2026-10-10
 
 ### Fixed

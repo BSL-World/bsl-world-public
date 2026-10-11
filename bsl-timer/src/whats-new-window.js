@@ -1,6 +1,6 @@
-import { LogicalSize } from '@tauri-apps/api/dpi';
+import './action-button-layout.js';
+import { fitScaledWindow } from './scaled-window.js';
 import {
-  currentMonitor,
   getCurrentWindow
 } from '@tauri-apps/api/window';
 
@@ -16,7 +16,6 @@ import {
   applyTheme
 } from './theme.js';
 import {
-  keepWindowInsideWorkArea,
   prepareAuxiliaryWindow
 } from './window-position.js';
 import {
@@ -46,10 +45,6 @@ const takeFocus = new URLSearchParams(window.location.search)
   .get('takeFocus') !== 'false';
 let isClosing = false;
 
-const MIN_WINDOW_HEIGHT = 320;
-const MAX_WINDOW_HEIGHT = 720;
-const WORK_AREA_MARGIN = 96;
-const CONTENT_HEIGHT_ALLOWANCE = 64;
 
 function formatTitle() {
   return t('whatsNew.title').replace(
@@ -66,64 +61,9 @@ async function updateInterface() {
 
 async function fitWindowToContent() {
   try {
-    document.body.classList.add('is-measuring');
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
-
-    const monitor = await currentMonitor();
-    const scaleFactor = monitor?.scaleFactor
-      ?? window.devicePixelRatio
-      ?? 1;
-    const currentSize = (await appWindow.innerSize()).toLogical(
-      scaleFactor
-    );
-    const contentHeight = Math.ceil(page.scrollHeight)
-      + CONTENT_HEIGHT_ALLOWANCE;
-    const workAreaHeight = monitor
-      ? monitor.workArea.size.toLogical(monitor.scaleFactor).height
-      : MAX_WINDOW_HEIGHT + WORK_AREA_MARGIN;
-    const maximumHeight = Math.max(
-      MIN_WINDOW_HEIGHT,
-      Math.min(MAX_WINDOW_HEIGHT, workAreaHeight - WORK_AREA_MARGIN)
-    );
-    let targetHeight = Math.max(
-      MIN_WINDOW_HEIGHT,
-      Math.min(contentHeight, maximumHeight)
-    );
-
-    document.body.classList.remove('is-measuring');
-    await appWindow.setSize(new LogicalSize(
-      currentSize.width,
-      targetHeight
-    ));
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
-
-    const remainingOverflow = Math.max(
-      0,
-      document.body.scrollHeight - window.innerHeight
-    );
-
-    if (remainingOverflow > 1 && targetHeight < maximumHeight) {
-      targetHeight = Math.min(
-        maximumHeight,
-        targetHeight + remainingOverflow + CONTENT_HEIGHT_ALLOWANCE
-      );
-      await appWindow.setSize(new LogicalSize(
-        currentSize.width,
-        targetHeight
-      ));
-    }
-
-    await keepWindowInsideWorkArea(appWindow);
+    await fitScaledWindow(appWindow, { width: 430, height: 0, page: page, requireAllContent: true });
   } catch (error) {
-    console.error('Failed to fit What’s New to its content:', error);
-  } finally {
-    document.body.classList.remove('is-measuring');
+    console.error('Failed to fit the window:', error);
   }
 }
 
@@ -196,3 +136,10 @@ window.addEventListener('storage', async (event) => {
     await fitWindowToContent();
   }
 });
+
+window.addEventListener('bsl-world:font-size-applied', () => { void fitWindowToContent(); });
+
+// Refit when localization, validation or picker contents change height.
+new MutationObserver(() => { void fitWindowToContent(); }).observe(
+  page, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] }
+);

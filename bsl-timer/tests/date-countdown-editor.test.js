@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  dateCountdownEditorValuesEqual,
-  getDateCountdownEditorMinimumHeight
+  dateCountdownEditorValuesEqual
 } from '../src/date-countdown-editor.js';
 
 const baseline = Object.freeze({
@@ -35,16 +34,4 @@ test('detects every persisted date countdown editor change', () => {
       false
     );
   }
-});
-
-test('adds enough vertical room for Large editor controls', () => {
-  const normalHeight = getDateCountdownEditorMinimumHeight('normal');
-  const largeHeight = getDateCountdownEditorMinimumHeight('large');
-
-  assert.equal(getDateCountdownEditorMinimumHeight('small'), normalHeight);
-  assert.ok(largeHeight >= normalHeight + 120);
-  assert.equal(
-    getDateCountdownEditorMinimumHeight('unknown'),
-    normalHeight
-  );
 });

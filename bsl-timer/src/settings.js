@@ -1,3 +1,5 @@
+import './action-button-layout.js';
+import { fitScaledWindow } from './scaled-window.js';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -1593,6 +1595,7 @@ navigator.mediaDevices?.addEventListener?.('devicechange', () => {
   void loadAudioOutputDevices();
 });
 
+window.addEventListener('bsl-world:font-size-applied', () => { void fitSettingsWindow(); });
 applyTheme();
 applyGlow();
 applyAppearanceMode();
@@ -1613,7 +1616,13 @@ updateAudioControls();
 updateApplyButton();
 await updateInterface();
 await loadAutostartState();
+await fitSettingsWindow();
 await prepareAuxiliaryWindow(
   settingsWindow,
   SETTINGS_WINDOW_MARGIN
 );
+
+async function fitSettingsWindow() {
+  try { await fitScaledWindow(settingsWindow, { width: 460, height: 640 }); }
+  catch (error) { console.error('Failed to resize Settings:', error); }
+}

@@ -1,0 +1,24 @@
+/* Shared BSL-World typography and geometry. Products express text, fields,
+   controls and spacing in rem; one root scale changes them together. */
+:root {
+  --ui-scale: 1;
+  --display-scale: 1;
+  --ui-caption-size: 0.75rem;
+  --ui-body-size: 0.875rem;
+  --ui-control-size: 0.875rem;
+  --ui-section-title-size: 1rem;
+  --ui-action-button-width: 6.5625rem;
+  --ui-action-button-height: 1.875rem;
+  --ui-action-button-padding: 0.0625rem;
+  --ui-action-button-radius: 0.4375rem;
+  --ui-action-button-gap: 0.1875rem;
+  font-size: calc(16px * var(--ui-scale));
+}
+:root[data-font-size="small"] {
+  --ui-scale: 0.9;
+  --display-scale: 0.95;
+}
+:root[data-font-size="large"] {
+  --ui-scale: 1.15;
+  --display-scale: 1.075;
+}

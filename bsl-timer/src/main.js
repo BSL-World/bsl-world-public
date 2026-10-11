@@ -1,7 +1,8 @@
+import { fitScaledWindow } from './scaled-window.js';
+import './action-button-layout.js';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
 import {
-  LogicalSize,
   getCurrentWindow
 } from '@tauri-apps/api/window';
 import {
@@ -97,13 +98,8 @@ import {
   FONT_SIZE_SETTINGS_EVENT,
   FONT_SIZE_STORAGE_KEY,
   applyFontSize,
-  getCachedFontSize,
   loadFontSizeSettings
 } from './font-size-settings.js';
-import {
-  DateCountdownRibbonState,
-  getMainWindowSize
-} from './main-window-layout.js';
 import {
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
@@ -133,10 +129,41 @@ try {
   console.error('Failed to keep the main window inside the work area:', error);
 }
 
+// An automatic informer is shown only after its WebView has fitted the data.
+let informerRequestId = 0;
+async function prepareTrayInformer(data) {
+  const requestId = ++informerRequestId;
+  let timeout;
+  let resolveReady;
+  const ready = new Promise(resolve => { resolveReady = resolve; });
+  const unlisten = await listen('tray-preview-ready', event => {
+    if (event.payload === requestId) resolveReady();
+  });
+  try {
+    await Promise.race([
+      (async () => {
+        await emitTo('tray-preview', 'tray-preview-data', { ...data, layoutRequestId: requestId });
+        await ready;
+      })(),
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error('The tray informer did not become ready')), 4000);
+      })
+    ]);
+  } finally {
+    clearTimeout(timeout);
+    await unlisten();
+  }
+}
+
 const signalInformer = new TrayInformerService({
   show: async (data) => {
-    await emitTo('tray-preview', 'tray-preview-data', data);
-    return invoke('show_tray_informer');
+    try {
+      await prepareTrayInformer(data);
+      return await invoke('show_tray_informer');
+    } catch (error) {
+      console.error('Failed to prepare the tray informer:', error);
+      return null;
+    }
   },
   startFade: () => {
     void emitTo('tray-preview', 'tray-preview-hide');
@@ -291,7 +318,7 @@ let trayIconVisualKey = null;
 let taskbarIconVisualKey = null;
 let trayPreviewDataKey = null;
 let dateCountdownRefreshId = null;
-let mainWindowSizeKey = null;
+let mainWindowLayoutQueue = Promise.resolve();
 let regionalSettings = null;
 let isDateCountdownRibbonCollapsed =
   localStorage.getItem(
@@ -1276,34 +1303,22 @@ function showTabNotice(message) {
   }, 2800);
 }
 
-async function setMainWindowLayout({
-  hasCountdowns = dateCountdownStore.getAll().length > 0,
-  fontSize = getCachedFontSize()
-} = {}) {
-  const ribbonState = !hasCountdowns
-    ? DateCountdownRibbonState.HIDDEN
-    : isDateCountdownRibbonCollapsed
-      ? DateCountdownRibbonState.COLLAPSED
-      : DateCountdownRibbonState.EXPANDED;
-  const size = getMainWindowSize(fontSize, ribbonState);
-  const sizeKey = `${size.width}x${size.height}`;
+function setMainWindowLayout(options = {}) {
+  mainWindowLayoutQueue = mainWindowLayoutQueue.catch(() => {}).then(
+    () => applyMainWindowLayout(options)
+  );
+  return mainWindowLayoutQueue;
+}
 
-  if (mainWindowSizeKey === sizeKey) {
-    return;
-  }
-
-  mainWindowSizeKey = sizeKey;
-
+async function applyMainWindowLayout() {
+  // Obtain geometry from the laid-out content, padding and visible ribbon.
   try {
-    await appWindow.setSize(new LogicalSize(
-      size.width,
-      size.height
-    ));
-    await keepWindowInsideWorkArea(appWindow);
+    await fitScaledWindow(appWindow, {
+      width: 360, page: document.querySelector('.app-shell'), requireAllContent: true
+    });
     refreshTabOverflow();
     updateDateCountdownScrollButtons();
   } catch (error) {
-    mainWindowSizeKey = null;
     console.error('Failed to resize the main window:', error);
   }
 }
@@ -2271,3 +2286,12 @@ if (availableUpdate) {
 if (!updateFlowStarted && shouldShowWhatsNew(WHATS_NEW_VERSION)) {
   await openWhatsNewWindow({ takeFocus: false });
 }
+
+window.addEventListener('bsl-world:font-size-applied', () => { void setMainWindowLayout(); });
+new MutationObserver(records => {
+  if (records.some(record => (record.oldValue !== null) !== record.target.hidden)) {
+    void setMainWindowLayout();
+  }
+}).observe(document.querySelector('.timer-panel'), {
+  subtree: true, attributes: true, attributeFilter: ['hidden'], attributeOldValue: true
+});

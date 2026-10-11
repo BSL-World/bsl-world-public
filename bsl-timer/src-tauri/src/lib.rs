@@ -499,8 +499,12 @@ fn automatic_tray_preview_position(
     let scale_factor = monitor.scale_factor();
     let work_area = monitor.work_area();
     let margin = 12.0 * scale_factor;
-    let width = TRAY_PREVIEW_WIDTH * scale_factor;
-    let height = TRAY_PREVIEW_HEIGHT * scale_factor;
+    let preview_size = app.get_webview_window(TRAY_PREVIEW_LABEL)
+        .and_then(|window| window.outer_size().ok());
+    let width = preview_size.map(|size| f64::from(size.width))
+        .unwrap_or(TRAY_PREVIEW_WIDTH * scale_factor);
+    let height = preview_size.map(|size| f64::from(size.height))
+        .unwrap_or(TRAY_PREVIEW_HEIGHT * scale_factor);
     let right = f64::from(work_area.position.x)
         + f64::from(work_area.size.width);
     let bottom = f64::from(work_area.position.y)
@@ -560,8 +564,12 @@ fn tray_preview_position(
         .as_ref()
         .map(|monitor| monitor.scale_factor())
         .unwrap_or(1.0);
-    let preview_width = TRAY_PREVIEW_WIDTH * scale_factor;
-    let preview_height = TRAY_PREVIEW_HEIGHT * scale_factor;
+    let preview_size = app.get_webview_window(TRAY_PREVIEW_LABEL)
+        .and_then(|window| window.outer_size().ok());
+    let preview_width = preview_size.map(|size| f64::from(size.width))
+        .unwrap_or(TRAY_PREVIEW_WIDTH * scale_factor);
+    let preview_height = preview_size.map(|size| f64::from(size.height))
+        .unwrap_or(TRAY_PREVIEW_HEIGHT * scale_factor);
     let mut x = cursor.x - preview_width / 2.0;
     let mut y = cursor.y - preview_height - 24.0;
 
@@ -623,7 +631,6 @@ fn schedule_tray_preview(
     let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
     let generation_state = state.clone();
     let preview_app = app.clone();
-    let preview_position = tray_preview_position(app, cursor);
     let hover_bounds = tray_bounds(app, cursor, rect);
 
     if let Some(window) = app.get_webview_window("main") {
@@ -655,7 +662,7 @@ fn schedule_tray_preview(
 
             if let Some(window) = main_thread_app.get_webview_window(TRAY_PREVIEW_LABEL) {
                 let _ = window.emit("tray-preview-show", ());
-                let _ = window.set_position(preview_position);
+                let _ = window.set_position(tray_preview_position(&main_thread_app, cursor));
                 let _ = window.show();
             }
         });

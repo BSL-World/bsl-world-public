@@ -1,5 +1,6 @@
 @import "@bsl-world/desktop-core/appearance.css";
 @import "@bsl-world/desktop-core/themes.css";
+@import "@bsl-world/desktop-core/typography.css";
 
 @font-face {
   font-family: "DSEG7 Classic";
@@ -11,11 +12,6 @@
 }
 
 :root {
-  --font-size-scale: 1;
-  --ui-caption-size: 12px;
-  --ui-body-size: 14px;
-  --ui-control-size: 14px;
-  --ui-section-title-size: 16px;
   --timer-active-color: var(--theme-color);
   --timer-overdue-color: #fa0206;
   --window-surface-alpha: 0.78;
@@ -31,22 +27,6 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-
-:root[data-font-size="small"] {
-  --font-size-scale: 0.9;
-  --ui-caption-size: 11px;
-  --ui-body-size: 13px;
-  --ui-control-size: 13px;
-  --ui-section-title-size: 15px;
-}
-
-:root[data-font-size="large"] {
-  --font-size-scale: 1.15;
-  --ui-caption-size: 14px;
-  --ui-body-size: 16px;
-  --ui-control-size: 16px;
-  --ui-section-title-size: 19px;
 }
 
 :root[data-theme="neon-cyan"] .app-shell {
@@ -147,15 +127,15 @@ button {
       rgb(var(--theme-rgb) / 8%),
       rgb(12 16 25 / var(--window-surface-alpha))
     );
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.16);
   color: #f4f7fb;
 }
 
 .titlebar {
   display: flex;
-  height: 30px;
+  height: 1.875rem;
   background: rgba(8, 11, 18, 0.56);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 0.0625rem solid rgba(255, 255, 255, 0.1);
   user-select: none;
 }
 
@@ -164,7 +144,7 @@ button {
   flex: 1;
   align-items: center;
   min-width: 0;
-  padding: 0 8px;
+  padding: 0 0.5rem;
 }
 
 .app-title {
@@ -184,14 +164,14 @@ button {
 
 .titlebar-button {
   display: grid;
-  width: 30px;
-  height: 29px;
+  width: 1.875rem;
+  height: 1.8125rem;
   padding: 0;
   place-items: center;
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, 0.74);
-  font-size: calc(14px * var(--font-size-scale));
+  font-size: 0.875rem;
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -210,18 +190,18 @@ button {
 
 .about-titlebar-icon {
   display: grid;
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   place-items: center;
   border-radius: 50%;
   background: var(--theme-color);
   color: #ffffff;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
   font-style: italic;
   font-weight: 700;
-  line-height: 16px;
-  text-shadow: 0 0 0.4px #ffffff;
+  line-height: 1rem;
+  text-shadow: 0 0 0.025rem #ffffff;
 }
 
 .close-button:hover {
@@ -234,20 +214,20 @@ button {
   z-index: 2;
   display: flex;
   flex: none;
-  gap: 3px;
+  gap: 0.1875rem;
   align-items: flex-end;
-  height: 30px;
-  padding: 4px 5px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 1.875rem;
+  padding: 0.25rem 0.3125rem 0;
+  border-bottom: 0.0625rem solid rgba(255, 255, 255, 0.1);
   background: rgba(8, 11, 18, 0.28);
 }
 
 .timer-tab-list {
   display: flex;
   flex: 0 1 auto;
-  gap: 3px;
+  gap: 0.1875rem;
   min-width: 0;
-  max-width: calc(100% - 31px);
+  max-width: calc(100% - 1.9375rem);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -257,22 +237,22 @@ button {
 }
 
 .timer-tabs-bar.has-overflow .timer-tab-list {
-  max-width: calc(100% - 70px);
+  max-width: calc(100% - 4.375rem);
 }
 
 .tab-scroll-button {
   display: grid;
-  width: 18px;
-  height: 25px;
+  width: 1.125rem;
+  height: 1.5625rem;
   flex: none;
   padding: 0;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.11);
   border-bottom: 0;
-  border-radius: 6px 6px 0 0;
+  border-radius: 0.375rem 0.375rem 0 0;
   background: rgba(255, 255, 255, 0.045);
   color: rgba(255, 255, 255, 0.72);
-  font-size: calc(8px * var(--font-size-scale));
+  font-size: 0.5rem;
   cursor: pointer;
 }
 
@@ -290,13 +270,13 @@ button {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  min-width: 82px;
-  max-width: 138px;
-  height: 25px;
+  min-width: 5.125rem;
+  max-width: 8.625rem;
+  height: 1.5625rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.11);
   border-bottom: 0;
-  border-radius: 7px 7px 0 0;
+  border-radius: 0.4375rem 0.4375rem 0 0;
   background: rgba(255, 255, 255, 0.045);
   color: rgba(255, 255, 255, 0.68);
 }
@@ -310,11 +290,11 @@ button {
 .timer-tab-select {
   display: flex;
   flex: 1;
-  gap: 5px;
+  gap: 0.3125rem;
   align-items: center;
   min-width: 0;
-  height: 24px;
-  padding: 0 7px;
+  height: 1.5rem;
+  padding: 0 0.4375rem;
   border: 0;
   outline: none;
   background: transparent;
@@ -324,8 +304,8 @@ button {
 }
 
 .timer-tab-select::before {
-  width: 5px;
-  height: 5px;
+  width: 0.3125rem;
+  height: 0.3125rem;
   flex: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.24);
@@ -334,7 +314,7 @@ button {
 
 .timer-tab.is-running .timer-tab-select::before {
   background: var(--theme-color-strong);
-  box-shadow: 0 0 6px rgb(var(--theme-rgb) / 70%);
+  box-shadow: 0 0 0.375rem rgb(var(--theme-rgb) / 70%);
 }
 
 .timer-tab.is-paused .timer-tab-select::before {
@@ -343,7 +323,7 @@ button {
 
 .timer-tab.is-overdue .timer-tab-select::before {
   background: var(--timer-overdue-color);
-  box-shadow: 0 0 6px rgb(250 2 6 / 70%);
+  box-shadow: 0 0 0.375rem rgb(250 2 6 / 70%);
 }
 
 .timer-tab-label {
@@ -354,13 +334,13 @@ button {
 }
 
 .timer-tab-name-input {
-  width: 94px;
+  width: 5.875rem;
   min-width: 0;
-  height: 18px;
-  margin: 0 4px 0 7px;
-  padding: 0 4px;
-  border: 1px solid var(--theme-color);
-  border-radius: 4px;
+  height: 1.125rem;
+  margin: 0 0.25rem 0 0.4375rem;
+  padding: 0 0.25rem;
+  border: 0.0625rem solid var(--theme-color);
+  border-radius: 0.25rem;
   outline: none;
   background: rgba(5, 8, 14, 0.78);
   color: #ffffff;
@@ -368,14 +348,14 @@ button {
 }
 
 .timer-tab-close {
-  width: 20px;
-  height: 24px;
+  width: 1.25rem;
+  height: 1.5rem;
   flex: none;
   padding: 0;
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, 0.48);
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 
@@ -386,17 +366,17 @@ button {
 
 .add-timer-button {
   display: grid;
-  width: 25px;
-  height: 25px;
+  width: 1.5625rem;
+  height: 1.5625rem;
   flex: none;
   padding: 0;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.11);
   border-bottom: 0;
-  border-radius: 7px 7px 0 0;
+  border-radius: 0.4375rem 0.4375rem 0 0;
   background: rgba(255, 255, 255, 0.045);
   color: rgba(255, 255, 255, 0.74);
-  font-size: calc(16px * var(--font-size-scale));
+  font-size: 1rem;
   cursor: pointer;
 }
 
@@ -412,15 +392,15 @@ button {
 
 .tab-notice {
   position: absolute;
-  top: 31px;
-  right: 6px;
-  left: 6px;
+  top: 1.9375rem;
+  right: 0.375rem;
+  left: 0.375rem;
   z-index: 5;
-  padding: 7px 9px;
-  border: 1px solid rgb(var(--theme-rgb) / 38%);
-  border-radius: 7px;
+  padding: 0.4375rem 0.5625rem;
+  border: 0.0625rem solid rgb(var(--theme-rgb) / 38%);
+  border-radius: 0.4375rem;
   background: rgba(10, 13, 21, 0.96);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 0.3125rem 1rem rgba(0, 0, 0, 0.34);
   color: rgba(255, 255, 255, 0.92);
   font-size: var(--ui-caption-size);
   text-align: center;
@@ -433,10 +413,10 @@ button {
   align-items: center;
   justify-content: center;
   min-height: 0;
-  margin: 6px;
-  padding: 8px 10px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 11px;
+  margin: 0.375rem;
+  padding: 0.5rem 0.625rem 0.625rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.13);
+  border-radius: 0.6875rem;
   background: rgba(255, 255, 255, 0.055);
   transition:
     border-color 180ms ease,
@@ -448,7 +428,7 @@ button {
 }
 
 .timer-status {
-  min-height: 16px;
+  min-height: 1rem;
   margin-bottom: 0;
   color: #ff6675;
   font-size: var(--ui-caption-size);
@@ -461,14 +441,14 @@ button {
 .timer-display {
   display: flex;
   width: 100%;
-  min-height: 60px;
-  padding: 3px 4px;
+  min-height: 3.75rem;
+  padding: 0.1875rem 0.25rem;
   align-items: center;
   justify-content: center;
   color: var(--timer-active-color);
   filter: brightness(var(--display-brightness));
   font-family: "DSEG7 Classic", Consolas, monospace;
-  font-size: 41px;
+  font-size: calc(41px * var(--display-scale));
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -484,57 +464,57 @@ button {
 :root[data-glow="on"] .timer-panel:not(.is-overdue) {
   border-color: rgb(var(--theme-glow-rgb) / 34%);
   box-shadow:
-    0 0 18px rgb(var(--theme-glow-rgb) / 16%),
-    inset 0 0 18px rgb(var(--theme-inner-light-rgb) / 8%);
+    0 0 1.125rem rgb(var(--theme-glow-rgb) / 16%),
+    inset 0 0 1.125rem rgb(var(--theme-inner-light-rgb) / 8%);
 }
 
 :root[data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   color: var(--theme-color-strong);
   filter: brightness(var(--display-brightness)) saturate(1.16);
   text-shadow:
-    0 0 1px rgb(var(--theme-glow-rgb) / 100%),
-    0 0 3px rgb(var(--theme-glow-rgb) / 96%),
-    0 0 7px rgb(var(--theme-glow-rgb) / 78%),
-    0 0 15px rgb(var(--theme-glow-rgb) / 50%),
-    0 0 30px rgb(var(--theme-glow-rgb) / 24%);
+    0 0 0.0625rem rgb(var(--theme-glow-rgb) / 100%),
+    0 0 0.1875rem rgb(var(--theme-glow-rgb) / 96%),
+    0 0 0.4375rem rgb(var(--theme-glow-rgb) / 78%),
+    0 0 0.9375rem rgb(var(--theme-glow-rgb) / 50%),
+    0 0 1.875rem rgb(var(--theme-glow-rgb) / 24%);
 }
 
 :root[data-theme="green"][data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   text-shadow:
-    0 0 1px rgb(var(--theme-glow-rgb) / 100%),
-    0 0 2px rgb(var(--theme-glow-rgb) / 58%),
-    0 0 5px rgb(var(--theme-glow-rgb) / 40%),
-    0 0 12px rgb(var(--theme-glow-rgb) / 34%),
-    0 0 22px rgb(var(--theme-glow-rgb) / 12%);
+    0 0 0.0625rem rgb(var(--theme-glow-rgb) / 100%),
+    0 0 0.125rem rgb(var(--theme-glow-rgb) / 58%),
+    0 0 0.3125rem rgb(var(--theme-glow-rgb) / 40%),
+    0 0 0.75rem rgb(var(--theme-glow-rgb) / 34%),
+    0 0 1.375rem rgb(var(--theme-glow-rgb) / 12%);
 }
 
 :root[data-theme="purple"][data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   color: var(--theme-color-strong);
   filter: brightness(var(--display-brightness)) saturate(1.38);
   text-shadow:
-    0 0 1px rgb(var(--theme-glow-rgb) / 100%),
-    0 0 2px rgb(var(--theme-glow-rgb) / 62%),
-    0 0 4px rgb(var(--theme-glow-rgb) / 38%),
-    0 0 10px rgb(var(--theme-glow-rgb) / 28%),
-    0 0 18px rgb(var(--theme-glow-rgb) / 9%);
+    0 0 0.0625rem rgb(var(--theme-glow-rgb) / 100%),
+    0 0 0.125rem rgb(var(--theme-glow-rgb) / 62%),
+    0 0 0.25rem rgb(var(--theme-glow-rgb) / 38%),
+    0 0 0.625rem rgb(var(--theme-glow-rgb) / 28%),
+    0 0 1.125rem rgb(var(--theme-glow-rgb) / 9%);
 }
 
 :root[data-theme="magenta"][data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   text-shadow:
-    0 0 1px rgb(var(--theme-glow-rgb) / 100%),
-    0 0 2px rgb(var(--theme-glow-rgb) / 66%),
-    0 0 5px rgb(var(--theme-glow-rgb) / 46%),
-    0 0 13px rgb(var(--theme-glow-rgb) / 38%),
-    0 0 24px rgb(var(--theme-glow-rgb) / 15%);
+    0 0 0.0625rem rgb(var(--theme-glow-rgb) / 100%),
+    0 0 0.125rem rgb(var(--theme-glow-rgb) / 66%),
+    0 0 0.3125rem rgb(var(--theme-glow-rgb) / 46%),
+    0 0 0.8125rem rgb(var(--theme-glow-rgb) / 38%),
+    0 0 1.5rem rgb(var(--theme-glow-rgb) / 15%);
 }
 
 :root[data-theme="neon-cyan"][data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   text-shadow:
-    0 0 1px rgb(var(--theme-glow-rgb) / 100%),
-    0 0 2px rgb(var(--theme-glow-rgb) / 76%),
-    0 0 6px rgb(var(--theme-glow-rgb) / 56%),
-    0 0 14px rgb(var(--theme-glow-rgb) / 44%),
-    0 0 27px rgb(var(--theme-glow-rgb) / 19%);
+    0 0 0.0625rem rgb(var(--theme-glow-rgb) / 100%),
+    0 0 0.125rem rgb(var(--theme-glow-rgb) / 76%),
+    0 0 0.375rem rgb(var(--theme-glow-rgb) / 56%),
+    0 0 0.875rem rgb(var(--theme-glow-rgb) / 44%),
+    0 0 1.6875rem rgb(var(--theme-glow-rgb) / 19%);
 }
 
 .timer-panel.is-overdue .timer-display,
@@ -545,31 +525,31 @@ button {
 
 :root[data-glow="on"] .timer-panel.is-overdue {
   box-shadow:
-    0 0 18px rgb(250 2 6 / 34%),
-    inset 0 0 18px rgb(250 2 6 / 12%);
+    0 0 1.125rem rgb(250 2 6 / 34%),
+    inset 0 0 1.125rem rgb(250 2 6 / 12%);
 }
 
 :root[data-glow="on"] .timer-panel.is-overdue .timer-display,
 :root[data-glow="on"] .timer-panel.is-overdue .timer-status {
   text-shadow:
-    0 0 1px rgb(250 2 6 / 100%),
-    0 0 3px rgb(250 2 6 / 96%),
-    0 0 7px rgb(250 2 6 / 78%),
-    0 0 15px rgb(250 2 6 / 50%),
-    0 0 30px rgb(250 2 6 / 24%);
+    0 0 0.0625rem rgb(250 2 6 / 100%),
+    0 0 0.1875rem rgb(250 2 6 / 96%),
+    0 0 0.4375rem rgb(250 2 6 / 78%),
+    0 0 0.9375rem rgb(250 2 6 / 50%),
+    0 0 1.875rem rgb(250 2 6 / 24%);
 }
 
 .duration-inputs {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  margin-top: 7px;
+  margin-top: 0.4375rem;
 }
 
 .duration-field {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0.1875rem;
   align-items: center;
   color: rgba(255, 255, 255, 0.62);
   font-size: var(--ui-caption-size);
@@ -579,15 +559,15 @@ button {
 }
 
 .duration-field input {
-  width: 64px;
-  height: 32px;
-  padding: 2px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 7px;
+  width: 4rem;
+  height: 2rem;
+  padding: 0.125rem 0.375rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.4375rem;
   outline: none;
   background: rgba(5, 8, 14, 0.5);
   color: #ffffff;
-  font-size: calc(16px * var(--font-size-scale));
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   text-align: center;
   transition:
@@ -598,7 +578,7 @@ button {
 .duration-field input:focus {
   border-color: var(--theme-color);
   background: rgba(15, 24, 38, 0.72);
-  box-shadow: 0 0 0 3px rgb(var(--theme-rgb) / 16%);
+  box-shadow: 0 0 0 0.1875rem rgb(var(--theme-rgb) / 16%);
 }
 
 .duration-field input:disabled {
@@ -606,14 +586,14 @@ button {
 }
 
 .duration-separator {
-  margin: 0 6px 5px;
+  margin: 0 0.375rem 0.3125rem;
   color: rgba(255, 255, 255, 0.46);
-  font-size: calc(18px * var(--font-size-scale));
+  font-size: 1.125rem;
 }
 
 .validation-message {
-  min-height: 12px;
-  margin-top: 2px;
+  min-height: 0.75rem;
+  margin-top: 0.125rem;
   color: #ff7784;
   font-size: var(--ui-caption-size);
   text-align: center;
@@ -621,26 +601,26 @@ button {
 
 .timer-controls {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
   justify-content: center;
-  margin-top: 6px;
+  margin-top: 0.375rem;
 }
 
 .timer-controls .control-button {
   flex: 0 0 auto;
-  min-width: 72px;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: 8px;
+  min-width: 4.5rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
   font-size: var(--ui-control-size);
 }
 
 .control-button {
-  min-width: 92px;
-  height: 40px;
-  padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  min-width: 5.75rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.625rem;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.9);
   font-size: var(--ui-control-size);
@@ -658,7 +638,7 @@ button {
 }
 
 .control-button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(0.0625rem);
 }
 
 .control-button:disabled {
@@ -688,14 +668,14 @@ button {
 
 .date-countdown-ribbon {
   display: flex;
-  height: 64px;
+  height: 4rem;
   flex: none;
-  gap: 4px;
+  gap: 0.25rem;
   align-items: stretch;
-  margin: 0 6px 6px;
-  padding: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 10px;
+  margin: 0 0.375rem 0.375rem;
+  padding: 0.3125rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.13);
+  border-radius: 0.625rem;
   background: rgba(8, 11, 18, 0.34);
 }
 
@@ -703,7 +683,7 @@ button {
   display: flex;
   min-width: 0;
   flex: 1;
-  gap: 4px;
+  gap: 0.25rem;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -714,16 +694,16 @@ button {
 
 .date-countdown-card {
   display: flex;
-  width: 142px;
-  min-width: 112px;
-  flex: 1 0 112px;
-  padding: 6px 8px;
+  width: 8.875rem;
+  min-width: 7rem;
+  flex: 1 0 7rem;
+  padding: 0.375rem 0.5rem;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid rgb(var(--theme-rgb) / 28%);
-  border-radius: 7px;
+  border: 0.0625rem solid rgb(var(--theme-rgb) / 28%);
+  border-radius: 0.4375rem;
   background: rgb(var(--theme-rgb) / 9%);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
@@ -755,7 +735,7 @@ button {
 .date-countdown-time {
   width: 100%;
   overflow: hidden;
-  margin-top: 3px;
+  margin-top: 0.1875rem;
   color: var(--theme-color-strong);
   font-family: Consolas, monospace;
   font-size: var(--ui-body-size);
@@ -774,36 +754,36 @@ button {
 .add-date-countdown-button,
 .date-countdown-ribbon-toggle {
   display: grid;
-  width: 24px;
+  width: 1.5rem;
   flex: none;
   padding: 0;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 7px;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.11);
+  border-radius: 0.4375rem;
   background: rgba(255, 255, 255, 0.045);
   color: rgba(255, 255, 255, 0.72);
   cursor: pointer;
 }
 
 .date-countdown-scroll-button {
-  font-size: calc(8px * var(--font-size-scale));
+  font-size: 0.5rem;
 }
 
 .add-date-countdown-button {
-  font-size: calc(16px * var(--font-size-scale));
+  font-size: 1rem;
 }
 
 .date-countdown-ribbon-toggle {
-  width: 18px;
-  font-size: calc(12px * var(--font-size-scale));
+  width: 1.125rem;
+  font-size: 0.75rem;
 }
 
 .date-countdown-ribbon-toggle span {
   display: block;
-  width: 7px;
-  height: 7px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-right: 0.09375rem solid currentColor;
+  border-bottom: 0.09375rem solid currentColor;
   font-size: 0;
   transform: rotate(-135deg);
 }
@@ -829,8 +809,8 @@ button {
 }
 
 .date-countdown-ribbon.is-collapsed {
-  height: 20px;
-  padding: 2px;
+  height: 1.25rem;
+  padding: 0.125rem;
 }
 
 .date-countdown-ribbon.is-collapsed >
@@ -863,20 +843,20 @@ button {
 .date-countdown-editor-page {
   width: 100%;
   min-height: 100vh;
-  padding: 14px;
+  padding: 0.875rem;
 }
 
 .date-countdown-dialog {
   display: grid;
   width: 100%;
-  max-width: 560px;
+  max-width: 35rem;
   margin: 0 auto;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .date-countdown-field {
   display: grid;
-  gap: 4px;
+  gap: 0.25rem;
   color: rgba(255, 255, 255, 0.7);
   font-size: var(--ui-body-size);
 }
@@ -885,9 +865,9 @@ button {
 .date-countdown-field textarea,
 .date-time-value-button {
   width: 100%;
-  padding: 7px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 7px;
+  padding: 0.4375rem 0.5rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.4375rem;
   outline: none;
   background: #202131;
   color: #ffffff;
@@ -895,7 +875,7 @@ button {
 }
 
 .date-countdown-field textarea {
-  min-height: 72px;
+  min-height: 4.5rem;
   resize: vertical;
 }
 
@@ -903,17 +883,17 @@ button {
 .date-countdown-field textarea:focus,
 .date-time-value-button:focus-visible {
   border-color: var(--theme-color);
-  box-shadow: 0 0 0 2px rgb(var(--theme-rgb) / 18%);
+  box-shadow: 0 0 0 0.125rem rgb(var(--theme-rgb) / 18%);
 }
 
 .date-countdown-target-fields {
   display: grid;
   grid-template-columns: 1.45fr 1fr;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .date-time-value-button {
-  height: 32px;
+  height: 2rem;
   cursor: pointer;
   text-align: left;
 }
@@ -926,11 +906,11 @@ button {
 
 .date-countdown-time-control {
   display: flex;
-  height: 32px;
+  height: 2rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 7px;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.4375rem;
   background: #202131;
   font-size: var(--ui-control-size);
   font-variant-numeric: tabular-nums;
@@ -938,10 +918,10 @@ button {
 
 .date-time-segment,
 .date-time-period {
-  height: 26px;
-  padding: 0 5px;
+  height: 1.625rem;
+  padding: 0 0.3125rem;
   border: 0;
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   outline: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.74);
@@ -953,34 +933,34 @@ button {
 .date-time-period:focus-visible {
   background: rgb(var(--theme-rgb) / 19%);
   color: var(--theme-color-strong);
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
   font-weight: 750;
 }
 
 .date-time-period {
-  margin-left: 2px;
-  padding: 0 4px;
-  font-size: calc(9px * var(--font-size-scale));
+  margin-left: 0.125rem;
+  padding: 0 0.25rem;
+  font-size: 0.5625rem;
 }
 
 .date-countdown-picker {
   min-height: 0;
-  padding: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9px;
+  padding: 0.4375rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5625rem;
   background: rgba(7, 10, 17, 0.42);
 }
 
 .date-countdown-calendar {
   display: grid;
-  width: min(100%, 360px);
+  width: min(100%, 22.5rem);
   margin: 0 auto;
-  gap: 3px;
+  gap: 0.1875rem;
 }
 
 .calendar-month-header {
   display: grid;
-  grid-template-columns: 30px 1fr 30px;
+  grid-template-columns: 1.875rem 1fr 1.875rem;
   align-items: center;
 }
 
@@ -995,10 +975,10 @@ button {
 }
 
 .calendar-month-header button {
-  height: 25px;
+  height: 1.5625rem;
   padding: 0;
   border: 0;
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.62);
   font-size: var(--ui-caption-size);
@@ -1016,11 +996,11 @@ button {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+  gap: 0.0625rem;
 }
 
 .calendar-weekdays span {
-  padding: 1px 0;
+  padding: 0.0625rem 0;
   color: rgba(255, 255, 255, 0.42);
   font-size: var(--ui-caption-size);
   font-weight: 650;
@@ -1029,10 +1009,10 @@ button {
 }
 
 .calendar-day {
-  height: 23px;
+  height: 1.4375rem;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  border: 0.0625rem solid transparent;
+  border-radius: 0.375rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.78);
   font-size: var(--ui-caption-size);
@@ -1064,21 +1044,21 @@ button {
 .date-countdown-time-dial {
   position: relative;
   display: grid;
-  min-height: 222px;
+  min-height: 13.875rem;
   place-items: center;
 }
 
 .date-countdown-clock-face {
   position: relative;
-  width: 210px;
-  height: 210px;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  width: 13.125rem;
+  height: 13.125rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.11);
   border-radius: 50%;
   background:
     radial-gradient(
       circle,
-      rgb(var(--theme-rgb) / 10%) 0 3px,
-      transparent 4px
+      rgb(var(--theme-rgb) / 10%) 0 0.1875rem,
+      transparent 0.25rem
     ),
     rgba(255, 255, 255, 0.025);
 }
@@ -1088,14 +1068,14 @@ button {
   top: 50%;
   left: 50%;
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   padding: 0;
   place-items: center;
   transform:
     translate(-50%, -50%)
     translate(var(--dial-x), var(--dial-y));
-  border: 1px solid transparent;
+  border: 0.0625rem solid transparent;
   border-radius: 50%;
   background: transparent;
   color: rgba(255, 255, 255, 0.82);
@@ -1105,8 +1085,8 @@ button {
 }
 
 .clock-dial-value.is-inner {
-  width: 25px;
-  height: 25px;
+  width: 1.5625rem;
+  height: 1.5625rem;
   color: rgba(255, 255, 255, 0.54);
   font-size: var(--ui-caption-size);
 }
@@ -1132,13 +1112,13 @@ button {
   bottom: 0;
   display: flex;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 6px;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.375rem;
 }
 
 .date-countdown-period-switch button {
-  width: 30px;
-  height: 24px;
+  width: 1.875rem;
+  height: 1.5rem;
   padding: 0;
   border: 0;
   background: rgba(255, 255, 255, 0.035);
@@ -1155,7 +1135,7 @@ button {
 
 .date-countdown-show-seconds {
   display: flex;
-  gap: 7px;
+  gap: 0.4375rem;
   align-items: center;
   color: rgba(255, 255, 255, 0.8);
   font-size: var(--ui-body-size);
@@ -1163,14 +1143,14 @@ button {
 }
 
 .date-countdown-show-seconds input {
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   margin: 0;
   accent-color: var(--theme-color);
 }
 
 .date-countdown-validation {
-  min-height: 14px;
+  min-height: 0.875rem;
   margin: 0;
   color: #ff7784;
   font-size: var(--ui-caption-size);
@@ -1178,9 +1158,9 @@ button {
 
 .date-countdown-dialog-actions {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
   align-items: center;
-  padding-top: 4px;
+  padding-top: 0.25rem;
 }
 
 .date-countdown-dialog-actions-spacer {
@@ -1188,10 +1168,10 @@ button {
 }
 
 .date-countdown-dialog-actions .control-button {
-  min-width: 68px;
-  height: 30px;
-  padding: 0 9px;
-  border-radius: 7px;
+  min-width: 4.25rem;
+  height: 1.875rem;
+  padding: 0 0.5625rem;
+  border-radius: 0.4375rem;
   font-size: var(--ui-control-size);
 }
 
@@ -1200,52 +1180,52 @@ button {
   z-index: 20;
   display: grid;
   inset: 0;
-  padding: 12px;
+  padding: 0.75rem;
   place-items: center;
   background: rgba(4, 6, 11, 0.68);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(0.1875rem);
 }
 
 .confirmation-dialog {
   width: 100%;
-  max-width: 310px;
-  padding: 12px;
-  border: 1px solid rgb(var(--theme-rgb) / 48%);
-  border-radius: 10px;
+  max-width: 19.375rem;
+  padding: 0.75rem;
+  border: 0.0625rem solid rgb(var(--theme-rgb) / 48%);
+  border-radius: 0.625rem;
   background: rgba(18, 22, 32, 0.98);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.52);
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.52);
 }
 
 .confirmation-dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .confirmation-dialog h2 {
   margin: 0;
   color: var(--theme-color-strong);
-  font-size: calc(14px * var(--font-size-scale));
+  font-size: 0.875rem;
   font-weight: 650;
 }
 
 .confirmation-dialog p {
-  margin: 10px 0 12px;
+  margin: 0.625rem 0 0.75rem;
   color: rgba(255, 255, 255, 0.82);
-  font-size: calc(11px * var(--font-size-scale));
+  font-size: 0.6875rem;
   line-height: 1.4;
 }
 
 .confirmation-dialog-x {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
   flex: none;
   padding: 0;
   place-items: center;
   border: 0;
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.64);
   cursor: pointer;
@@ -1258,16 +1238,16 @@ button {
 
 .confirmation-dialog-actions {
   display: flex;
-  gap: 7px;
+  gap: 0.4375rem;
   justify-content: flex-end;
 }
 
 .confirmation-dialog-actions .control-button {
-  min-width: 76px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 7px;
-  font-size: calc(11px * var(--font-size-scale));
+  min-width: 4.75rem;
+  height: 1.875rem;
+  padding: 0 0.625rem;
+  border-radius: 0.4375rem;
+  font-size: 0.6875rem;
 }
 
 .whats-new-window-body {
@@ -1289,31 +1269,25 @@ button {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  padding: 22px 22px 0;
+  padding: 1.375rem 1.375rem 0;
 }
 
-.whats-new-window-body.is-measuring {
-  min-height: 0;
-}
 
-.whats-new-window-body.is-measuring .whats-new-page {
-  min-height: 0;
-}
 
 .whats-new-page h1 {
   margin: 0;
   color: var(--theme-color-strong);
-  font-size: calc(20px * var(--font-size-scale));
+  font-size: 1.25rem;
   font-weight: 650;
 }
 
 .whats-new-list {
   display: grid;
-  gap: 9px;
-  margin: 18px 0;
-  padding-left: 22px;
+  gap: 0.5625rem;
+  margin: 1.125rem 0;
+  padding-left: 1.375rem;
   color: rgba(255, 255, 255, 0.84);
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -1323,29 +1297,29 @@ button {
 
 .whats-new-dismiss-option {
   display: flex;
-  gap: 7px;
+  gap: 0.4375rem;
   align-items: center;
-  margin: 4px 0 18px;
+  margin: 0.25rem 0 1.125rem;
   color: rgba(255, 255, 255, 0.76);
-  font-size: calc(12px * var(--font-size-scale));
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
 .whats-new-dismiss-option input {
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   margin: 0;
   accent-color: var(--theme-color);
 }
 
 .whats-new-window-footer {
   display: flex;
-  min-height: 52px;
+  min-height: 3.25rem;
   align-items: center;
   justify-content: flex-end;
-  margin: auto -22px 0;
-  padding: 10px 22px;
-  border-top: 1px solid rgb(255 255 255 / 9%);
+  margin: auto -1.375rem 0;
+  padding: 0.625rem 1.375rem;
+  border-top: 0.0625rem solid rgb(255 255 255 / 9%);
   background: rgb(255 255 255 / 4%);
 }
 
@@ -1364,42 +1338,35 @@ button {
 .about-page {
   display: flex;
   height: 100vh;
-  padding: 16px 16px 16px;
+  padding: 1rem 1rem 1rem;
   flex-direction: column;
-  gap: 11px;
+  gap: 0.6875rem;
 }
 
-.about-window-body.is-measuring {
-  min-height: 0;
-}
 
-.about-window-body.is-measuring .about-page {
-  height: auto;
-  min-height: 0;
-}
 
 .about-page-header {
   display: flex;
-  gap: 10px;
+  gap: 0.625rem;
   align-items: center;
 }
 
 .about-brand-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   flex: none;
   place-items: center;
   border-radius: 50%;
   background: var(--theme-color);
-  box-shadow: 0 0 16px rgb(var(--theme-rgb) / 32%);
+  box-shadow: 0 0 1rem rgb(var(--theme-rgb) / 32%);
   color: #ffffff;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: calc(24px * var(--font-size-scale));
+  font-size: 1.5rem;
   font-style: italic;
   font-weight: 700;
-  line-height: 30px;
-  text-shadow: 0 0 0.5px #ffffff;
+  line-height: 1.875rem;
+  text-shadow: 0 0 0.03125rem #ffffff;
 }
 
 .about-heading {
@@ -1409,24 +1376,24 @@ button {
 .about-heading h1 {
   margin: 0;
   color: var(--theme-color-strong);
-  font-size: calc(20px * var(--font-size-scale));
+  font-size: 1.25rem;
   font-weight: 650;
 }
 
 .about-product-details {
   display: flex;
-  gap: 4px;
+  gap: 0.25rem;
   align-items: center;
-  margin-top: 2px;
+  margin-top: 0.125rem;
   color: rgba(255, 255, 255, 0.62);
   font-size: var(--ui-caption-size);
   white-space: nowrap;
 }
 
 .about-author-card {
-  padding: 11px 12px;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 11px;
+  padding: 0.6875rem 0.75rem;
+  border: 0.0625rem solid rgb(255 255 255 / 10%);
+  border-radius: 0.6875rem;
   background: rgb(255 255 255 / 6%);
 }
 
@@ -1445,7 +1412,7 @@ button {
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
   cursor: pointer;
 }
 
@@ -1456,7 +1423,7 @@ button {
 
 .about-window-links {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: center;
   justify-content: flex-start;
   flex-wrap: wrap;
@@ -1469,10 +1436,10 @@ button {
 }
 
 .about-window-footer .control-button {
-  min-width: 84px;
-  height: 34px;
-  padding: 0 13px;
-  border-radius: 8px;
+  min-width: 5.25rem;
+  height: 2.125rem;
+  padding: 0 0.8125rem;
+  border-radius: 0.5rem;
   font-size: var(--ui-control-size);
 }
 
@@ -1492,9 +1459,9 @@ button {
   display: flex;
   height: 100vh;
   min-height: 0;
-  padding: 16px 16px 12px;
+  padding: 1rem 1rem 0.75rem;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.625rem;
   overflow: hidden;
 }
 
@@ -1502,9 +1469,9 @@ button {
   display: flex;
   min-height: 0;
   flex: 1;
-  padding-right: 4px;
+  padding-right: 0.25rem;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.625rem;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: var(--theme-color) rgba(255, 255, 255, 0.08);
@@ -1514,26 +1481,26 @@ button {
 .settings-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .settings-header h1 {
   margin: 0;
-  font-size: calc(22px * var(--font-size-scale));
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--theme-color-strong);
 }
 
 .settings-icon {
-  font-size: calc(24px * var(--font-size-scale));
+  font-size: 1.5rem;
 }
 
 .settings-card {
   display: grid;
-  gap: 7px;
-  padding: 11px;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 14px;
+  gap: 0.4375rem;
+  padding: 0.6875rem;
+  border: 0.0625rem solid rgb(255 255 255 / 10%);
+  border-radius: 0.875rem;
   background: rgb(255 255 255 / 6%);
 }
 
@@ -1552,9 +1519,9 @@ button {
 .settings-card select,
 .settings-card input[type="number"] {
   width: 100%;
-  padding: 11px 12px;
-  border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: 8px;
+  padding: 0.6875rem 0.75rem;
+  border: 0.0625rem solid rgb(255 255 255 / 16%);
+  border-radius: 0.5rem;
   background: #202131;
   color: #ffffff;
   font: inherit;
@@ -1564,28 +1531,28 @@ button {
 .settings-card input[type="number"]:focus {
   border-color: var(--theme-color);
   outline: none;
-  box-shadow: 0 0 0 3px rgb(var(--theme-rgb) / 20%);
+  box-shadow: 0 0 0 0.1875rem rgb(var(--theme-rgb) / 20%);
 }
 
 .appearance-settings-card {
-  gap: 11px;
+  gap: 0.6875rem;
 }
 
 .regional-settings-card {
-  gap: 9px;
+  gap: 0.5625rem;
 }
 
 .regional-preview {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: baseline;
   justify-content: space-between;
-  padding: 8px 10px;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 8px;
+  padding: 0.5rem 0.625rem;
+  border: 0.0625rem solid rgb(255 255 255 / 10%);
+  border-radius: 0.5rem;
   background: rgb(0 0 0 / 16%);
   color: #c9cad6;
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
 }
 
 .regional-preview strong {
@@ -1596,21 +1563,21 @@ button {
 
 .range-setting {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .range-setting-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .range-setting output {
-  min-width: 52px;
-  padding: 3px 7px;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 6px;
+  min-width: 3.25rem;
+  padding: 0.1875rem 0.4375rem;
+  border: 0.0625rem solid rgb(255 255 255 / 12%);
+  border-radius: 0.375rem;
   background: rgb(0 0 0 / 18%);
   color: #ffffff;
   font-variant-numeric: tabular-nums;
@@ -1626,7 +1593,7 @@ button {
 
 .range-control {
   position: relative;
-  padding-bottom: 18px;
+  padding-bottom: 1.125rem;
 }
 
 .range-control input[type="range"] {
@@ -1637,14 +1604,14 @@ button {
   position: absolute;
   bottom: 0;
   left: var(--default-position);
-  padding: 7px 3px 0;
+  padding: 0.4375rem 0.1875rem 0;
   transform: translateX(-50%);
   border: 0;
   outline: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.56);
-  font-size: calc(9px * var(--font-size-scale));
-  line-height: 10px;
+  font-size: 0.5625rem;
+  line-height: 0.625rem;
   cursor: pointer;
 }
 
@@ -1652,8 +1619,8 @@ button {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 1px;
-  height: 6px;
+  width: 0.0625rem;
+  height: 0.375rem;
   background: var(--theme-color-strong);
   content: "";
 }
@@ -1666,28 +1633,28 @@ button {
 .settings-footer {
   display: flex;
   flex: none;
-  gap: 8px;
+  gap: 0.5rem;
   justify-content: flex-end;
-  margin: 0 4px 0 0;
-  padding: 9px 0;
-  border-top: 1px solid rgb(255 255 255 / 9%);
+  margin: 0 0.25rem 0 0;
+  padding: 0.5625rem 0;
+  border-top: 0.0625rem solid rgb(255 255 255 / 9%);
   background: #171827;
 }
 
 .behavior-settings-card {
-  gap: 9px;
+  gap: 0.5625rem;
 }
 
 .audio-output-settings-card {
-  gap: 9px;
+  gap: 0.5625rem;
 }
 
 .signal-settings-card {
-  gap: 9px;
+  gap: 0.5625rem;
 }
 
 .timer-details-card textarea {
-  min-height: 74px;
+  min-height: 4.625rem;
   resize: vertical;
 }
 
@@ -1704,26 +1671,26 @@ button {
 
 .number-setting {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 105px;
+  grid-template-columns: minmax(0, 1fr) 6.5625rem;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .number-setting input[type="number"] {
-  padding: 8px 10px;
+  padding: 0.5rem 0.625rem;
 }
 
 .signal-preview-button {
   justify-self: start;
-  min-width: 120px;
+  min-width: 7.5rem;
 }
 
 .warning-signal-settings {
   display: grid;
-  gap: 9px;
-  margin-top: 5px;
-  padding-top: 14px;
-  border-top: 1px solid rgb(255 255 255 / 9%);
+  gap: 0.5625rem;
+  margin-top: 0.3125rem;
+  padding-top: 0.875rem;
+  border-top: 0.0625rem solid rgb(255 255 255 / 9%);
 }
 
 .warning-signal-settings h3,
@@ -1733,84 +1700,84 @@ button {
 
 .warning-signal-settings h3 {
   color: #ffffff;
-  font-size: calc(14px * var(--font-size-scale));
+  font-size: 0.875rem;
 }
 
 .warning-signal-callout {
   color: var(--theme-color-strong);
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .notification-channel-options {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .warning-channels {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 72px 82px;
-  gap: 9px 12px;
+  grid-template-columns: minmax(0, 1fr) 4.5rem 5.125rem;
+  gap: 0.5625rem 0.75rem;
   align-items: center;
 }
 
 .warning-channels strong {
   color: #c9cad6;
-  font-size: calc(11px * var(--font-size-scale));
+  font-size: 0.6875rem;
   text-align: center;
 }
 
 .warning-channels input {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   justify-self: center;
   margin: 0;
   accent-color: var(--theme-color);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 32.5rem) {
   .warning-channels {
-    grid-template-columns: minmax(0, 1fr) 58px 68px;
+    grid-template-columns: minmax(0, 1fr) 3.625rem 4.25rem;
   }
 }
 
 .signal-source-controls {
   display: grid;
-  gap: 7px;
+  gap: 0.4375rem;
 }
 
 .signal-source-label {
   color: #d9d9e3;
-  font-size: calc(13px * var(--font-size-scale));
+  font-size: 0.8125rem;
 }
 
 .custom-sound-picker {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  gap: 0.625rem;
   align-items: center;
 }
 
 .custom-sound-file-name {
   overflow: hidden;
   color: #c9cad6;
-  font-size: calc(12px * var(--font-size-scale));
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .checkbox-setting {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: flex-start;
   cursor: pointer;
 }
 
 .checkbox-setting input {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   flex: none;
-  margin: 1px 0 0;
+  margin: 0.0625rem 0 0;
   accent-color: var(--theme-color);
 }
 
@@ -1823,9 +1790,9 @@ button {
 
 .settings-footer .control-button {
   flex: 0 0 auto;
-  min-width: 92px;
-  min-height: 34px;
-  padding: 7px 12px;
+  min-width: 5.75rem;
+  min-height: 2.125rem;
+  padding: 0.4375rem 0.75rem;
   font-size: var(--ui-control-size);
   white-space: nowrap;
 }
@@ -1905,7 +1872,7 @@ button {
 }
 
 :root[data-theme="tan"] .timer-display {
-  text-shadow: 0 1px 0 rgb(255 255 255 / 30%);
+  text-shadow: 0 0.0625rem 0 rgb(255 255 255 / 30%);
 }
 
 :root[data-theme="tan"][data-glow="on"] .timer-panel:not(.is-overdue) {
@@ -1918,16 +1885,16 @@ button {
     ),
     #e8e7d6;
   box-shadow:
-    inset 0 0 34px rgb(223 192 112 / 56%),
-    inset 0 0 12px rgb(255 226 154 / 50%);
+    inset 0 0 2.125rem rgb(223 192 112 / 56%),
+    inset 0 0 0.75rem rgb(255 226 154 / 50%);
 }
 
 :root[data-theme="tan"][data-glow="on"] .timer-panel:not(.is-overdue) .timer-display {
   color: var(--theme-color-strong);
   filter: brightness(var(--display-brightness));
   text-shadow:
-    0 1px 0 rgb(255 255 255 / 34%),
-    0 1px 1px rgb(48 48 47 / 24%);
+    0 0.0625rem 0 rgb(255 255 255 / 34%),
+    0 0.0625rem 0.0625rem rgb(48 48 47 / 24%);
 }
 
 :root[data-theme="tan"] .duration-field {
@@ -2101,8 +2068,8 @@ button {
       rgb(198 201 204 / var(--window-surface-alpha))
     );
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 78%),
-    inset 0 -1px 0 rgb(77 82 88 / 14%);
+    inset 0 0.0625rem 0 rgb(255 255 255 / 78%),
+    inset 0 -0.0625rem 0 rgb(77 82 88 / 14%);
   color: var(--bsl-text);
 }
 
@@ -2170,7 +2137,7 @@ button {
   border-color: rgb(var(--theme-rgb) / 45%);
   background: rgb(246 246 242 / 96%);
   color: #25292e;
-  box-shadow: 0 8px 20px rgb(43 47 52 / 18%);
+  box-shadow: 0 0.5rem 1.25rem rgb(43 47 52 / 18%);
 }
 
 :root[data-appearance="light"] .timer-panel {
@@ -2182,8 +2149,8 @@ button {
       rgb(211 213 215 / 68%)
     );
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 82%),
-    inset 0 -1px 0 rgb(68 73 79 / 10%);
+    inset 0 0.0625rem 0 rgb(255 255 255 / 82%),
+    inset 0 -0.0625rem 0 rgb(68 73 79 / 10%);
 }
 
 :root[data-appearance="light"] .duration-field {
@@ -2213,7 +2180,7 @@ button {
       rgb(196 199 202 / 64%)
     );
   color: #25292e;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%);
+  box-shadow: inset 0 0.0625rem 0 rgb(255 255 255 / 72%);
 }
 
 :root[data-appearance="light"] .control-button:hover:not(:disabled) {
@@ -2276,7 +2243,7 @@ button {
   border-color: rgb(70 75 82 / 30%);
   background: #f3f3ef;
   color: #20242a;
-  box-shadow: inset 0 1px 2px rgb(55 60 66 / 8%);
+  box-shadow: inset 0 0.0625rem 0.125rem rgb(55 60 66 / 8%);
 }
 
 :root[data-appearance="light"] .date-time-segment,
@@ -2324,9 +2291,9 @@ button {
   background:
     repeating-radial-gradient(
       circle,
-      transparent 0 3px,
-      rgb(var(--theme-rgb) / 8%) 3px 4px,
-      transparent 4px 10px
+      transparent 0 0.1875rem,
+      rgb(var(--theme-rgb) / 8%) 0.1875rem 0.25rem,
+      transparent 0.25rem 0.625rem
     ),
     rgb(251 251 248 / 62%);
 }
@@ -2351,7 +2318,7 @@ button {
 :root[data-appearance="light"] .confirmation-dialog {
   border-color: rgb(var(--theme-rgb) / 48%);
   background: rgb(243 243 239 / 98%);
-  box-shadow: 0 18px 42px rgb(43 47 52 / 28%);
+  box-shadow: 0 1.125rem 2.625rem rgb(43 47 52 / 28%);
 }
 
 :root[data-appearance="light"] .confirmation-dialog p,
@@ -2384,7 +2351,7 @@ button {
       rgb(255 255 252 / 64%),
       rgb(218 220 221 / 52%)
     );
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 68%);
+  box-shadow: inset 0 0.0625rem 0 rgb(255 255 255 / 68%);
 }
 
 :root[data-appearance="light"] .about-link:hover,
@@ -2427,3 +2394,69 @@ button {
 :root[data-appearance="light"] .signal-source-label {
   color: #383e45;
 }
+
+/* Preserve padding even when a status or validation row appears. */
+.titlebar, .timer-tabs-bar, .timer-panel > * { flex-shrink: 0; }
+.timer-panel { overflow: visible; }
+.about-window-body { overflow: auto; }
+
+.confirmation-dialog { max-height: 100%; overflow-y: auto; }
+
+/* All action buttons share the compact event-editor geometry. */
+.control-button,
+.timer-controls .control-button,
+.date-countdown-dialog-actions .control-button,
+.confirmation-dialog-actions .control-button,
+.about-window-footer .control-button,
+.settings-footer .control-button {
+  flex: 0 0 var(--ui-action-button-width);
+  width: var(--ui-action-button-width);
+  min-width: var(--ui-action-button-width);
+  max-width: var(--ui-action-button-width);
+  height: var(--ui-action-button-height);
+  min-height: var(--ui-action-button-height);
+  padding: 0 var(--ui-action-button-padding);
+  border-radius: var(--ui-action-button-radius);
+  font-size: var(--ui-control-size);
+  white-space: normal;
+  line-height: 1;
+}
+.timer-controls, .date-countdown-dialog-actions, .settings-footer,
+.confirmation-dialog-actions {
+  gap: var(--ui-action-button-gap);
+}
+.settings-footer { padding: 0.25rem 0; }
+.about-window-body, .whats-new-window-body, .date-countdown-editor-body {
+  min-height: 0;
+  overflow: hidden;
+}
+.about-page, .whats-new-page, .date-countdown-editor-page {
+  height: auto;
+  min-height: 0;
+  padding: 0.875rem;
+}
+.about-window-footer { margin-top: 0.25rem; }
+.whats-new-window-footer {
+  flex: none;
+  min-height: 0;
+  margin: 0 -0.875rem -0.875rem;
+  padding: 0.375rem 0.875rem;
+}
+
+/* Natural heights are independent of the current viewport. */
+.app-shell { height: auto; }
+.timer-panel { flex: none; }
+.about-page > *, .whats-new-page > * { flex-shrink: 0; }
+.date-countdown-dialog { grid-template-columns: minmax(0, 1fr); }
+.date-countdown-field, .date-countdown-target-fields > * { min-width: 0; }
+.date-countdown-target-fields { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+.date-countdown-dialog-actions-spacer { min-width: 0; }
+.date-countdown-picker { display: grid; }
+.date-countdown-picker > * { grid-area: 1 / 1; }
+/* Reserve the taller picker without exposing its inactive contents. */
+.date-countdown-picker > [hidden] { display: grid !important; visibility: hidden; pointer-events: none; }
+.date-countdown-validation { min-height: 1.2rem; margin: 0; }
+.date-countdown-validation[hidden] { display: block !important; visibility: hidden; }
+.date-countdown-field textarea { resize: none; }
+
+.date-countdown-dialog-actions > [hidden] { display: block !important; visibility: hidden; }
