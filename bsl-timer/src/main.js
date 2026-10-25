@@ -30,6 +30,7 @@ import { TimerWorkspace } from './timer-workspace.js';
 import { EndSignalService } from './end-signal-service.js';
 import { SignalPlayer } from './signal.js';
 import { TrayInformerService } from './tray-informer-service.js';
+import { informerDiagnostic, installInformerErrorDiagnostics } from './informer-diagnostics.js';
 import { EVENT_DETAILS_EVENT } from './event-instance.js';
 import {
   SIGNAL_SETTINGS_EVENT,
@@ -119,6 +120,9 @@ import {
   shouldShowWhatsNew
 } from './whats-new.js';
 
+installInformerErrorDiagnostics();
+informerDiagnostic('main-loaded', { edition: getEdition() });
+
 const ALWAYS_ON_TOP_STORAGE_KEY = 'bsl-timer.always-on-top';
 const DATE_COUNTDOWN_RIBBON_COLLAPSED_STORAGE_KEY =
   'bsl-timer.date-countdown-ribbon-collapsed';
@@ -133,10 +137,12 @@ try {
 let informerRequestId = 0;
 async function prepareTrayInformer(data) {
   const requestId = ++informerRequestId;
+  informerDiagnostic('automatic-prepare-start', { requestId, mode: data.mode, state: data.state, thresholdMinutes: data.thresholdMinutes });
   let timeout;
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
   const unlisten = await listen('tray-preview-ready', event => {
+    informerDiagnostic('automatic-ready-received', { requestId, received: event.payload });
     if (event.payload === requestId) resolveReady();
   });
   try {
@@ -150,6 +156,7 @@ async function prepareTrayInformer(data) {
       })
     ]);
   } finally {
+    informerDiagnostic('automatic-prepare-finished', { requestId });
     clearTimeout(timeout);
     await unlisten();
   }
@@ -159,13 +166,17 @@ const signalInformer = new TrayInformerService({
   show: async (data) => {
     try {
       await prepareTrayInformer(data);
-      return await invoke('show_tray_informer');
+      const generation = await invoke('show_tray_informer');
+      informerDiagnostic('automatic-show-returned', { generation });
+      return generation;
     } catch (error) {
+      informerDiagnostic('automatic-show-failed', { error: String(error?.message ?? error) });
       console.error('Failed to prepare the tray informer:', error);
       return null;
     }
   },
   startFade: () => {
+    informerDiagnostic('automatic-fade');
     void emitTo('tray-preview', 'tray-preview-hide');
   },
   hide: (generation) => {
@@ -201,6 +212,7 @@ const endSignalService = new EndSignalService({
   player: endSignalPlayer,
   allowConcurrentSignals: initialAudioPreferences.allowConcurrentSignals,
   onPlaybackStart: (eventId, playbackNumber, settings) => {
+    informerDiagnostic('end-playback-start', { playbackNumber, informer: settings.showInformer });
     if (!settings.showInformer) {
       return;
     }
@@ -222,6 +234,7 @@ const warningSignalPlayer = new SignalPlayer({
 });
 const warningSignalController = new WarningSignalController({
   onWarning: (eventId, thresholdMinutes, _snapshot, delivery) => {
+    informerDiagnostic('warning-triggered', { thresholdMinutes, informer: delivery.informer, sound: delivery.sound });
     const token = `warning:${eventId}:${thresholdMinutes}`;
 
     if (delivery.informer) {
@@ -346,6 +359,7 @@ const workspace = new TimerWorkspace({
     void refreshTrayPreview();
   },
   onExpire: (eventId) => {
+    informerDiagnostic('timer-expired');
     workspace.save();
     const eventInstance = workspace.getEvent(eventId);
     const signalSettings = normalizeSignalSettings(
@@ -556,6 +570,7 @@ function createTrayPreviewData() {
 
   return {
     mode: 'timer',
+    eventId: activeEvent?.id ?? null,
     name: activeEvent
       ? workspace.getDisplayName(activeEvent.id, getDefaultTimerName())
       : t('app.title'),
@@ -581,6 +596,7 @@ function createSignalInformerData(
 
   return {
     mode,
+    eventId,
     name: workspace.getDisplayName(eventId, getDefaultTimerName()),
     description: eventInstance?.description ?? '',
     time: mode === 'warning'
@@ -594,7 +610,7 @@ function createSignalInformerData(
   };
 }
 
-async function refreshTrayPreview({ force = false } = {}) {
+async function refreshTrayPreview({ force = false, hoverPreview = false } = {}) {
   const data = createTrayPreviewData();
   const dataKey = JSON.stringify(data);
 
@@ -605,7 +621,7 @@ async function refreshTrayPreview({ force = false } = {}) {
   trayPreviewDataKey = dataKey;
 
   try {
-    await emitTo('tray-preview', 'tray-preview-data', data);
+    await emitTo('tray-preview', 'tray-preview-data', { ...data, hoverPreview });
   } catch (error) {
     trayPreviewDataKey = null;
     console.error('Failed to update tray preview:', error);
@@ -637,7 +653,9 @@ function cycleDurationInput(input, delta) {
     ? currentValue
     : 0;
 
-  input.value = String((normalizedValue + delta + 60) % 60);
+  input.value = String(input === hoursInput
+    ? Math.max(0, normalizedValue + delta)
+    : (normalizedValue + delta + 60) % 60);
   updateDurationFromInputs();
 }
 
@@ -1351,6 +1369,7 @@ function updateDateCountdownCard(card, countdown, nowTimestamp) {
     countdown.targetTimestamp,
     {
       nowTimestamp,
+      showTime: countdown.showTime,
       showSeconds: countdown.showSeconds,
       dayLabel: t('dateCountdowns.dayShort')
     }
@@ -1649,11 +1668,12 @@ function refreshLocalizedContent() {
 });
 
 [
+  hoursInput,
   minutesInput,
   secondsInput
 ].forEach((input) => {
   input.addEventListener('wheel', (event) => {
-    if (document.activeElement !== input || input.disabled) {
+    if (document.activeElement !== input || input.disabled || event.deltaY === 0) {
       return;
     }
 
@@ -2111,8 +2131,19 @@ await listen('tray-exit-requested', () => {
   });
 });
 
+await listen('tray-informer-activate', async ({ payload }) => {
+  if (!workspace.getEvent(payload?.eventId)) return;
+  workspace.setActiveEvent(payload.eventId);
+  applyActiveVisualSettings();
+  updateActiveTabSelection();
+  renderActiveTimer();
+  refreshStatusIcons();
+  await invoke('activate_main_window');
+});
+
 await listen('tray-preview-requested', () => {
-  void refreshTrayPreview({ force: true });
+  informerDiagnostic('hover-data-requested');
+  void refreshTrayPreview({ force: true, hoverPreview: true });
 });
 
 await listen(APPEARANCE_PREVIEW_EVENT, (event) => {

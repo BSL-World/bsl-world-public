@@ -7,6 +7,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-10-25
+
+### Fixed
+
+- Open the displayed timer tab when clicking an informer, including overdue
+  reminders; keep reminder data tied to its timer during background ticks.
+- Prevent duplicate Windows instances when simultaneous launches encounter the
+  first process before its IPC window exists. Register the guard first, wait
+  briefly for IPC, and exit the secondary process even if IPC is unavailable.
+- Preserve the earlier date-countdown time-visibility and duration-wheel fixes
+  in the release notes.
+
+
+## [1.0.2] - 2026-10-17
+
+### Fixed
+
+- Make mouse-wheel adjustment of hours follow the same direction as minutes
+  and seconds, preserving nonnegative hours and cyclic minute/second values.
+
+## [1.0.1] - 2026-10-14
+
+### Added
+
+- Added a per-event option to hide hours and minutes in dated countdowns while
+  keeping the number of days visible. The existing seconds option is retained
+  when time is hidden, and older saved events keep their previous display.
+
 ## [1.0.0] - 2026-10-11
 
 ### Changed

@@ -48,6 +48,7 @@ export function createDateCountdown({
   name = null,
   description = null,
   targetTimestamp = Date.now() + 24 * 60 * 60 * 1000,
+  showTime = true,
   showSeconds = false,
   ordinal = 1
 } = {}) {
@@ -63,6 +64,7 @@ export function createDateCountdown({
       targetTimestamp,
       Date.now() + 24 * 60 * 60 * 1000
     ),
+    showTime: showTime !== false,
     showSeconds: showSeconds === true,
     ordinal: normalizeOrdinal(ordinal)
   };
@@ -112,6 +114,7 @@ export function formatDateCountdownDuration(
   targetTimestamp,
   {
     nowTimestamp = Date.now(),
+    showTime = true,
     showSeconds = false,
     dayLabel = 'd'
   } = {}
@@ -120,6 +123,10 @@ export function formatDateCountdownDuration(
 
   if (parts.expired) {
     return null;
+  }
+
+  if (!showTime) {
+    return `${parts.days} ${dayLabel}`;
   }
 
   const clock = [

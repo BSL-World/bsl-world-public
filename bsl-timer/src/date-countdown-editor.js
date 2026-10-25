@@ -10,5 +10,6 @@ export function dateCountdownEditorValuesEqual(first, second) {
   return first?.name === second?.name
     && first?.description === second?.description
     && first?.targetTimestamp === second?.targetTimestamp
+    && first?.showTime === second?.showTime
     && first?.showSeconds === second?.showSeconds;
 }

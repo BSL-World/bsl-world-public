@@ -73,6 +73,22 @@ test('updates and removes a saved date countdown', () => {
   assert.deepEqual(persisted.countdowns, []);
 });
 
+test('persists display options independently and restores legacy events', () => {
+  const storage = createMemoryStorage();
+  storage.setItem(DATE_COUNTDOWN_STORAGE_KEY, JSON.stringify({
+    version: 1, countdowns: [{
+      id: 'legacy', name: 'Legacy', targetTimestamp: 1_800_000_000_000,
+      showSeconds: true
+    }]
+  }));
+  const store = new DateCountdownStore({ storage });
+  assert.equal(store.load()[0].showTime, true);
+  store.update('legacy', { showTime: false });
+  const restored = new DateCountdownStore({ storage }).load()[0];
+  assert.equal(restored.showTime, false);
+  assert.equal(restored.showSeconds, true);
+});
+
 test('recovers from invalid stored data', () => {
   const storage = createMemoryStorage();
   storage.setItem(DATE_COUNTDOWN_STORAGE_KEY, '{broken');

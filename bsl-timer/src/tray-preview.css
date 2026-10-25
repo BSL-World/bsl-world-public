@@ -1,7 +1,8 @@
 .tray-preview-body {
   padding: 0.5rem;
   user-select: none;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .tray-preview-card {

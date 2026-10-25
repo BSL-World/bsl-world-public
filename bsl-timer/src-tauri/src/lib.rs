@@ -25,6 +25,9 @@ use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
 use window_vibrancy::apply_blur;
 
+mod informer_diagnostics;
+use informer_diagnostics::{informer_diagnostics_enabled, log_informer_diagnostic};
+
 #[tauri::command]
 fn list_audio_output_devices() -> Result<Vec<AudioOutputDevice>, String> {
     shared_list_audio_output_devices()
@@ -458,6 +461,11 @@ fn contains_autostart_arg(args: &[String]) -> bool {
     args.iter().any(|arg| arg == AUTOSTART_ARG)
 }
 
+#[tauri::command]
+fn activate_main_window(app: tauri::AppHandle) {
+    show_main_window(&app);
+}
+
 fn show_main_window(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
@@ -482,10 +490,10 @@ fn toggle_main_window(app: &tauri::AppHandle) {
 }
 
 fn hide_tray_preview(app: &tauri::AppHandle, state: &TrayPreviewState) {
-    state.0.fetch_add(1, Ordering::SeqCst);
+    let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
 
     if let Some(window) = app.get_webview_window(TRAY_PREVIEW_LABEL) {
-        let _ = window.hide();
+        let _ = informer_diagnostics::operation(app, "tray-click-hide", generation, window.hide().map_err(|e| e.to_string()));
     }
 }
 
@@ -522,18 +530,19 @@ fn show_tray_informer(
     state: tauri::State<'_, TrayPreviewState>,
 ) -> Result<u64, String> {
     let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
+    informer_diagnostics::record(&app, "native", "automatic-show-request", serde_json::json!({ "generation": generation }));
     let position = automatic_tray_preview_position(&app)?;
     let window = app
         .get_webview_window(TRAY_PREVIEW_LABEL)
         .ok_or_else(|| "The tray informer window was not found".to_string())?;
 
-    window
+    informer_diagnostics::operation(&app, "automatic-show-event", generation, window
         .emit("tray-preview-show", ())
-        .map_err(|error| error.to_string())?;
-    window
+        .map_err(|error| error.to_string()))?;
+    informer_diagnostics::operation(&app, "automatic-position", generation, window
         .set_position(position)
-        .map_err(|error| error.to_string())?;
-    window.show().map_err(|error| error.to_string())?;
+        .map_err(|error| error.to_string()))?;
+    informer_diagnostics::operation(&app, "automatic-window-show", generation, window.show().map_err(|error| error.to_string()))?;
 
     Ok(generation)
 }
@@ -545,11 +554,12 @@ fn hide_tray_informer(
     generation: u64,
 ) -> Result<bool, String> {
     if state.0.load(Ordering::SeqCst) != generation {
+        informer_diagnostics::record(&app, "native", "automatic-hide-stale", serde_json::json!({ "generation": generation, "current": state.0.load(Ordering::SeqCst) }));
         return Ok(false);
     }
 
     if let Some(window) = app.get_webview_window(TRAY_PREVIEW_LABEL) {
-        window.hide().map_err(|error| error.to_string())?;
+        informer_diagnostics::operation(&app, "automatic-window-hide", generation, window.hide().map_err(|error| error.to_string()))?;
     }
 
     Ok(true)
@@ -632,6 +642,7 @@ fn schedule_tray_preview(
     let generation_state = state.clone();
     let preview_app = app.clone();
     let hover_bounds = tray_bounds(app, cursor, rect);
+    informer_diagnostics::record(app, "native", "hover-enter", serde_json::json!({ "generation": generation, "cursor": [cursor.x, cursor.y], "bounds": [hover_bounds.left, hover_bounds.top, hover_bounds.right, hover_bounds.bottom] }));
 
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.emit("tray-preview-requested", ());
@@ -641,6 +652,7 @@ fn schedule_tray_preview(
         thread::sleep(Duration::from_millis(TRAY_PREVIEW_DELAY_MS));
 
         if generation_state.0.load(Ordering::SeqCst) != generation {
+            informer_diagnostics::record(&preview_app, "native", "hover-cancelled-before-show", serde_json::json!({ "generation": generation }));
             return;
         }
 
@@ -649,6 +661,7 @@ fn schedule_tray_preview(
             .map(|position| !hover_bounds.contains(position))
             .unwrap_or(false)
         {
+            informer_diagnostics::record(&preview_app, "native", "hover-cursor-outside", serde_json::json!({ "generation": generation }));
             return;
         }
 
@@ -661,9 +674,9 @@ fn schedule_tray_preview(
             }
 
             if let Some(window) = main_thread_app.get_webview_window(TRAY_PREVIEW_LABEL) {
-                let _ = window.emit("tray-preview-show", ());
-                let _ = window.set_position(tray_preview_position(&main_thread_app, cursor));
-                let _ = window.show();
+                let _ = informer_diagnostics::operation(&main_thread_app, "hover-show-event", generation, window.emit("tray-preview-show", ()).map_err(|e| e.to_string()));
+                let _ = informer_diagnostics::operation(&main_thread_app, "hover-position", generation, window.set_position(tray_preview_position(&main_thread_app, cursor)).map_err(|e| e.to_string()));
+                let _ = informer_diagnostics::operation(&main_thread_app, "hover-window-show", generation, window.show().map_err(|e| e.to_string()));
             }
         });
 
@@ -699,7 +712,7 @@ fn schedule_tray_preview(
             let fade_app = preview_app.clone();
             let _ = preview_app.run_on_main_thread(move || {
                 if let Some(window) = fade_app.get_webview_window(TRAY_PREVIEW_LABEL) {
-                    let _ = window.emit("tray-preview-hide", ());
+                    let _ = informer_diagnostics::operation(&fade_app, "hover-hide-event", generation, window.emit("tray-preview-hide", ()).map_err(|e| e.to_string()));
                 }
             });
 
@@ -721,7 +734,7 @@ fn schedule_tray_preview(
             let hide_app = preview_app.clone();
             let _ = preview_app.run_on_main_thread(move || {
                 if let Some(window) = hide_app.get_webview_window(TRAY_PREVIEW_LABEL) {
-                    let _ = window.hide();
+                    let _ = informer_diagnostics::operation(&hide_app, "hover-window-hide", generation, window.hide().map_err(|e| e.to_string()));
                 }
             });
             return;
@@ -1171,7 +1184,6 @@ pub fn run() {
     let taskbar_icon_state = TaskbarIconState::default();
 
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AudioEngine::default())
         .manage(tray_visual_state.clone())
         .manage(tray_preview_state.clone());
@@ -1185,6 +1197,7 @@ pub fn run() {
                 show_main_window(app);
             }
         }))
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_autostart::Builder::new()
                 .arg(AUTOSTART_ARG)
@@ -1199,7 +1212,10 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
+            informer_diagnostics_enabled,
+            log_informer_diagnostic,
             greet,
+            activate_main_window,
             close_about_window,
             close_auxiliary_windows,
             close_settings_window,
@@ -1228,6 +1244,7 @@ pub fn run() {
             update_tray_icon
         ])
         .setup(move |app| {
+            informer_diagnostics::record(app.handle(), "native", "diagnostic-startup", serde_json::json!({ "enabled": informer_diagnostics::enabled() }));
             let window = app.get_webview_window("main").unwrap();
 
             if is_autostart_launch() {
@@ -1250,7 +1267,7 @@ pub fn run() {
             .transparent(true)
             .build()?;
 
-            let _ = tray_preview_window.set_ignore_cursor_events(true);
+            let _ = tray_preview_window.set_ignore_cursor_events(false);
 
             let open_item = MenuItem::with_id(app, "open", "Open BSL-Timer", true, None::<&str>)?;
             let exit_item = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;

@@ -9,6 +9,7 @@ const baseline = Object.freeze({
   name: 'Holiday',
   description: 'Pack the suitcase',
   targetTimestamp: 1_800_000_000_000,
+  showTime: true,
   showSeconds: false
 });
 
@@ -24,6 +25,7 @@ test('detects every persisted date countdown editor change', () => {
     { name: 'Flight' },
     { description: 'Check in online' },
     { targetTimestamp: baseline.targetTimestamp + 60_000 },
+    { showTime: false },
     { showSeconds: true }
   ]) {
     assert.equal(

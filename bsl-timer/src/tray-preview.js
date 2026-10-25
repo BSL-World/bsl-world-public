@@ -1,6 +1,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { fitScaledWindow } from './scaled-window.js';
 import { emitTo, listen } from '@tauri-apps/api/event';
+import { informerDiagnostic, installInformerErrorDiagnostics } from './informer-diagnostics.js';
 
 import {
   applyTranslations,
@@ -24,6 +25,9 @@ import {
   watchAppearanceMode
 } from './appearance-mode-settings.js';
 
+installInformerErrorDiagnostics();
+informerDiagnostic('preview-loaded');
+
 const informerWindow = getCurrentWindow();
 const card = document.getElementById('tray-preview-card');
 const name = document.getElementById('tray-preview-name');
@@ -32,8 +36,28 @@ const description = document.getElementById('tray-preview-description');
 const time = document.getElementById('tray-preview-time');
 const summary = document.getElementById('tray-preview-summary');
 
+card.addEventListener('click', () => {
+  if (currentData.eventId) {
+    void emitTo('main', 'tray-informer-activate', { eventId: currentData.eventId });
+  }
+});
+
 let lastLayoutKey = null;
 let informerFit = Promise.resolve();
+let fitSequence = 0;
+let pendingFitCount = 0;
+
+function diagnosticSnapshot() {
+  const style = getComputedStyle(card);
+  const bounds = card.getBoundingClientRect();
+  return {
+    classes: card.className, opacity: style.opacity, visibility: style.visibility,
+    display: style.display, documentVisibility: document.visibilityState,
+    viewport: [window.innerWidth, window.innerHeight],
+    cardSize: [bounds.width, bounds.height], pendingFitCount,
+    mode: currentData.mode, state: currentData.state
+  };
+}
 
 let currentData = {
   name: 'BSL-Timer',
@@ -104,23 +128,40 @@ function render() {
 }
 
 await listen('tray-preview-data', async (event) => {
+  if (currentData.layoutRequestId && !event.payload.layoutRequestId && !event.payload.hoverPreview) return;
   currentData = event.payload;
   applyTheme(currentData.themeId);
   applyGlow(currentData.glowEnabled);
   render();
   if (Number.isFinite(event.payload.layoutRequestId)) {
+    informerDiagnostic('preview-data-request', { requestId: event.payload.layoutRequestId, ...diagnosticSnapshot() });
     if (await informerFit === false) return;
+    informerDiagnostic('preview-ready-sending', { requestId: event.payload.layoutRequestId, ...diagnosticSnapshot() });
     await emitTo('main', 'tray-preview-ready', event.payload.layoutRequestId);
   }
 });
 
 await listen('tray-preview-show', async () => {
+  informerDiagnostic('preview-show-received', diagnosticSnapshot());
   await informerFit;
+  informerDiagnostic('preview-show-fit-resolved', diagnosticSnapshot());
   card.classList.remove('is-hiding');
+  informerDiagnostic('preview-show-class-removed', diagnosticSnapshot());
 });
 
 await listen('tray-preview-hide', () => {
+  informerDiagnostic('preview-hide-received', diagnosticSnapshot());
   card.classList.add('is-hiding');
+  informerDiagnostic('preview-hide-class-added', diagnosticSnapshot());
+});
+
+document.addEventListener('visibilitychange', () => {
+  informerDiagnostic('preview-document-visibility', diagnosticSnapshot());
+});
+card.addEventListener('transitionend', event => {
+  if (event.target === card && event.propertyName === 'opacity') {
+    informerDiagnostic('preview-opacity-transition-end', diagnosticSnapshot());
+  }
 });
 
 window.addEventListener('bsl-timer:locale-changed', render);
@@ -156,12 +197,20 @@ applyTranslations();
 render();
 
 async function fitInformer() {
+  const fitId = ++fitSequence;
+  pendingFitCount += 1;
+  informerDiagnostic('preview-fit-start', { fitId, ...diagnosticSnapshot() });
   try {
-    await fitScaledWindow(informerWindow, { width: 340, page: card, requireAllContent: true });
+    await fitScaledWindow(informerWindow, { width: 340, page: card, requireAllContent: true,
+      onDiagnostic: (stage, details) => informerDiagnostic('preview-fit-stage', { fitId, stage, ...details }) });
+    informerDiagnostic('preview-fit-success', { fitId, ...diagnosticSnapshot() });
     return true;
   } catch (error) {
+    informerDiagnostic('preview-fit-failed', { fitId, error: String(error?.message ?? error), ...diagnosticSnapshot() });
     console.error('Failed to resize the informer:', error);
     return false;
+  } finally {
+    pendingFitCount -= 1;
   }
 }
 window.addEventListener('bsl-world:font-size-applied', () => { informerFit = fitInformer(); });

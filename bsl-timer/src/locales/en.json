@@ -49,6 +49,7 @@
     "descriptionPlaceholder": "What happens on this date",
     "date": "Date",
     "time": "Time",
+    "showTime": "Show hours and minutes",
     "showSeconds": "Show seconds",
     "save": "Save",
     "delete": "Delete",
@@ -219,6 +220,8 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
+    "singleInstance": "Fixed duplicate application instances during simultaneous launches; launching again opens the existing window.",
+    "informerNavigation": "Click the informer to open the displayed timer tab, including repeated overdue reminders.",
     "title": "What’s New in BSL-Timer {version}",
     "dateCountdowns": "Added events with countdowns to a specified local date and time.",
     "eventDetails": "Save an event name, description, and optional seconds. Free includes one event; Pro supports multiple events.",
@@ -232,6 +235,8 @@
     "compactTypography": "Small, Normal, and Large scale text, fields, buttons, and window dimensions together. Timer digits use a gentler scale.",
     "auxiliaryLayout": "About, What’s New, and the event editor fit all content and bottom buttons without scrolling.",
     "informerStability": "The tray informer keeps its size and no longer flickers when seconds change.",
+    "durationWheel": "The mouse wheel changes hours, minutes, and seconds in the same direction: scrolling toward you increases the value.",
+    "calendarTimeVisibility": "Date countdowns can hide hours and minutes while keeping the number of days. Seconds can be configured separately.",
     "windowLifecycle": "Closing the main window now also closes every auxiliary BSL-Timer window.",
     "dontShowAgain": "Don’t show again for this version"
   },

@@ -89,6 +89,9 @@ const clockFace = document.getElementById('date-countdown-clock-face');
 const periodSwitch = document.getElementById(
   'date-countdown-period-switch'
 );
+const showTimeInput = document.getElementById(
+  'date-countdown-show-time-input'
+);
 const showSecondsInput = document.getElementById(
   'date-countdown-show-seconds-input'
 );
@@ -185,6 +188,7 @@ function readEditorValue() {
     name: nameInput.value,
     description: descriptionInput.value,
     targetTimestamp: selectedTarget(),
+    showTime: showTimeInput.checked,
     showSeconds: showSecondsInput.checked
   };
 }
@@ -481,7 +485,9 @@ async function loadCountdown(countdownId = null) {
   calendarYear = target.getFullYear();
   calendarMonth = target.getMonth();
   pickerMode = 'date';
+  showTimeInput.checked = countdown?.showTime !== false;
   showSecondsInput.checked = countdown?.showSeconds === true;
+  showSecondsInput.disabled = !showTimeInput.checked;
   deleteButton.hidden = !countdown;
   setValidation();
   renderPicker();
@@ -564,6 +570,7 @@ async function saveCountdown({ close = true } = {}) {
     name: nameInput.value,
     description: descriptionInput.value,
     targetTimestamp,
+    showTime: showTimeInput.checked,
     showSeconds: showSecondsInput.checked
   };
 
@@ -696,6 +703,10 @@ calendar.addEventListener('wheel', (event) => {
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   void saveCountdown();
+});
+showTimeInput.addEventListener('change', () => {
+  showSecondsInput.disabled = !showTimeInput.checked;
+  updateActions();
 });
 form.addEventListener('input', updateActions);
 cancelButton.addEventListener('click', () => void requestClose());

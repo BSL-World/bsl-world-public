@@ -33,16 +33,23 @@ function measurePage(page, viewportWidth = window.innerWidth) {
 }
 
 export function fitScaledWindow(appWindow, {
-  width, height = 0, page = null, requireAllContent = false
+  width, height = 0, page = null, requireAllContent = false, onDiagnostic = null
 }) {
+  const report = (stage, details = {}) => onDiagnostic?.(stage, details);
+  report('queued');
   const previous = pendingFits.get(appWindow) ?? Promise.resolve();
   const next = previous.catch(() => {}).then(async () => {
+    report('fonts-wait');
     await document.fonts.ready;
+    report('fonts-ready');
     fitActionButtons();
     const preferred = scaleInterfaceSize({ width, height }, getCachedFontSize());
+    report('monitor-wait');
     const monitor = await currentMonitor();
     const dpi = monitor?.scaleFactor ?? window.devicePixelRatio ?? 1;
+    report('visibility-wait');
     const visible = await appWindow.isVisible();
+    report('inner-size-wait', { visible });
     let inner = await appWindow.innerSize();
     const observedRatio = inner.width / Math.max(1, window.innerWidth);
     const previousRatio = pixelRatios.get(appWindow);
@@ -66,12 +73,20 @@ export function fitScaledWindow(appWindow, {
         targetWidth = neededWidth;
       }
     }
-    if (requireAllContent) await appWindow.setMinSize(null);
+    report('measurement-complete', { visible, targetWidth, pixelsPerCssPixel, required });
+    if (requireAllContent) {
+      report('clear-min-size-wait');
+      await appWindow.setMinSize(null);
+    }
     const targetHeight = Math.max(Math.ceil(preferred.height * dpi),
       page ? cssSizeToPhysical(required, pixelsPerCssPixel).height : 1);
+    report('inner-size-before-resize');
     inner = await appWindow.innerSize();
     if (Math.abs(inner.width - targetWidth) > 1 || Math.abs(inner.height - targetHeight) > 1) {
+      report('set-size-wait', { targetWidth, targetHeight });
       await appWindow.setSize(new PhysicalSize(targetWidth, targetHeight));
+      report('set-size-returned');
+      if (visible) report('client-resize-wait');
       if (visible) await waitForClientResize(appWindow, pixelsPerCssPixel);
     }
     if (requireAllContent) {
@@ -82,9 +97,12 @@ export function fitScaledWindow(appWindow, {
         }
       }
       // Manual resizing cannot cut off the measured contents either.
+      report('set-min-size-wait');
       await appWindow.setMinSize(new PhysicalSize(targetWidth, targetHeight));
     }
+    report('work-area-wait');
     await keepWindowInsideWorkArea(appWindow);
+    report('complete');
   });
   pendingFits.set(appWindow, next);
   return next;
