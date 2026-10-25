@@ -4,7 +4,7 @@
 
 ## Статус версии
 
-Предварительные установщики Free и Pro 1.0.3 были собраны и подписаны, но не опубликованы. При повторном просмотре найдена порча двух новых русских строк в «Что нового». Исходники исправлены; прежние установщики не предназначены для публикации. Для исправленной сборки нужны пересборка и новая подпись. Решение о номере окончательной версии ожидается.
+Предварительные установщики Free и Pro 1.0.3 были собраны и подписаны, но не опубликованы. При повторном просмотре найдена порча двух новых русских строк в «Что нового». Исходники исправлены; прежние установщики не предназначены для публикации. Пользователь разрешил сохранить 1.0.3 для неопубликованной пересборки. Окончательные Free и Pro пересобраны в каталоге 1.0.3-final; исправленный русский текст проверен в production-файлах. Ожидается новая подпись.
 
 Публикация 1.0.3 пока не выполнена. Проверка поведения установленного приложения и визуальная проверка RU/EN ещё не завершены. Материалы можно готовить как черновики; дату публичного выхода нужно подтвердить при публикации.
 
@@ -57,7 +57,7 @@ The release retains the optional date-countdown time display introduced in 1.0.1
 
 ## Что осталось сделать с Git и выпуском
 
-Проверено локально: репозиторий `D:/bsl-world`, ветка `main`; последний коммит — `d0011ae` (1.0.0). Изменения 1.0.1–1.0.3 ещё находятся в рабочей папке. Локально найден тег `bsl-timer-v1.0.0`; тега 1.0.3 нет. Удалённые репозитории: `origin` — GitVerse, `github` — GitHub. Удалённое состояние в рамках обновления этого документа не запрашивалось.
+Исходники накопленных изменений 1.0.1–1.0.3 сохранены коммитом `c710aab` и отправлены в оба публичных репозитория. Проверка через ls-remote подтвердила одинаковый main на GitVerse и GitHub. Старые незакоммиченные архивы и локальный AGENTS.md в коммит не включены. Тег окончательной версии и релизные материалы оформляются следующим шагом. Пользователь прямо разрешил коммиты, push и публикацию выпуска.
 
 Порядок завершения:
 
@@ -68,7 +68,7 @@ The release retains the optional date-countdown time display introduced in 1.0.1
 5. Оформить описание релиза на обеих площадках. В публичные вложения включать только разрешённые артефакты Free; установщик Pro не публиковать открыто.
 6. Опубликовать подписанные артефакты через принятый канал распространения, проверить доступность файлов и только затем обновить производственный манифест. Проверить реальные обновления Free→Free и Pro→Pro с сохранением настроек. Обновить README с фактически опубликованной стабильной версией.
 
-Коммит, тег, push и публикация этим обновлением документа не выполняются.
+Для других чатов подготовлен отдельный файл product-updates/bsl-timer/1.0.3.md в приватном репозитории bsl-world-internal. Публикация установщиков на сайте и реальная проверка обновления пока не выполнены: требуется подключение к хостингу.
 
 ## Техническая запись и доказательства
 
@@ -111,7 +111,7 @@ Existing unrelated uncommitted work was backed up before changes in
 ## Validation so far
 
 - cargo check --offline: passed.
-- Existing Node tests: 96 passed.
+- Complete Node test run after the encoding fix: 99 passed.
 - New informer navigation tests: 2 passed (source handlers executed with mocked
   event/window boundaries, including background updates and deleted events).
 - Browser visual verification: not performed; browser runtime failed to start
@@ -119,7 +119,7 @@ Existing unrelated uncommitted work was backed up before changes in
 - Installed native runtime / simultaneous launch verification: not yet performed.
 - Free and Pro NSIS builds: passed. Both executable/installer versions are 1.0.3.
   Separate artifacts and SHA-256 hashes are saved under
-  src-tauri/target/release-handoff/1.0.3/.
+  src-tauri/target/release-handoff/1.0.3-final/ for the final corrected candidate.
 - Updater signing: completed for both editions at 19:12 Moscow time on
   2026-10-25; both .sig files, local latest.json and signing-success.txt exist.
   Installer SHA-256 hashes were rechecked after signing and match the saved
