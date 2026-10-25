@@ -4,7 +4,7 @@
 
 ## Статус версии
 
-Предварительные установщики Free и Pro 1.0.3 были собраны и подписаны, но не опубликованы. При повторном просмотре найдена порча двух новых русских строк в «Что нового». Исходники исправлены; прежние установщики не предназначены для публикации. Пользователь разрешил сохранить 1.0.3 для неопубликованной пересборки. Окончательные Free и Pro пересобраны в каталоге 1.0.3-final; исправленный русский текст проверен в production-файлах. Ожидается новая подпись.
+Предварительные установщики Free и Pro 1.0.3 были собраны и подписаны, но не опубликованы. При повторном просмотре найдена порча двух новых русских строк в «Что нового». Исходники исправлены; прежние установщики не предназначены для публикации. Пользователь разрешил сохранить 1.0.3 для неопубликованной пересборки. Окончательные Free и Pro пересобраны в каталоге 1.0.3-final; исправленный русский текст проверен в production-файлах. Окончательные установщики повторно подписаны; обе подписи независимо проверены библиотекой minisign-verify по публичному ключу из конфигурации Tauri.
 
 Публикация 1.0.3 пока не выполнена. Проверка поведения установленного приложения и визуальная проверка RU/EN ещё не завершены. Материалы можно готовить как черновики; дату публичного выхода нужно подтвердить при публикации.
 
@@ -57,7 +57,7 @@ The release retains the optional date-countdown time display introduced in 1.0.1
 
 ## Что осталось сделать с Git и выпуском
 
-Исходники накопленных изменений 1.0.1–1.0.3 сохранены коммитом `c710aab` и отправлены в оба публичных репозитория. Проверка через ls-remote подтвердила одинаковый main на GitVerse и GitHub. Старые незакоммиченные архивы и локальный AGENTS.md в коммит не включены. Тег окончательной версии и релизные материалы оформляются следующим шагом. Пользователь прямо разрешил коммиты, push и публикацию выпуска.
+Исходники накопленных изменений 1.0.1–1.0.3 сохранены коммитом `c710aab` и отправлены в оба публичных репозитория. Проверка через ls-remote подтвердила одинаковый main на GitVerse и GitHub. Старые незакоммиченные архивы и локальный AGENTS.md в коммит не включены. Коммит 56419cc и тег bsl-timer-v1.0.3 отправлены на обе площадки и сверены. Черновики релиза созданы на GitHub и GitVerse. В GitHub прикреплены окончательные установщик Free, подпись и SHA-256. Загрузка вложений через API GitVerse отклонена с HTTP 400 VALIDATION_ERROR; сам черновик создан успешно. Пользователь прямо разрешил коммиты, push и публикацию выпуска.
 
 Порядок завершения:
 
@@ -120,9 +120,6 @@ Existing unrelated uncommitted work was backed up before changes in
 - Free and Pro NSIS builds: passed. Both executable/installer versions are 1.0.3.
   Separate artifacts and SHA-256 hashes are saved under
   src-tauri/target/release-handoff/1.0.3-final/ for the final corrected candidate.
-- Updater signing: completed for both editions at 19:12 Moscow time on
-  2026-10-25; both .sig files, local latest.json and signing-success.txt exist.
-  Installer SHA-256 hashes were rechecked after signing and match the saved
-  build hashes. These checks establish successful signing output, not a tested
-  production updater installation or an independent cryptographic verification.
-- Publication: not performed; runtime acceptance remains pending.
+- Final corrected candidate: both installer signatures verified cryptographically with minisign-verify 0.2.5 against the updater public key embedded in tauri.conf.json. Original candidate signatures are superseded; only 1.0.3-final artifacts are intended for publication.
+- Public Git mirrors: source/tag verified on both services. GitHub draft has Free installer, signature and checksum attached. GitVerse draft exists; asset API returns HTTP 400 VALIDATION_ERROR.
+- Website publication and real update acceptance: not performed; hosting access is not configured in this environment.
