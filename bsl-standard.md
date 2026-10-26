@@ -160,6 +160,30 @@ time format, date format, or first day of the week.
   settings document atomically so independently updated products cannot erase
   one another's preferences.
 
+### Preference scope classification
+
+The following scope classification was approved on 2026-10-26:
+
+| Scope | Meaning | Examples |
+| --- | --- | --- |
+| BSL-World family | A common user preference for the desktop application family. | Interface language, interface size, System/Light/Dark window appearance, and regional formats. |
+| Application | A preference whose changes affect only the selected application. | Autostart, close-to-tray behavior, and audio output device. |
+| Object | A preference belonging to an individual timer, clock, or other product object. | Accent theme and Glow. |
+
+This classification defines the intended ownership of preferences. It does not
+assert that every existing product already implements every listed scope.
+Application overrides of family preferences and live propagation between
+running applications require a separate decision in this review; the existing
+approved regional override contract remains in force.
+
+### Pending BSL-Core discussion: Glass
+
+Glass was proposed on 2026-10-26 as a window-surface appearance compatible with
+all canonical accent palettes. Discuss its model and implementation in
+BSL-Core. Its relationship to System/Light/Dark, transparency, platform support,
+and fallback behavior is not yet approved. Glass is not a new canonical accent
+theme and is not yet a mandatory implementation requirement.
+
 ## Windows application requirements
 
 The following requirements are mandatory for every BSL-World Windows application intended for public distribution:
