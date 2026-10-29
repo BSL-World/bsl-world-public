@@ -1,5 +1,11 @@
 # BSL-Timer
 
+Release preparation and the explanation of intermediate version numbers:
+[handoff status, 29 October 2026 (RU)](docs/release-handoff-2026-10-29.ru.md)
+and [announcement drafts (RU/EN)](docs/release-announcement-2026-10-29.ru-en.md).
+These documents describe local development as well as published builds;
+they do not announce a new public installer.
+
 BSL-Timer is a compact countdown timer for Windows.
 
 It is designed for everyday situations where a clear and reliable countdown
