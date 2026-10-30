@@ -1,0 +1,107 @@
+[
+  {
+    "tag": "bsl-timer-v0.5.0",
+    "commit": "dc4f4272206f1ee26c6d792a35e9e1ce3813a337",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.6.0",
+    "commit": "009d0bbd94a052534a775b12eb6a140402d51168",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.6.2",
+    "commit": "825bde9b11e329dafedc714a529eabed68f7b0c5",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.6.4",
+    "commit": "a6b2bc3082b1007e98c60df98890179225eabf51",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.7.0",
+    "commit": "e9db41a88d9465a77e9e604b9d644a245fda47da",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.7.1",
+    "commit": "ad2066b8e9ae76ca58431172fbf011aedc8c2738",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.7.2",
+    "commit": "60428d7a90b3c80d90a7ccb377833bfb7d9d2cca",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.8.0",
+    "commit": "62226c8668ea47d41e438028dae577844f0c3d6b",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.9.0",
+    "commit": "eb6a7bf2c311d8cfd2775a3efb6f27c7a7bf46f4",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.10.0",
+    "commit": "5a47638a13b46074458512a715439cd2d79ecbe0",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.10.1",
+    "commit": "144476dadf03e37128ebb544ac0d06061a4a59e5",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.11.0",
+    "commit": "57bb8002f65aad8d770dc0b8d7ed8d41c2cd7cf0",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.12.0",
+    "commit": "6fd864afeda5ca0343e6fd7c54a10d2609756d4c",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.13.0",
+    "commit": "2389775537c11a6cbe95f4233117c775bd97b2e5",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  },
+  {
+    "tag": "bsl-timer-v0.13.1",
+    "commit": "d55df34ca0ffabb42367a06e35ac4f5d64af4f8f",
+    "package_tauri_cargo_agree": true,
+    "ancestor_of_both_remote_main": true,
+    "status": "proposal only; binary-to-source correspondence not proven"
+  }
+]

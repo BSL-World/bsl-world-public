@@ -6,6 +6,10 @@ and [announcement drafts (RU/EN)](docs/release-announcement-2026-10-29.ru-en.md)
 These documents describe local development as well as published builds;
 they do not announce a new public installer.
 
+Verified source and release history:
+[30 October 2026 audit (RU)](docs/git-history-audit-2026-10-30.ru.md)
+and [English summary](docs/git-history-audit-2026-10-30.en.md).
+
 BSL-Timer is a compact countdown timer for Windows.
 
 It is designed for everyday situations where a clear and reliable countdown
