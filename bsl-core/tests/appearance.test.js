@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import {
   AppearanceMode,
+  applyGlassTextTone,
+  normalizeGlassTextTone,
   applyAppearanceMode,
   appearanceModeSettingsEqual,
   normalizeAppearanceMode,
@@ -56,4 +58,27 @@ test('watches and releases the system appearance query', () => {
 
   assert.deepEqual(values, [true]);
   assert.equal(removedListener, listener);
+});
+
+test('Glass stays explicit across system appearance changes', () => {
+  for (const matches of [false, true, false]) {
+    const document = { documentElement: { dataset: {} } };
+    const result = applyAppearanceMode('glass', {
+      document, matchMedia: () => ({ matches })
+    });
+    assert.deepEqual(result, { mode: 'glass', resolvedMode: 'glass' });
+    assert.equal(document.documentElement.dataset.appearance, 'glass');
+  }
+  assert.equal(appearanceModeSettingsEqual({ mode: 'glass' }, { mode: 'dark' }), false);
+});
+
+test('Glass text contrast is independent of material and accent color', () => {
+  const document = { documentElement: { dataset: { appearance: 'glass', theme: 'purple', glow: 'on' } } };
+  assert.equal(normalizeGlassTextTone('unknown'), 'light');
+  assert.equal(applyGlassTextTone('dark', document), 'dark');
+  assert.deepEqual(document.documentElement.dataset, {
+    appearance: 'glass', theme: 'purple', glow: 'on', glassTextTone: 'dark'
+  });
+  assert.equal(appearanceModeSettingsEqual({ mode: 'glass' }, { mode: 'glass', glassTextTone: 'light' }), true);
+  assert.equal(appearanceModeSettingsEqual({ mode: 'glass' }, { mode: 'glass', glassTextTone: 'dark' }), false);
 });

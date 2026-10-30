@@ -31,3 +31,159 @@
   --bsl-shadow: rgb(43 47 52 / 24%);
   --bsl-scrollbar-track: rgb(70 75 81 / 14%);
 }
+
+/* Glass light uses the existing canonical palette, never a colored body fill. */
+:root[data-appearance="glass"],
+:root[data-appearance="glass"] .timer-panel.is-overdue,
+:root[data-appearance="glass"] .tray-preview-card[data-state="overdue"] {
+  --bsl-glass-control-outline:
+    -1px -1px 0 rgb(0 0 0 / 88%),
+    0 -1px 0 rgb(0 0 0 / 88%),
+    1px -1px 0 rgb(0 0 0 / 88%),
+    -1px 0 0 rgb(0 0 0 / 88%),
+    1px 0 0 rgb(0 0 0 / 88%),
+    -1px 1px 0 rgb(0 0 0 / 88%),
+    0 1px 0 rgb(0 0 0 / 88%),
+    1px 1px 0 rgb(0 0 0 / 88%);
+  --bsl-glass-edge-glow:
+    inset 0 0 calc(0.1875rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-inner-light-rgb) / calc(40% * var(--bsl-glass-glow-strength, 1))),
+    inset 0 0 calc(0.875rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-inner-light-rgb) / calc(27.5% * var(--bsl-glass-glow-strength, 1))),
+    0 0 calc(0.375rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-glow-rgb) / calc(20% * var(--bsl-glass-glow-strength, 1)));
+  --bsl-glass-display-glow:
+    inset 0 0 calc(0.625rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-inner-light-rgb) / calc(20% * var(--bsl-glass-glow-strength, 1))),
+    0 0 calc(0.3125rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-glow-rgb) / calc(17.5% * var(--bsl-glass-glow-strength, 1)));
+  --bsl-glass-emission:
+    0 0 calc(0.1875rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-glow-rgb) / calc(80% * var(--bsl-glass-glow-strength, 1))),
+    0 0 calc(0.5rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-glow-rgb) / calc(47.5% * var(--bsl-glass-glow-strength, 1))),
+    0 0 calc(0.875rem * var(--bsl-glass-glow-spread, 1)) rgb(var(--theme-glow-rgb) / calc(22.5% * var(--bsl-glass-glow-strength, 1)));
+}
+
+/* Clear material: neutral surfaces; accent light is added by the consumer. */
+:root[data-appearance="glass"] {
+  color-scheme: dark;
+  --bsl-text: #f5f5f7;
+  --bsl-text-secondary: #f5f5f7;
+  --bsl-text-muted: rgb(255 255 255 / 86%);
+  --bsl-glass-density: 1;
+  --bsl-glass-surface: linear-gradient(145deg,
+    rgb(255 255 255 / calc(0.045 * var(--bsl-glass-density))),
+    rgb(255 255 255 / calc(0.008 * var(--bsl-glass-density))) 48%,
+    rgb(0 0 0 / calc(0.025 * var(--bsl-glass-density))));
+  --bsl-glass-raised: linear-gradient(155deg,
+    rgb(255 255 255 / calc(0.075 * var(--bsl-glass-density))),
+    rgb(255 255 255 / calc(0.012 * var(--bsl-glass-density))) 45%,
+    rgb(0 0 0 / calc(0.035 * var(--bsl-glass-density))));
+  --bsl-glass-edge: rgb(255 255 255 / 58%);
+  --bsl-glass-edge-soft: rgb(255 255 255 / 30%);
+  --bsl-glass-relief:
+    inset 0 1px 0 rgb(255 255 255 / 68%),
+    inset 1px 0 0 rgb(255 255 255 / 18%),
+    inset 0 -1px 0 rgb(0 0 0 / 26%),
+    0 1px 2px rgb(0 0 0 / 24%);
+  --bsl-glass-text-outline:
+    -0.6px -0.6px 0 rgb(0 0 0 / 84%),
+    0.6px -0.6px 0 rgb(0 0 0 / 84%),
+    -0.6px 0.6px 0 rgb(0 0 0 / 84%),
+    0.6px 0.6px 0 rgb(0 0 0 / 84%),
+    0 1px 2px rgb(0 0 0 / 50%);
+  --bsl-canvas: transparent;
+  --bsl-canvas-deep: transparent;
+  --bsl-surface: var(--bsl-glass-surface);
+  --bsl-surface-raised: var(--bsl-glass-raised);
+  --bsl-surface-muted: transparent;
+  --bsl-titlebar: transparent;
+  --bsl-border: var(--bsl-glass-edge);
+  --bsl-border-soft: var(--bsl-glass-edge-soft);
+}
+
+/* A clear rounded bead. Light is confined to the curved rim; its center is open. */
+:root[data-appearance="glass"] {
+  --bsl-glass-rounded-reflections:
+    radial-gradient(ellipse at 12% 0%, rgb(255 255 255 / 85%), transparent 44%),
+    radial-gradient(ellipse at 100% 82%, rgb(255 255 255 / 52%), transparent 32%),
+    conic-gradient(from 125deg at 47% 48%,
+      rgb(255 255 255 / 9%) 0deg,
+      rgb(0 0 0 / 52%) 42deg,
+      rgb(255 255 255 / 8%) 85deg,
+      rgb(255 255 255 / 65%) 134deg,
+      rgb(255 255 255 / 12%) 168deg,
+      rgb(0 0 0 / 42%) 216deg,
+      rgb(255 255 255 / 40%) 280deg,
+      rgb(255 255 255 / 9%) 360deg);
+  --bsl-glass-rounded-profile:
+    inset 0 1px 1px rgb(255 255 255 / 86%),
+    inset 1px 0 2px rgb(255 255 255 / 36%),
+    inset 0 -2px 3px rgb(0 0 0 / 64%),
+    inset -1px 0 2px rgb(0 0 0 / 42%);
+}
+
+:root[data-appearance="glass"] [data-bsl-glass-relief="rounded"] {
+  position: relative;
+  isolation: isolate;
+}
+
+:root[data-appearance="glass"] [data-bsl-glass-relief="rounded"]::before,
+:root[data-appearance="glass"] [data-bsl-glass-relief="rounded"]::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+:root[data-appearance="glass"] [data-bsl-glass-relief="rounded"]::before {
+  inset: 0;
+  padding: var(--bsl-glass-rim-width, 0.5rem);
+  background: var(--bsl-glass-rounded-reflections);
+  box-shadow: var(--bsl-glass-rounded-profile);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+:root[data-appearance="glass"] [data-bsl-glass-relief="rounded"]::after {
+  inset: calc(var(--bsl-glass-rim-width, 0.5rem) * 0.43);
+  border: 1px solid transparent;
+  border-top-color: rgb(255 255 255 / 45%);
+  border-left-color: rgb(255 255 255 / 19%);
+  border-bottom-color: rgb(0 0 0 / 56%);
+  border-right-color: rgb(0 0 0 / 38%);
+  box-shadow:
+    0 -1px 2px rgb(255 255 255 / 26%),
+    0 2px 3px rgb(0 0 0 / 24%);
+  opacity: 0.85;
+}
+
+/* Reflection, not a tint: the optical body remains clear between light bands. */
+:root[data-appearance="glass"] {
+  --bsl-glass-body-reflection: linear-gradient(118deg,
+    rgb(255 255 255 / calc(0.025 * var(--bsl-glass-density))) 0%,
+    rgb(255 255 255 / calc(0.06 * var(--bsl-glass-density))) 24%,
+    rgb(255 255 255 / calc(0.012 * var(--bsl-glass-density))) 47%,
+    transparent 68%,
+    rgb(255 255 255 / calc(0.025 * var(--bsl-glass-density))) 100%);
+  --bsl-glass-neutral-text-outline: var(--bsl-glass-text-outline);
+}
+
+:root[data-appearance="glass"][data-glass-text-tone="dark"] {
+  --bsl-text: #23272c;
+  --bsl-text-secondary: #23272c;
+  --bsl-text-muted: rgb(35 39 44 / 86%);
+  --bsl-glass-neutral-text-outline:
+    -0.6px -0.6px 0 rgb(255 255 255 / 78%),
+    0.6px -0.6px 0 rgb(255 255 255 / 78%),
+    -0.6px 0.6px 0 rgb(255 255 255 / 78%),
+    0.6px 0.6px 0 rgb(255 255 255 / 78%);
+}
+
+/* Broad reflected light and a shallow neutral trough reveal the clear body. */
+:root[data-appearance="glass"] {
+  --bsl-glass-body-reflection-enhanced: linear-gradient(118deg,
+    transparent 0%,
+    rgb(255 255 255 / calc(0.025 * var(--bsl-glass-density))) 12%,
+    rgb(255 255 255 / calc(0.14 * var(--bsl-glass-density))) 28%,
+    rgb(255 255 255 / calc(0.035 * var(--bsl-glass-density))) 41%,
+    transparent 49%,
+    rgb(0 0 0 / calc(0.045 * var(--bsl-glass-density))) 65%,
+    rgb(0 0 0 / calc(0.012 * var(--bsl-glass-density))) 82%,
+    transparent 100%);
+}

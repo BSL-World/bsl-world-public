@@ -296,7 +296,9 @@ product must use the shared appearance model with these technical IDs:
 - `system` — follow the operating-system light or dark preference and react to
   supported changes without requiring an application restart;
 - `light` — use light window surfaces and controls;
-- `dark` — use dark window surfaces and controls.
+- `dark` — use dark window surfaces and controls;
+- `glass` — explicitly selected clear optical glass/acrylic, independent of
+  the system light/dark preference. Glass is mutually exclusive with Light/Dark.
 
 The selected accent palette continues to control displays, highlights, glow,
 status accents, and themed icons in every surface mode. Selecting a light or
@@ -307,8 +309,35 @@ including auxiliary windows, native title bars where the platform supports
 them, dialogs, and informers. Shared code and design tokens belong in
 `bsl-core`; products supply only product-specific markup and localized text.
 The model must remain platform-neutral so Windows and Linux products expose the
-same three user-facing choices even when their native window implementations
+same four conceptual choices even when their native window implementations
 differ.
+
+### Approved Glass contract (2026-10-28)
+
+The user-approved BSL-Timer study is the reference for BSL-Clock and subsequent
+products. See [core Glass integration handoff](bsl-core/docs/glass-integration.md)
+for implementation, storage, native capture fixes, reference CSS, verified scope,
+and remaining release work. This approval is not a completed cross-platform release.
+
+- Clear colorless body showing the actual desktop/windows, with a small native
+  blur accepted for optical substance. No wallpaper imitation, grey/milky fill,
+  background analysis, or automatic label-color sampling.
+- Uniform rounded convex rims, crisp dark 1 CSS px contours, restrained top
+  highlights; no diagonal body reflection bands or conic/gradient-colored rims.
+- A numeric module may use its own thin industrial frame and small corner radius.
+- The reference has a transparent blue header, explicitly approved separately
+  from the untinted body. Preserve canonical accent colors.
+- Ordinary light labels use dark contours; optional dark labels use light contours.
+- Glow uses canonical inner-light/halo colors at edges and readouts while the
+  body stays clear. In Glass expose synchronized slider/numeric controls 0–300%.
+  100% is the approved reference level, not the maximum. Stronger levels increase
+  halo brightness and width. Preview immediately; Apply saves and Cancel restores.
+  Glow on/off remains independent and remembers the selected intensity.
+- Shared appearance settings include `mode`, `glassTextTone`, `glassGlowIntensity`.
+  Missing intensity defaults to 100. Product state/business data stays separate.
+- Rendering must not capture the desktop or hook screenshot keys. Keep the local
+  Composition surface workaround for Windows 10 multi-monitor capture. Validate
+  platform support and native/CSS rounding; do not promise untested Linux/driver parity.
 
 ### Glow model
 
@@ -397,6 +426,9 @@ Soft Amber illumination:
 - Light core / Halo: `#FFE29A`
 
 Enabling Glow must not replace the base display background or digit color. The display remains `#E8E7D6` with digits `#4D4D4B`. Soft Amber is added as a translucent internal gradient and inset illumination.
+
+Glass is the explicit material exception: its display remains clear instead of
+using the beige fill, while keeping graphite digits and canonical Soft Amber light.
 
 The result should resemble an LCD screen illuminated from within, like an old electronic clock or car stereo. It must not look like the screen was replaced with a solid orange surface.
 

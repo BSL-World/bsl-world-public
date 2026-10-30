@@ -1,0 +1,16 @@
+[package]
+name = "bsl-desktop-window"
+version = "0.7.0"
+edition = "2021"
+
+[dependencies]
+tauri = { version = "2", default-features = false }
+
+[target.'cfg(windows)'.dependencies]
+window-vibrancy = "0.7.1"
+
+[features]
+composition-preview = ["dep:cc"]
+
+[build-dependencies]
+cc = { version = "=1.2.64", optional = true }
