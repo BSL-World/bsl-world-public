@@ -1,6 +1,6 @@
 [package]
 name = "bsl-timer"
-version = "1.0.5"
+version = "1.0.7"
 description = "BSL-Timer: countdown timers, interval signals, alarms, date events"
 authors = ["Alexander Vasilyev (bsl-world.ru)"]
 edition = "2021"
@@ -17,16 +17,19 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[features]
+native-glass-preview = ["bsl-desktop-window/composition-preview"]
+
 [dependencies]
 bsl-desktop-audio = { path = "../../bsl-core/native/audio" }
 bsl-desktop-settings = { path = "../../bsl-core/native/settings" }
+bsl-desktop-window = { path = "../../bsl-core/native/window" }
 tauri = { version = "2", features = ["image-png", "tray-icon"] }
 tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-single-instance = { path = "../vendor/tauri-plugin-single-instance" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-window-vibrancy = "0.7.1"
 tauri-plugin-window-state = "2.4.1"
 tauri-plugin-autostart = "2.5.1"
 

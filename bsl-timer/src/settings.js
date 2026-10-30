@@ -109,8 +109,15 @@ import {
   APPEARANCE_MODE_OPTIONS,
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
+  GLASS_TEXT_TONE_OPTIONS,
+  GLASS_TEXT_TONE_STORAGE_KEY,
+  GLASS_GLOW_INTENSITY_STORAGE_KEY,
+  applyGlassGlowIntensity,
+  getCachedGlassGlowIntensity,
   appearanceModeSettingsEqual,
   applyAppearanceMode,
+  applyGlassTextTone,
+  getCachedGlassTextTone,
   getCachedAppearanceMode,
   loadAppearanceModeSettings,
   saveAppearanceModeSettings,
@@ -143,6 +150,11 @@ const themeSelect =
 
 const appearanceModeSelect =
   document.getElementById('appearance-mode-select');
+const glassTextToneSelect = document.getElementById('glass-text-tone-select');
+const glassTextToneSetting = document.getElementById('glass-text-tone-setting');
+const glassGlowSetting = document.getElementById('glass-glow-setting');
+const glassGlowInput = document.getElementById('glass-glow-input');
+const glassGlowValue = document.getElementById('glass-glow-value');
 
 const appearanceModeSettingsStatus =
   document.getElementById('appearance-mode-settings-status');
@@ -272,7 +284,9 @@ let pendingTheme = committedTheme;
 let committedGlowEnabled = getGlowEnabled();
 let pendingGlowEnabled = committedGlowEnabled;
 let committedAppearanceModeSettings = {
-  mode: getCachedAppearanceMode()
+  mode: getCachedAppearanceMode(),
+  glassTextTone: getCachedGlassTextTone(),
+  glassGlowIntensity: getCachedGlassGlowIntensity()
 };
 let pendingAppearanceModeSettings = {
   ...committedAppearanceModeSettings
@@ -520,6 +534,17 @@ function populateAppearanceModeSelect() {
       === pendingAppearanceModeSettings.mode;
     appearanceModeSelect.append(option);
   }
+  glassTextToneSetting.hidden = pendingAppearanceModeSettings.mode !== 'glass';
+  updateGlassGlowControls();
+  glassTextToneSelect.disabled = !appearanceModeSettingsLoaded;
+  glassTextToneSelect.replaceChildren();
+  for (const definition of GLASS_TEXT_TONE_OPTIONS) {
+    const option = document.createElement('option');
+    option.value = definition.code;
+    option.textContent = t(definition.nameKey);
+    option.selected = definition.code === pendingAppearanceModeSettings.glassTextTone;
+    glassTextToneSelect.append(option);
+  }
 }
 
 async function loadSharedAppearanceModeSettings() {
@@ -647,7 +672,16 @@ async function applyFontSizeSettings() {
   }
 }
 
+function updateGlassGlowControls() {
+  glassGlowSetting.hidden = pendingAppearanceModeSettings.mode !== 'glass';
+  const value = String(pendingAppearanceModeSettings.glassGlowIntensity ?? 100);
+  glassGlowInput.value = value;
+  glassGlowValue.value = value;
+  glassGlowInput.disabled = glassGlowValue.disabled = !appearanceModeSettingsLoaded || !pendingGlowEnabled;
+}
+
 function updateVisualControls() {
+  updateGlassGlowControls();
   glowEnabledInput.checked = pendingGlowEnabled;
 }
 
@@ -1315,6 +1349,8 @@ async function cancelPendingSettings() {
   applyTheme(committedTheme);
   applyGlow(committedGlowEnabled);
   applyAppearanceMode(committedAppearanceModeSettings.mode);
+  applyGlassTextTone(committedAppearanceModeSettings.glassTextTone);
+  applyGlassGlowIntensity(committedAppearanceModeSettings.glassGlowIntensity);
   applyFontSize(committedFontSizeSettings.fontSize);
   await emitVisualPreview();
   await emitAppearancePreview(committedAppearance);
@@ -1339,14 +1375,43 @@ themeSelect.addEventListener('change', () => {
 
 appearanceModeSelect.addEventListener('change', () => {
   pendingAppearanceModeSettings = {
+    ...pendingAppearanceModeSettings,
     mode: appearanceModeSelect.value
   };
   applyAppearanceMode(pendingAppearanceModeSettings.mode);
+  glassTextToneSetting.hidden = pendingAppearanceModeSettings.mode !== 'glass';
+  updateGlassGlowControls();
+  void updateInterface();
+  updateApplyButton();
+});
+
+function previewGlassGlow(input) {
+  if (input.value.trim() === '' || !Number.isFinite(Number(input.value))) return;
+  pendingAppearanceModeSettings = {
+    ...pendingAppearanceModeSettings,
+    glassGlowIntensity: applyGlassGlowIntensity(input.value)
+  };
+  if (input !== glassGlowInput) glassGlowInput.value = String(pendingAppearanceModeSettings.glassGlowIntensity);
+  if (input !== glassGlowValue) glassGlowValue.value = String(pendingAppearanceModeSettings.glassGlowIntensity);
+  updateApplyButton();
+}
+for (const input of [glassGlowInput, glassGlowValue]) {
+  input.addEventListener('input', () => previewGlassGlow(input));
+  input.addEventListener('change', () => { previewGlassGlow(input); updateGlassGlowControls(); });
+  input.addEventListener('blur', updateGlassGlowControls);
+}
+
+glassTextToneSelect.addEventListener('change', () => {
+  pendingAppearanceModeSettings = {
+    ...pendingAppearanceModeSettings,
+    glassTextTone: applyGlassTextTone(glassTextToneSelect.value)
+  };
   updateApplyButton();
 });
 
 glowEnabledInput.addEventListener('change', () => {
   pendingGlowEnabled = glowEnabledInput.checked;
+  updateGlassGlowControls();
   updateApplyButton();
   void emitVisualPreview();
 });
@@ -1544,11 +1609,28 @@ window.addEventListener('storage', async (event) => {
 
   if (event.key === APPEARANCE_MODE_STORAGE_KEY) {
     committedAppearanceModeSettings = {
+      ...committedAppearanceModeSettings,
       mode: applyAppearanceMode(event.newValue).mode
     };
     pendingAppearanceModeSettings = {
       ...committedAppearanceModeSettings
     };
+    populateAppearanceModeSelect();
+    updateApplyButton();
+  }
+
+  if (event.key === GLASS_GLOW_INTENSITY_STORAGE_KEY) {
+    committedAppearanceModeSettings = { ...committedAppearanceModeSettings, glassGlowIntensity: getCachedGlassGlowIntensity() };
+    pendingAppearanceModeSettings = { ...committedAppearanceModeSettings };
+    updateGlassGlowControls();
+    updateApplyButton();
+  }
+  if (event.key === GLASS_TEXT_TONE_STORAGE_KEY) {
+    committedAppearanceModeSettings = {
+      ...committedAppearanceModeSettings,
+      glassTextTone: applyGlassTextTone(event.newValue)
+    };
+    pendingAppearanceModeSettings = { ...committedAppearanceModeSettings };
     populateAppearanceModeSelect();
     updateApplyButton();
   }

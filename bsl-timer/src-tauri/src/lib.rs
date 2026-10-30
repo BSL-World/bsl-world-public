@@ -23,7 +23,7 @@ use tauri::{
 };
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_window_state::StateFlags;
-use window_vibrancy::apply_blur;
+use bsl_desktop_window::apply_window_appearance;
 
 mod informer_diagnostics;
 use informer_diagnostics::{informer_diagnostics_enabled, log_informer_diagnostic};
@@ -748,15 +748,40 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn set_main_window_transparency(app: tauri::AppHandle, transparency: u8) -> Result<(), String> {
+#[cfg(not(feature = "native-glass-preview"))]
+fn set_main_window_transparency(
+    app: tauri::AppHandle,
+    transparency: u8,
+    appearance_mode: Option<String>,
+) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "Main window was not found".to_string())?;
 
-    let normalized_transparency = transparency.min(90);
-    let alpha = (((100 - normalized_transparency) as f64 / 100.0) * 255.0).round() as u8;
+    apply_window_appearance(&window, appearance_mode.as_deref().unwrap_or("dark"), transparency)
+}
 
-    apply_blur(&window, Some((18, 18, 18, alpha))).map_err(|error| error.to_string())
+#[tauri::command]
+#[cfg(feature = "native-glass-preview")]
+async fn set_main_window_transparency(
+    app: tauri::AppHandle,
+    transparency: u8,
+    appearance_mode: Option<String>,
+) -> Result<(), String> {
+    let window = app.get_webview_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+    // WinRT composition belongs to the native UI thread. Never block that thread.
+    tauri::async_runtime::spawn_blocking(move || {
+        let (send, receive) = std::sync::mpsc::sync_channel(1);
+        let target = window.clone();
+        window.run_on_main_thread(move || {
+            let result = apply_window_appearance(
+                &target, appearance_mode.as_deref().unwrap_or("dark"), transparency
+            );
+            let _ = send.send(result);
+        }).map_err(|error| error.to_string())?;
+        receive.recv().map_err(|error| error.to_string())?
+    }).await.map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -1342,7 +1367,7 @@ pub fn run() {
 
             #[cfg(target_os = "windows")]
             {
-                let _ = apply_blur(&window, Some((18, 18, 18, 125)));
+                let _ = apply_window_appearance(&window, "dark", 51);
             }
 
             Ok(())

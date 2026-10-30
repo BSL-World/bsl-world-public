@@ -65,7 +65,8 @@ import {
   APPEARANCE_PREVIEW_EVENT,
   APPEARANCE_STORAGE_KEY,
   applyAppearance,
-  getAppearance
+  getAppearance,
+  watchWindowMaterial
 } from './appearance.js';
 
 import {
@@ -105,6 +106,7 @@ import {
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
   applyAppearanceMode,
+  applyGlassTextTone,
   loadAppearanceModeSettings,
   watchAppearanceMode
 } from './appearance-mode-settings.js';
@@ -2217,6 +2219,7 @@ await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
 
 await listen(APPEARANCE_MODE_SETTINGS_EVENT, (event) => {
   applyAppearanceMode(event.payload?.mode);
+  applyGlassTextTone(event.payload?.glassTextTone);
 });
 
 await listen(AUDIO_PREFERENCES_EVENT, (event) => {
@@ -2231,6 +2234,7 @@ document.documentElement.dataset.edition = getEdition();
 
 applyTheme();
 applyGlow();
+watchWindowMaterial();
 applyAppearanceMode();
 watchAppearanceMode();
 applyFontSize();

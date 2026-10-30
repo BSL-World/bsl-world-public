@@ -381,11 +381,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bsl-desktop-window"
+version = "0.7.0"
+dependencies = [
+ "cc",
+ "tauri",
+ "window-vibrancy 0.7.1",
+]
+
+[[package]]
 name = "bsl-timer"
-version = "1.0.5"
+version = "1.0.7"
 dependencies = [
  "bsl-desktop-audio",
  "bsl-desktop-settings",
+ "bsl-desktop-window",
  "serde",
  "serde_json",
  "tauri",
@@ -396,7 +406,6 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
- "window-vibrancy 0.7.1",
  "windows-sys 0.61.2",
 ]
 

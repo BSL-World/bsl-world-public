@@ -74,9 +74,15 @@ the application.
 
 ## Current status
 
-Version 1.0.5 is being prepared for installed-app testing. It restores live
-countdown and overdue updates in informers. Version 1.0.4 corrected zero-valued
-overdue reminders but left their displayed time static.
+Version 1.0.7 develops the Glass appearance preview for the main window and
+informer, consuming desktop-core 0.6.1. Glass removes native blur, keeps surfaces
+untinted and preserves independent accent colors and Glow. Auxiliary windows
+retain their existing surfaces while the material is evaluated. The new preview
+adds a neutral body reflection, a separate numeric-display rim and a manual
+light/dark choice for ordinary Glass labels.
+
+Version 1.0.5 restores live countdown and overdue updates in informers.
+Version 1.0.4 corrected zero-valued overdue reminders but left their time static.
 
 The current public stable release is BSL-Timer 1.0.3 Free. A separate Pro build
 is maintained for private testing and controlled distribution.

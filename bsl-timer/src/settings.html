@@ -91,6 +91,15 @@
                     <input id="glow-enabled-input" type="checkbox">
                     <span data-i18n="settings.glowEnabled"></span>
                 </label>
+                <div id="glass-glow-setting" class="range-setting" hidden>
+                    <label for="glass-glow-input" data-i18n="settings.glassGlowIntensity"></label>
+                    <div class="glass-glow-controls">
+                        <input id="glass-glow-input" type="range" min="0" max="300" step="1" data-i18n-aria-label="settings.glassGlowIntensity">
+                        <input id="glass-glow-value" type="number" min="0" max="300" step="1" data-i18n-aria-label="settings.glassGlowIntensity">
+                        <span aria-hidden="true">%</span>
+                    </div>
+                    <p class="settings-card-note" data-i18n="settings.glassGlowDescription"></p>
+                </div>
             </section>
 
             <section class="settings-card appearance-settings-card">
@@ -103,6 +112,12 @@
                 <p class="settings-card-note" data-i18n="settings.appearanceModeDescription"></p>
 
                 <p id="appearance-mode-settings-status" class="settings-status" aria-live="polite" hidden></p>
+
+                <div id="glass-text-tone-setting" hidden>
+                    <label for="glass-text-tone-select" data-i18n="settings.glassTextTone"></label>
+                    <select id="glass-text-tone-select"></select>
+                    <p class="settings-card-note" data-i18n="settings.glassTextToneDescription"></p>
+                </div>
 
                 <label for="font-size-select" data-i18n="settings.fontSize"></label>
 

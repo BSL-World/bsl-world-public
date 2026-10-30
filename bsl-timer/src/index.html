@@ -22,10 +22,11 @@
     <link rel="preload" href="/assets/fonts/dseg7-classic/dseg7-classic-latin-700-normal.woff2" as="font"
         type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/glass.css">
 </head>
 
 <body>
-    <div id="app" class="app-shell">
+    <div id="app" class="app-shell" data-bsl-glass-relief="rounded">
         <header class="titlebar">
             <div class="titlebar-drag-region" data-tauri-drag-region>
                 <span class="app-title" data-tauri-drag-region data-i18n="app.title"></span>
@@ -84,7 +85,7 @@
             <div id="tab-notice" class="tab-notice" role="status" hidden></div>
         </nav>
 
-        <main class="timer-panel">
+        <main class="timer-panel" data-bsl-glass-relief="rounded">
             <div id="timer-status" class="timer-status" hidden>
                 <span data-i18n="timer.overdue"></span>
             </div>

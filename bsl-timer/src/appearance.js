@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { createWindowMaterialUpdater } from './window-material.js';
 
 export const APPEARANCE_STORAGE_KEY =
   'bsl-timer.appearance';
@@ -18,7 +19,24 @@ const DEFAULT_APPEARANCE = Object.freeze({
   displayBrightness: DEFAULT_DISPLAY_BRIGHTNESS
 });
 
-let appliedWindowTransparency = null;
+let currentAppearance = null;
+const updateWindowMaterial = createWindowMaterialUpdater(
+  (appearanceMode, transparency) => invoke('set_main_window_transparency', {
+    transparency,
+    appearanceMode
+  })
+);
+
+export function watchWindowMaterial() {
+  const observer = new MutationObserver(() => {
+    void applyAppearance(currentAppearance ?? getAppearance());
+  });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-appearance']
+  });
+  return () => observer.disconnect();
+}
 
 function clampNumber(value, minimum, maximum, fallback) {
   const number = Number(value);
@@ -89,6 +107,10 @@ export function appearanceEquals(first, second) {
 }
 
 function applyAppearanceStyles(appearance) {
+  document.documentElement.style.setProperty(
+    '--bsl-glass-density',
+    String((100 - appearance.windowTransparency) / 50)
+  );
   const surfaceAlpha = Math.min(
     0.98,
     Math.max(
@@ -110,23 +132,13 @@ function applyAppearanceStyles(appearance) {
 
 export async function applyAppearance(appearance) {
   const normalizedAppearance = normalizeAppearance(appearance);
-
+  currentAppearance = normalizedAppearance;
   applyAppearanceStyles(normalizedAppearance);
-
-  if (
-    normalizedAppearance.windowTransparency
-    === appliedWindowTransparency
-  ) {
-    return normalizedAppearance;
-  }
-
   try {
-    await invoke('set_main_window_transparency', {
-      transparency: normalizedAppearance.windowTransparency
-    });
-
-    appliedWindowTransparency =
-      normalizedAppearance.windowTransparency;
+    await updateWindowMaterial(
+      document.documentElement.dataset.appearance ?? 'dark',
+      normalizedAppearance.windowTransparency
+    );
   } catch (error) {
     console.error('Failed to change window transparency:', error);
   }

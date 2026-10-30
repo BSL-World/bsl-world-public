@@ -99,6 +99,11 @@
     "appearanceModeSystem": "Use Windows setting",
     "appearanceModeLight": "Light",
     "appearanceModeDark": "Dark",
+    "appearanceModeGlass": "Glass",
+    "glassTextTone": "Glass text",
+    "glassTextLight": "Light",
+    "glassTextDark": "Dark",
+    "glassTextToneDescription": "Contrast for ordinary labels and icons. Display and Glow colors stay unchanged.",
     "appearanceModeDescription": "A shared window appearance setting for BSL-World applications. Display and glow colors are selected separately.",
     "appearanceModeUnavailable": "The shared window appearance setting is unavailable.",
     "appearanceModeSaveFailed": "Could not save the window appearance.",
@@ -178,6 +183,8 @@
     "ok": "Ok",
     "apply": "Apply",
     "cancel": "Cancel",
+    "glassGlowIntensity": "Glass glow intensity",
+    "glassGlowDescription": "100% is the current standard. Up to 300% gives a brighter, wider halo. Preview changes instantly.",
     "glowEnabled": "Glow / internal illumination"
   },
   "theme": {
@@ -220,6 +227,8 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
+    "glassBody": "Glass now has a subtle neutral body reflection, a separate numeric-display rim, and a choice of light or dark ordinary labels without changing the display color palette.",
+    "glassPreview": "First Glass preview: clear, untinted main-window and informer surfaces without blur, with independent accent colors and Glow. Auxiliary windows retain their existing surfaces for now.",
     "overdueInformer": "Version 1.0.4 fixed zeros in overdue reminders, but left the displayed time static. Version 1.0.5 restores live time updates: the countdown in 15, 10 and 5 minute warnings and elapsed overdue time after completion, including repeated reminders.",
     "singleInstance": "Fixed duplicate application instances during simultaneous launches; launching again opens the existing window.",
     "informerNavigation": "Click the informer to open the displayed timer tab, including repeated overdue reminders.",

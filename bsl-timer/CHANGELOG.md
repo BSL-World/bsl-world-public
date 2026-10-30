@@ -7,6 +7,47 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve the right Glass outline when WebView2 rounds its viewport beyond the native window.
+- Avoid the black Glass backdrop in virtual-desktop captures using a local Composition surface;
+  verified with PrtScn/ShareX on the current Windows 10 multi-monitor setup.
+
+### Added
+
+- Glass Glow intensity slider and numeric input (0–300%) with live preview,
+  shared persistence, and cancellation restoring the saved level. 100% keeps
+  the approved glow; higher values increase brightness and halo width.
+
+## [1.0.7] - 2026-10-28
+
+### Added
+
+- Subtle neutral body reflection and a separate rounded numeric-display rim in Glass.
+- Shared light/dark Glass label contrast, independent of the canonical accent palette and Glow.
+- Consume desktop-core 0.6.1. Existing frames remain in place.
+
+### Notes
+
+- Glass remains a visual study pending approval; auxiliary windows retain their prior surfaces.
+
+
+## [1.0.6] - 2026-10-28
+
+### Added
+
+- First Glass material preview for the main window and informer: clear neutral
+  surfaces, molded edges and outlined text, with independent canonical colors
+  and restrained Glow. Glass is an explicit appearance alongside System/Light/Dark.
+- Consume desktop-core 0.6.0 for Glass tokens and native blur switching.
+
+### Notes
+
+- Auxiliary windows retain their existing surfaces during this first visual
+  evaluation. The final family-wide visual contract is pending approval.
+- No screen capture, background analysis or automatic contrast switching.
+
+
 ## [1.0.5] - 2026-10-27
 
 ### Fixed

@@ -1,4 +1,4 @@
-export const WHATS_NEW_VERSION = '1.0.5';
+export const WHATS_NEW_VERSION = '1.0.7';
 export const WHATS_NEW_DISMISSED_VERSION_STORAGE_KEY =
   'bsl-timer.whats-new.dismissed-version';
 export function shouldShowWhatsNew(
