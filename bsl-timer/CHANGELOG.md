@@ -7,6 +7,25 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-10-27
+
+### Fixed
+
+- Restore live informer time updates for 15, 10 and 5 minute warnings,
+  completion and repeated overdue reminders, while keeping the displayed
+  timer and click target unchanged by other timers. Version 1.0.4 corrected
+  zero-valued overdue reminders but left their displayed time static.
+
+## [1.0.4] - 2026-10-27
+
+### Fixed
+
+- Show elapsed overdue time instead of zero in repeated end-signal informers.
+
+### Changed
+
+- Use the playful Russian overdue status label «Просрачено».
+
 ## [1.0.3] - 2026-10-25
 
 ### Fixed

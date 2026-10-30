@@ -220,6 +220,7 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
+    "overdueInformer": "Version 1.0.4 fixed zeros in overdue reminders, but left the displayed time static. Version 1.0.5 restores live time updates: the countdown in 15, 10 and 5 minute warnings and elapsed overdue time after completion, including repeated reminders.",
     "singleInstance": "Fixed duplicate application instances during simultaneous launches; launching again opens the existing window.",
     "informerNavigation": "Click the informer to open the displayed timer tab, including repeated overdue reminders.",
     "title": "What’s New in BSL-Timer {version}",

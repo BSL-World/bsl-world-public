@@ -74,12 +74,11 @@ the application.
 
 ## Current status
 
-Version 1.0.3 is being prepared: clicking an informer opens its timer tab,
-and simultaneous Windows launches cannot create duplicate instances. The
-release retains dated-event time visibility and consistent duration-wheel
-adjustment from 1.0.1 and 1.0.2.
+Version 1.0.5 is being prepared for installed-app testing. It restores live
+countdown and overdue updates in informers. Version 1.0.4 corrected zero-valued
+overdue reminders but left their displayed time static.
 
-The current public stable release is BSL-Timer 1.0.0 Free. A separate Pro build
+The current public stable release is BSL-Timer 1.0.3 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1

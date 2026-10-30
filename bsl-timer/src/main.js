@@ -357,6 +357,12 @@ const workspace = new TimerWorkspace({
 
     refreshStatusIcons();
     void refreshTrayPreview();
+    void emitTo('tray-preview', 'tray-preview-time', {
+      eventId,
+      time: snapshot.state === TimerState.OVERDUE
+        ? millisecondsToClock(snapshot.overdueMs)
+        : millisecondsToClock(snapshot.remainingMs, true)
+    }).catch(error => console.error('Failed to update informer time:', error));
   },
   onExpire: (eventId) => {
     informerDiagnostic('timer-expired');
@@ -600,8 +606,8 @@ function createSignalInformerData(
     name: workspace.getDisplayName(eventId, getDefaultTimerName()),
     description: eventInstance?.description ?? '',
     time: mode === 'warning'
-      ? millisecondsToClock(thresholdMinutes * 60_000)
-      : millisecondsToClock(snapshot?.remainingMs ?? 0),
+      ? millisecondsToClock(snapshot?.remainingMs ?? 0, true)
+      : millisecondsToClock(snapshot?.overdueMs ?? 0),
     state: mode === 'completed' ? TimerState.OVERDUE : TimerState.RUNNING,
     thresholdMinutes,
     ...visualSettings,

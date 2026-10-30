@@ -141,6 +141,12 @@ await listen('tray-preview-data', async (event) => {
   }
 });
 
+await listen('tray-preview-time', ({ payload }) => {
+  if (!currentData.layoutRequestId || payload.eventId !== currentData.eventId) return;
+  currentData.time = payload.time;
+  render();
+});
+
 await listen('tray-preview-show', async () => {
   informerDiagnostic('preview-show-received', diagnosticSnapshot());
   await informerFit;
