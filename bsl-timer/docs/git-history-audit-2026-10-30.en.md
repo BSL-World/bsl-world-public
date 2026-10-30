@@ -2,6 +2,8 @@
 
 [Full registry and findings in Russian](git-history-audit-2026-10-30.ru.md)
 
+[Completed recovery and release links, RU/EN](git-history-recovery-2026-10-30.ru-en.md)
+
 GitHub and GitVerse `main` both point to
 `416fed8fa741412e63f3cfe471f8212106069d19`. All eight BSL-Timer/BSL-Core tags
 match. Local `main` is two documentation commits behind, while local source files
@@ -11,7 +13,9 @@ The user then explicitly authorized commits and pushes to both mirrors.
 Three present-day recovery commits now preserve the earlier work on top of the
 shared published main: `b016600` restores the saved pre-Glass 1.0.5 baseline,
 `3f0b98e` preserves Core and shared standards, and `aed85a3` preserves Timer Glass
-and Unreleased changes. The original working-copy files remain unchanged.
+and Unreleased changes. All 50 original files were verified before aligning local
+main; four documentation files were then synchronized with the preserved merges.
+The remaining 46 original files, including application source, remain byte-identical.
 The remote/release inventory below records the state before these pushes.
 
 GitHub has four published Timer releases and a 1.0.3 draft containing the final

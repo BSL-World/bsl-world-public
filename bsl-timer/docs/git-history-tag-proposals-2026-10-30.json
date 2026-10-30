@@ -46,7 +46,8 @@
     "commit": "60428d7a90b3c80d90a7ccb377833bfb7d9d2cca",
     "package_tauri_cargo_agree": true,
     "ancestor_of_both_remote_main": true,
-    "status": "proposal only; binary-to-source correspondence not proven"
+    "status": "restored and pushed to GitHub and GitVerse on 2026-10-30; historical Releases published",
+    "annotated_tag_object": "bf4316fc60eaf65a7f744bc74952095e5fe9ecec"
   },
   {
     "tag": "bsl-timer-v0.8.0",
