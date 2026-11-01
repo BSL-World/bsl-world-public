@@ -7,6 +7,50 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-11-01
+
+### Added
+
+- Accepted Timer-local Glass instrument: live GPU desktop refraction, closed
+  sidewalls and flat bevel, palette-tinted front cover, decorative PCB, traces,
+  three capacitors and paired wiring with a display ribbon.
+- Independent Small/Normal/Large device sizes, framed LCD inputs, engraved body
+  labels and adaptive label/icon contrast while moving the window.
+- Native mechanical button feedback, fixed control positions, a reserved overdue
+  indicator with 500 ms on/off timing, and visible RU/EN events tooltip.
+
+### Release preparation
+
+- Promote the accepted instrument into the ordinary main-window Glass appearance.
+  Other appearances retain their existing layout; Core and auxiliary windows
+  are unchanged. Build separate Free/Pro installers; signing and installed upgrade
+  acceptance are recorded separately. No production updater publication.
+- Screenshot capture may require F8 to freeze Glass before Win+Shift+S.
+  See `docs/release-1.1.3.md` for requirements and validation status.
+
+## [1.1.2] - 2026-11-01
+
+- Local packaging candidate, superseded before delivery by 1.1.3 to preserve
+  screenshot freeze when Win+Shift+S follows F8. Not published.
+
+## [1.1.1] - 2026-11-01
+
+- Local packaging candidate, superseded before delivery by 1.1.3 to restore
+  the existing translated Restart caption when leaving Glass. Not published.
+
+## [1.1.0] - 2026-11-01
+
+- Local Free packaging candidate, superseded before delivery by 1.1.1 after
+  extended font/device scaling validation. Not published.
+
+## [1.0.8] - 2026-10-30
+
+### Release preparation
+
+- Prepare Free/Pro installer candidates with the approved Glass study and
+  the opt-in native Composition backend enabled. Installed-app acceptance
+  is pending; no public release or updater change is implied.
+
 ### Fixed
 
 - Preserve the right Glass outline when WebView2 rounds its viewport beyond the native window.

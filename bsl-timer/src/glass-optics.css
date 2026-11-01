@@ -1,0 +1,35 @@
+:root { font-family: "Segoe UI",sans-serif; color: #f5f7f9; color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; width:100%; height:100%; overflow:hidden; background:transparent; }
+body { display:flex; flex-direction:column; }
+button,input,select { font:inherit; }
+button { cursor:pointer; }
+header { display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgb(20 27 34 / 90%); border-radius:12px; user-select:none; }
+header > div { display:flex; flex:1; min-width:0; flex-direction:column; gap:2px; cursor:move; }
+header strong { font-size:13px; font-weight:600; letter-spacing:.02em; }
+header span { font-size:11px; color:#bdc7cf; }
+header button { border:0; border-radius:5px; background:rgb(255 255 255 / 9%); color:inherit; height:28px; min-width:30px; }
+#close { font-size:23px; line-height:1; }
+#close:hover { background:#b92c40; }
+main { position:relative; flex:1; min-height:0; }
+#glass { position:absolute; inset:24px 40px max(30px,calc(var(--glass-side-height,21.6px) + 14px)); border-radius:25px; isolation:isolate; }
+#glass::before { content:""; position:absolute; inset:0 0 calc(-1 * var(--glass-side-height,21.6px)); z-index:-1; border-radius:inherit;
+  /* Only the contact shadow belongs to CSS. The solid wall is rendered by
+     the same GPU surface as the face, with no second floating plate. */
+  background:none;
+  box-shadow:0 9px 11px -8px rgb(0 15 25 / 38%); }
+.face { position:absolute; inset:0; border-radius:inherit; border:1px solid rgb(236 251 255 / 42%);
+  background:radial-gradient(ellipse 100% 100% at 18% -24%,rgb(255 255 255 / 32%),transparent 70%),
+    linear-gradient(118deg,rgb(224 244 251 / 11%),rgb(255 255 255 / 2%) 40%,rgb(211 234 242 / 8%) 74%,rgb(247 255 255 / 15%));
+  box-shadow:inset 0 2px 3px rgb(255 255 255 / 45%),inset 2px 0 5px rgb(220 247 255 / 13%),inset -2px -3px 5px rgb(30 65 77 / 22%); }
+.face::after { content:""; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(172deg,rgb(255 255 255 / 15%),transparent 21%,transparent 77%,rgb(223 246 251 / 12%)); pointer-events:none; }
+body[data-profile="bevel"] #glass { border-radius:14px; }
+footer { position:relative; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; padding:11px 12px; background:rgb(20 27 34 / 93%); border-radius:12px; font-size:12px; min-height:70px; }
+footer button,select { border:1px solid #56616c; background:#28343f; color:#fff; padding:6px 9px; border-radius:6px; }
+footer button[aria-pressed="true"] { background:#285b68; border-color:#76acb4; }
+footer label { display:flex; align-items:center; gap:6px; }
+input[type="range"] { width:84px; accent-color:#9acdd6; }
+output { width:17px; font-variant-numeric:tabular-nums; }
+#status { width:100%; text-align:center; font-size:10px; color:#bac7cf; }
+button:focus-visible,select:focus-visible,input:focus-visible { outline:2px solid #c7f2ff; outline-offset:2px; }

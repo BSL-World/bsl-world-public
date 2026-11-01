@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BSL-Timer — Glass</title>
+  <link rel="stylesheet" href="/glass-optics.css">
+</head>
+<body>
+  <header id="grip" data-tauri-drag-region>
+    <div data-tauri-drag-region><strong data-copy="title"></strong><span data-copy="hint"></span></div>
+    <button id="language" type="button">EN</button>
+    <button id="close" type="button" aria-label="Закрыть">×</button>
+  </header>
+  <main>
+    <div id="glass" role="img" aria-label="Стеклянный элемент"><div class="face"></div></div>
+  </main>
+  <footer>
+    <button id="toggle" type="button" aria-pressed="true" data-copy="enabled"></button>
+    <label><span data-copy="depth"></span><input id="depth" type="range" min="4" max="20" value="12"><output id="depth-value">12</output></label>
+    <select id="profile" aria-label="Профиль стекла"><option value="rounded" data-copy="rounded"></option><option value="bevel" data-copy="bevel"></option></select>
+    <span id="status" role="status"></span>
+  </footer>
+  <script type="module" src="/glass-optics.js"></script>
+</body>
+</html>

@@ -26,6 +26,8 @@ use tauri_plugin_window_state::StateFlags;
 use bsl_desktop_window::apply_window_appearance;
 
 mod informer_diagnostics;
+#[cfg(all(windows, feature = "glass-device"))]
+mod glass_optics;
 use informer_diagnostics::{informer_diagnostics_enabled, log_informer_diagnostic};
 
 #[tauri::command]
@@ -1237,6 +1239,14 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::set_glass_optics,
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::capture_glass_device_ui,
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::set_glass_device_internal,
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::set_glass_device_visible,
             informer_diagnostics_enabled,
             log_informer_diagnostic,
             greet,
@@ -1369,6 +1379,9 @@ pub fn run() {
             {
                 let _ = apply_window_appearance(&window, "dark", 51);
             }
+
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::launch(app)?;
 
             Ok(())
         })

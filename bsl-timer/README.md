@@ -1,5 +1,10 @@
 # BSL-Timer
 
+Version 1.1.3 packages the accepted Timer-local Glass instrument with live desktop
+refraction, mechanical buttons, adaptive label/icon contrast and three device
+sizes. Core remains unchanged. See [1.1.3 handoff and validation](docs/release-1.1.3.md).
+Local packages do not imply publication or an updated production updater manifest.
+
 Release preparation and the explanation of intermediate version numbers:
 [handoff status, 29 October 2026 (RU)](docs/release-handoff-2026-10-29.ru.md)
 and [announcement drafts (RU/EN)](docs/release-announcement-2026-10-29.ru-en.md).
@@ -78,12 +83,12 @@ the application.
 
 ## Current status
 
-Version 1.0.7 develops the Glass appearance preview for the main window and
-informer, consuming desktop-core 0.6.1. Glass removes native blur, keeps surfaces
-untinted and preserves independent accent colors and Glow. Auxiliary windows
-retain their existing surfaces while the material is evaluated. The new preview
-adds a neutral body reflection, a separate numeric-display rim and a manual
-light/dark choice for ordinary Glass labels.
+Historical 1.0.8 was prepared for installed-app acceptance with the approved
+Glass appearance for the main window and informer, consuming desktop-core
+0.6.1. Candidate installers explicitly enable the native Composition backend
+for a clear body with soft blur. Accent colors, label contrast and Glow
+intensity remain independent; auxiliary windows retain their existing surfaces.
+These candidates are not yet a new public stable release.
 
 Version 1.0.5 restores live countdown and overdue updates in informers.
 Version 1.0.4 corrected zero-valued overdue reminders but left their time static.

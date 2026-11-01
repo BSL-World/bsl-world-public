@@ -819,7 +819,16 @@ function renderTimer(snapshot) {
   const isPaused = snapshot.state === TimerState.PAUSED;
 
   timerPanel.classList.toggle('is-overdue', isOverdue);
-  timerStatus.hidden = !isOverdue;
+  timerStatus.hidden = !isOverdue && !document.documentElement.hasAttribute('data-glass-device');
+  if (document.documentElement.hasAttribute('data-glass-device')) {
+    timerStatus.setAttribute('aria-hidden', String(!isOverdue));
+    if (isOverdue) {
+      timerStatus.dataset.deviceAlarmEpoch = String(Date.now() - snapshot.overdueMs);
+    } else {
+      delete timerStatus.dataset.deviceAlarmEpoch;
+      timerStatus.classList.remove('device-alarm-lit');
+    }
+  }
 
   timerDisplay.textContent = isOverdue
     ? millisecondsToClock(snapshot.overdueMs)
@@ -833,6 +842,19 @@ function renderTimer(snapshot) {
   pauseButton.hidden = isIdle || isOverdue;
   stopButton.hidden = isIdle;
   restartButton.hidden = isIdle;
+
+  pauseButton.disabled = false;
+  restartButton.disabled = false;
+  if (document.documentElement.hasAttribute('data-glass-device')) {
+    // Three fixed mechanical positions; Start becomes Stop during a run.
+    pauseButton.hidden = false;
+    pauseButton.disabled = isIdle || isOverdue;
+    restartButton.hidden = false;
+    restartButton.disabled = isIdle;
+    restartButton.textContent = document.documentElement.lang === 'ru' ? 'Рестарт' : 'Restart';
+  } else {
+    restartButton.textContent = t('timer.restart');
+  }
 
   pauseButton.textContent = isPaused
     ? t('timer.resume')
@@ -1329,7 +1351,7 @@ function showTabNotice(message) {
   }, 2800);
 }
 
-function setMainWindowLayout(options = {}) {
+export function setMainWindowLayout(options = {}) {
   mainWindowLayoutQueue = mainWindowLayoutQueue.catch(() => {}).then(
     () => applyMainWindowLayout(options)
   );
@@ -2124,6 +2146,14 @@ window.addEventListener('beforeunload', () => {
   endSignalService.cancelAll();
 });
 
+window.addEventListener('bsl-timer:glass-material-changed', () => {
+  renderActiveTimer();
+  void setMainWindowLayout();
+});
+window.addEventListener('bsl-timer:glass-layout-request', event => {
+  event.detail.result = setMainWindowLayout();
+});
+
 await appWindow.onCloseRequested((event) => {
   if (isClosingApplication) {
     return;
@@ -2330,7 +2360,10 @@ if (!updateFlowStarted && shouldShowWhatsNew(WHATS_NEW_VERSION)) {
 
 window.addEventListener('bsl-world:font-size-applied', () => { void setMainWindowLayout(); });
 new MutationObserver(records => {
-  if (records.some(record => (record.oldValue !== null) !== record.target.hidden)) {
+  if (records.some(record => {
+    if (document.documentElement.hasAttribute('data-glass-device') && record.target.matches('#timer-status,#start-btn,#stop-btn,#pause-btn,#restart-btn')) return false;
+    return (record.oldValue !== null) !== record.target.hidden;
+  })) {
     void setMainWindowLayout();
   }
 }).observe(document.querySelector('.timer-panel'), {

@@ -34,6 +34,10 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         main: mainEntry,
+        ...(process.env.VITE_BSL_GLASS_OPTICS_STUDY === '1' ? {
+          glassOptics: fileURLToPath(new URL('./src/glass-optics.html', import.meta.url)),
+          glassDevice: fileURLToPath(new URL('./src/glass-device.html', import.meta.url))
+        } : {}),
         settings: settingsEntry,
         about: aboutEntry,
         trayPreview: trayPreviewEntry,

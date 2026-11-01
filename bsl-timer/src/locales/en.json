@@ -227,9 +227,9 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
-    "glassBody": "Glass now has a subtle neutral body reflection, a separate numeric-display rim, and a choice of light or dark ordinary labels without changing the display color palette.",
-    "glassPreview": "First Glass preview: clear, untinted main-window and informer surfaces without blur, with independent accent colors and Glow. Auxiliary windows retain their existing surfaces for now.",
-    "overdueInformer": "Version 1.0.4 fixed zeros in overdue reminders, but left the displayed time static. Version 1.0.5 restores live time updates: the countdown in 15, 10 and 5 minute warnings and elapsed overdue time after completion, including repeated reminders.",
+    "glassBody": "Mechanical buttons, individual LCD input modules, engraved labels and automatic label/icon contrast. Three device sizes; a half-second overdue indicator cycle without layout shifts. Palette and Glow changes apply immediately.",
+    "glassPreview": "Glass is now a transparent instrument with live desktop refraction, a bevel, a tinted front cover, a circuit board, traces and a display ribbon. The new body applies only to the Timer main window.",
+    "overdueInformer": "Informer time updates every second: remaining time in advance warnings and elapsed overdue time after completion, including repeated reminders.",
     "singleInstance": "Fixed duplicate application instances during simultaneous launches; launching again opens the existing window.",
     "informerNavigation": "Click the informer to open the displayed timer tab, including repeated overdue reminders.",
     "title": "What’s New in BSL-Timer {version}",
