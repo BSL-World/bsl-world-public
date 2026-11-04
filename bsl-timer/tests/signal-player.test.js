@@ -190,3 +190,28 @@ test('stops native playbacks owned by one signal sequence', async () => {
     arguments_: { playbackIds: [calls[0].arguments_.request.playbackId] }
   });
 });
+
+test('muting while the short beep is being prepared prevents late playback', async () => {
+  const calls = [];
+  let prepared;
+  const player = new SignalPlayer({
+    invokeFn: async (command, args) => {
+      calls.push({ command, args });
+      if (command === 'prepare_tab_beep') {
+        return new Promise(resolve => { prepared = resolve; });
+      }
+      return {};
+    }
+  });
+  const pending = player.playTabBeep();
+  player.stop();
+  prepared('C:/cache/tab-beep.wav');
+  await pending;
+  assert.equal(calls.some(call => call.command === 'play_audio_signal'), false);
+  player.outputDeviceId = 'wasapi:selected';
+  await player.playTabBeep();
+  const request = calls.find(call => call.command === 'play_audio_signal').args.request;
+  assert.equal(request.signal, 'file');
+  assert.equal(request.path, 'C:/cache/tab-beep.wav');
+  assert.equal(request.outputDeviceId, 'wasapi:selected');
+});

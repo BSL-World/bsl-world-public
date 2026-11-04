@@ -1,6 +1,6 @@
 {
   "name": "@bsl-world/desktop-core",
-  "version": "0.6.1",
+  "version": "0.7.1",
   "private": true,
   "type": "module",
   "exports": {
@@ -15,7 +15,9 @@
     "./typography": "./utils/typography.js",
     "./window": "./utils/window.js",
     "./typography.css": "./styles/typography.css",
-    "./layout": "./utils/layout.js"
+    "./layout": "./utils/layout.js",
+    "./glass": "./utils/glass.js",
+    "./glass.css": "./styles/glass.css"
   },
   "scripts": {
     "test": "node --test"

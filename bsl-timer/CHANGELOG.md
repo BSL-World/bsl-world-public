@@ -7,6 +7,88 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-11-04
+
+### Fixed
+
+- Apply incoming appearance notifications from the latest cached selection without
+  writing them back to other windows; delayed previews no longer form a theme loop.
+- Cancel unfinished Glass captures and clear their temporary mask immediately
+  when changing material. Retire old native sessions before a new one is created;
+  bound screenshot waits so stale callbacks cannot restore an obsolete surface.
+- Входящие изменения оформления больше не отражаются обратно между окнами.
+  При выходе из Glass снимается маска незавершённого захвата и освобождается
+  прежняя графическая сессия; ожидание кадра ограничено по времени.
+
+## [1.1.7] - 2026-11-03
+
+### Fixed
+
+- Keep auxiliary windows in the preceding light, dark or system appearance when
+  enabling Glass. Restore that appearance when cancelling a settings preview.
+- Show the accumulated changes since public 1.0.3 in What’s New (RU/EN), with
+  the new Glass appearance first, alongside tab alarms and live informer time.
+- При включении «Стекла» вспомогательные окна сохраняют прежнее светлое,
+  тёмное или системное оформление; отмена предпросмотра восстанавливает его.
+  «Что нового» RU/EN снова включает Glass и накопленные изменения после 1.0.3.
+
+Separate local Free/Pro candidates are prepared for user signing and VM acceptance.
+Previous 1.1.6 artifacts remain preserved; no public release or production updater
+change is implied.
+
+## [1.1.6] - 2026-11-02
+
+### Fixed
+
+- Reuse the shared lamp phase during timer-state renders and update the display
+  and all overdue tabs together when selecting a timer. Preserve the 500/500 ms
+  rhythm, red tabs and per-tab Mute.
+- Перерисовка таймера использует общую фазу диодов; переключение вкладок
+  обновляет циферблат и вкладки вместе. Ритм — 500/500 мс.
+- Final Free/Pro packaging supersedes local 1.1.4/1.1.5 candidates before delivery.
+
+## [1.1.6] - 2026-11-02
+
+### Fixed
+
+- Reuse the shared lamp phase during timer-state renders and update the display
+  and all overdue tabs together when selecting a timer. Preserve the 500/500 ms
+  rhythm, red tabs and per-tab Mute.
+- Перерисовка таймера использует общую фазу диодов; переключение вкладок
+  обновляет циферблат и вкладки вместе. Ритм — 500/500 мс.
+- Final Free/Pro packaging supersedes local 1.1.4/1.1.5 candidates before delivery.
+
+## [1.1.5] - 2026-11-02
+
+### Changed
+
+- Synchronize overdue tab lamps and beeps with the display lamp through one
+  shared phase: 500 ms on, 500 ms off. All overdue tabs share that phase.
+- Синхронизированы диоды просроченных вкладок, диод циферблата и писк:
+  по полсекунды включено и выключено, с общей фазой для всех вкладок.
+- Supersede local 1.1.4 candidates before delivery. No installer publication
+  or production updater change.
+
+## [1.1.4] - 2026-11-02
+
+### Internal
+
+- Use desktop-core's optional Glass surface and shared paint primitives;
+  Timer retains its layout, labels and timer-specific behavior.
+
+### Changed
+
+- Timer tabs show running timers in the theme color with a steady matching
+  lamp, idle timers in a paler theme color, and overdue timers in persistent red.
+- Overdue tab lamps blink twice per second with a short synchronized beep.
+  Each overdue tab has its own Mute button (RU/EN); muting leaves its visual
+  alarm active and resets when that timer is stopped or restarted. Existing
+  completion sounds and informer settings remain independent.
+- Вкладки показывают работающий таймер в цвете темы с постоянным диодом,
+  незапущенный — более бледным цветом темы, просроченный — красным. Красный диод мигает
+  дважды в секунду с коротким писком; Mute на вкладке отключает её писк до
+  остановки или нового запуска. Настройки штатных сигналов и Информера сохранены.
+
 ## [1.1.3] - 2026-11-01
 
 ### Added

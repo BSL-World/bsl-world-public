@@ -116,9 +116,11 @@ import {
   getCachedGlassGlowIntensity,
   appearanceModeSettingsEqual,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   applyGlassTextTone,
   getCachedGlassTextTone,
   getCachedAppearanceMode,
+  getCachedAuxiliaryAppearanceMode,
   loadAppearanceModeSettings,
   saveAppearanceModeSettings,
   watchAppearanceMode
@@ -292,6 +294,7 @@ let pendingAppearanceModeSettings = {
   ...committedAppearanceModeSettings
 };
 let appearanceModeSettingsLoaded = false;
+let committedAuxiliaryAppearanceMode = getCachedAuxiliaryAppearanceMode();
 let committedFontSizeSettings = {
   fontSize: getCachedFontSize()
 };
@@ -554,6 +557,7 @@ async function loadSharedAppearanceModeSettings() {
   try {
     committedAppearanceModeSettings =
       await loadAppearanceModeSettings(invoke);
+    committedAuxiliaryAppearanceMode = getCachedAuxiliaryAppearanceMode();
     pendingAppearanceModeSettings = {
       ...committedAppearanceModeSettings
     };
@@ -1092,6 +1096,7 @@ function updateApplyButton() {
     )
     && pendingTheme === getTheme()
     && pendingGlowEnabled === getGlowEnabled()
+    && getCachedAuxiliaryAppearanceMode() === committedAuxiliaryAppearanceMode
     && (
       !appearanceModeSettingsLoaded
       || appearanceModeSettingsEqual(
@@ -1239,6 +1244,7 @@ async function applyPendingSettings() {
     updateApplyButton();
     return false;
   }
+  committedAuxiliaryAppearanceMode = getCachedAuxiliaryAppearanceMode();
 
   if (!await applyAutostartSetting()) {
     updateApplyButton();
@@ -1348,7 +1354,9 @@ async function cancelPendingSettings() {
   pendingFontSizeSettings = { ...committedFontSizeSettings };
   applyTheme(committedTheme);
   applyGlow(committedGlowEnabled);
-  applyAppearanceMode(committedAppearanceModeSettings.mode);
+  applyAppearanceMode(committedAppearanceModeSettings.mode, {
+    auxiliaryMode: committedAuxiliaryAppearanceMode
+  });
   applyGlassTextTone(committedAppearanceModeSettings.glassTextTone);
   applyGlassGlowIntensity(committedAppearanceModeSettings.glassGlowIntensity);
   applyFontSize(committedFontSizeSettings.fontSize);
@@ -1610,7 +1618,7 @@ window.addEventListener('storage', async (event) => {
   if (event.key === APPEARANCE_MODE_STORAGE_KEY) {
     committedAppearanceModeSettings = {
       ...committedAppearanceModeSettings,
-      mode: applyAppearanceMode(event.newValue).mode
+      mode: applyCachedAppearanceMode().mode
     };
     pendingAppearanceModeSettings = {
       ...committedAppearanceModeSettings
@@ -1628,7 +1636,7 @@ window.addEventListener('storage', async (event) => {
   if (event.key === GLASS_TEXT_TONE_STORAGE_KEY) {
     committedAppearanceModeSettings = {
       ...committedAppearanceModeSettings,
-      glassTextTone: applyGlassTextTone(event.newValue)
+      glassTextTone: getCachedGlassTextTone()
     };
     pendingAppearanceModeSettings = { ...committedAppearanceModeSettings };
     populateAppearanceModeSelect();

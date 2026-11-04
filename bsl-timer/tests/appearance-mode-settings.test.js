@@ -3,12 +3,15 @@ import test from 'node:test';
 
 import {
   APPEARANCE_MODE_STORAGE_KEY,
+  AUXILIARY_APPEARANCE_STORAGE_KEY,
   GLASS_TEXT_TONE_STORAGE_KEY,
   applyGlassTextTone,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   getCachedAppearanceMode,
   loadAppearanceModeSettings,
-  saveAppearanceModeSettings
+  saveAppearanceModeSettings,
+  watchAppearanceMode
 } from '../src/appearance-mode-settings.js';
 
 function createStorage(values = {}) {
@@ -26,6 +29,125 @@ function createStorage(values = {}) {
 
 test('uses the system appearance by default', () => {
   assert.equal(getCachedAppearanceMode(createStorage()), 'system');
+});
+
+test('incoming mode notifications apply the current selection without writing it back', () => {
+  const values=new Map([[APPEARANCE_MODE_STORAGE_KEY,'glass'],[AUXILIARY_APPEARANCE_STORAGE_KEY,'light']]);
+  const writes=[];
+  const storage={getItem:key=>values.get(key)??null,setItem:(...args)=>writes.push(args)};
+  const document={documentElement:{dataset:{}},body:{matches:()=>true}};
+  const result=applyCachedAppearanceMode({document,storage,matchMedia:()=>({matches:true})});
+  assert.equal(result.mode,'glass');
+  assert.equal(document.documentElement.dataset.appearance,'light');
+  assert.deepEqual(writes,[]);
+});
+
+test('queued obsolete previews settle in every window without an echo loop', () => {
+  for(const count of [2,3]){
+    const values=new Map([[APPEARANCE_MODE_STORAGE_KEY,'glass'],[AUXILIARY_APPEARANCE_STORAGE_KEY,'dark']]);
+    const windows=[],queue=[];
+    for(let i=0;i<count;i++){
+      const callbacks=[];
+      const window={};
+      const storage={getItem:key=>values.get(key)??null,setItem(key,value){
+        value=String(value);if(values.get(key)===value)return;values.set(key,value);
+        for(const target of windows)if(target!==window)queue.push({target,key,newValue:value});
+      }};
+      const document={documentElement:{dataset:{}},body:{matches:()=>i!==0},defaultView:{addEventListener:(_name,fn)=>callbacks.push(fn),removeEventListener(){}}};
+      const options={storage,document,matchMedia:()=>({matches:true})};
+      Object.assign(window,{document,apply:mode=>applyAppearanceMode(mode,options),receive:event=>callbacks.forEach(fn=>fn(event))});
+      windows.push(window);watchAppearanceMode(options);
+      callbacks.push(event=>{if(event.key===APPEARANCE_MODE_STORAGE_KEY)applyCachedAppearanceMode(options);});
+    }
+    windows[1].apply('light');windows[1].apply('glass');
+    let processed=0;
+    while(queue.length&&processed++<100){const event=queue.shift();event.target.receive(event);}
+    assert.equal(queue.length,0,'obsolete notifications must not republish themselves');
+    assert.equal(values.get(APPEARANCE_MODE_STORAGE_KEY),'glass');
+    for(const window of windows)assert.equal(window.document.documentElement.dataset.appearanceMode,'glass');
+    assert.equal(windows[0].document.documentElement.dataset.appearance,'glass');
+    assert.equal(windows[1].document.documentElement.dataset.appearance,'light');
+  }
+});
+
+test('Glass retains the preceding ordinary appearance across auxiliary window reopening', () => {
+  for (const mode of ['light', 'dark', 'system']) {
+    for (const prefersDark of [false, true]) {
+      const storage = createStorage();
+      const options = { storage, matchMedia: () => ({ matches: prefersDark }) };
+      const auxiliary = () => ({ documentElement: { dataset: {} }, body: { matches: () => true } });
+      const document = auxiliary();
+      applyAppearanceMode(mode, { ...options, document });
+      const expected = document.documentElement.dataset.appearance;
+      applyAppearanceMode('glass', { ...options, document });
+      assert.equal(document.documentElement.dataset.appearance, expected);
+      assert.equal(document.documentElement.dataset.appearanceMode, 'glass');
+      const reopened = auxiliary();
+      applyAppearanceMode('glass', { ...options, document: reopened });
+      assert.equal(reopened.documentElement.dataset.appearance, expected);
+      const main = { documentElement: { dataset: {} }, body: { matches: () => false } };
+      applyAppearanceMode('glass', { ...options, document: main });
+      assert.equal(main.documentElement.dataset.appearance, 'glass');
+    }
+  }
+});
+
+test('cancelling an ordinary appearance preview restores the retained Glass appearance', () => {
+  const storage = createStorage();
+  const document = { documentElement: { dataset: {} }, body: { matches: () => true } };
+  const options = { storage, document, matchMedia: () => ({ matches: true }) };
+  applyAppearanceMode('light', options);
+  applyAppearanceMode('glass', options);
+  applyAppearanceMode('dark', options);
+  applyAppearanceMode('glass', options);
+  assert.equal(document.documentElement.dataset.appearance, 'dark');
+  applyAppearanceMode('glass', { ...options, auxiliaryMode: 'light' });
+  assert.equal(document.documentElement.dataset.appearance, 'light');
+  assert.equal(storage.getItem(AUXILIARY_APPEARANCE_STORAGE_KEY), 'light');
+});
+
+test('existing Glass installations without a retained appearance follow Windows', () => {
+  for (const prefersDark of [false, true]) {
+    const storage = createStorage({ [APPEARANCE_MODE_STORAGE_KEY]: 'glass' });
+    const document = { documentElement: { dataset: {} }, body: { matches: () => true } };
+    applyAppearanceMode('glass', { document, storage, matchMedia: () => ({ matches: prefersDark }) });
+    assert.equal(document.documentElement.dataset.appearance, prefersDark ? 'dark' : 'light');
+  }
+});
+
+test('Glass auxiliary windows follow retained system changes and other-window previews', () => {
+  const storage = createStorage();
+  const listeners = new Map();
+  let systemChange;
+  let dark = false;
+  const document = {
+    documentElement: { dataset: {} }, body: { matches: () => true },
+    defaultView: {
+      addEventListener: (name, callback) => listeners.set(name, callback),
+      removeEventListener: name => listeners.delete(name)
+    }
+  };
+  const matchMedia = () => ({
+    matches: dark,
+    addEventListener: (_name, callback) => { systemChange = callback; },
+    removeEventListener: () => { systemChange = null; }
+  });
+  const options = { document, storage, matchMedia };
+  applyAppearanceMode('system', options);
+  applyAppearanceMode('glass', options);
+  const stop = watchAppearanceMode(options);
+  dark = true;
+  systemChange({ matches: true });
+  assert.equal(document.documentElement.dataset.appearance, 'dark');
+  storage.setItem(AUXILIARY_APPEARANCE_STORAGE_KEY, 'light');
+  listeners.get('storage')({ key: AUXILIARY_APPEARANCE_STORAGE_KEY });
+  assert.equal(document.documentElement.dataset.appearance, 'light');
+  systemChange({ matches: true });
+  assert.equal(document.documentElement.dataset.appearance, 'light');
+  assert.equal(document.documentElement.dataset.appearanceMode, 'glass');
+  stop();
+  assert.equal(listeners.size, 0);
+  assert.equal(systemChange, null);
 });
 
 test('applies and caches the resolved appearance mode', () => {

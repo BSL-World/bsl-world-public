@@ -24,6 +24,8 @@
     "about": "About BSL-Timer"
   },
   "tabs": {
+    "muteBeep": "Mute this timer's overdue beep",
+    "unmuteBeep": "Unmute this timer's overdue beep",
     "list": "Timers",
     "defaultName": "Timer",
     "add": "Add timer",
@@ -227,8 +229,14 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
+    "appearanceStability": "Fixed repeated appearance changes: windows use the latest selection without sending obsolete settings back to one another.",
+    "glassCaptureRecovery": "Leaving Glass cancels unfinished captures and clears the temporary mask. Frame waits are bounded; late frames cannot restore the previous appearance.",
+    "tabAlarmSummary": "Running tabs use the theme color, idle tabs are paler and overdue tabs stay red. Lamps and short beeps share a 500 ms on/off rhythm. Per-tab Mute silences the beep while retaining visual indication.",
+    "tabStates": "Running timers use the theme color with a steady lamp. Idle tabs retain a paler theme color; overdue tabs turn red.",
+    "tabAlarm": "Overdue tab lamps blink in sync with the display lamp: half a second on, half a second off, with a short matching beep, including on background tabs.",
+    "tabMute": "Mute on an overdue tab silences its rhythmic beep while keeping the red indication. A new run restores the beep; existing completion sounds and informer settings remain independent.",
     "glassBody": "Mechanical buttons, individual LCD input modules, engraved labels and automatic label/icon contrast. Three device sizes; a half-second overdue indicator cycle without layout shifts. Palette and Glow changes apply immediately.",
-    "glassPreview": "Glass is now a transparent instrument with live desktop refraction, a bevel, a tinted front cover, a circuit board, traces and a display ribbon. The new body applies only to the Timer main window.",
+    "glassPreview": "New Glass appearance: a transparent instrument with live desktop refraction, a bevel and a visible circuit board. Enable it in the main window appearance settings; other windows retain their light, dark or system appearance.",
     "overdueInformer": "Informer time updates every second: remaining time in advance warnings and elapsed overdue time after completion, including repeated reminders.",
     "singleInstance": "Fixed duplicate application instances during simultaneous launches; launching again opens the existing window.",
     "informerNavigation": "Click the informer to open the displayed timer tab, including repeated overdue reminders.",

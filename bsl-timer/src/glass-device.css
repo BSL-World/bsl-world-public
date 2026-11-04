@@ -30,6 +30,7 @@
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell {
   --device-key:var(--theme-color);
   --device-key-rgb:var(--theme-rgb);
+  --bsl-glass-accent:var(--device-key);--bsl-glass-accent-rgb:var(--device-key-rgb);--bsl-glass-lcd-height:2.15rem;
   --device-side:color-mix(in srgb,var(--device-key) 42%,#1b323b);
   /* Single soft shadow for labels; the display retains its own outline/glow. */
   --bsl-glass-neutral-text-outline:0 1px 1px rgb(0 15 24 / 20%);
@@ -90,27 +91,10 @@
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .timer-controls .control-button {
   flex:0 0 auto;min-width:4.6rem;width:auto;max-width:7rem;height:2.15rem;padding:0 .5rem;border-radius:.45rem;
 }
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell :is(.control-button,.titlebar-button,.add-timer-button,.tab-scroll-button,.date-countdown-scroll-button,.add-date-countdown-button,.date-countdown-ribbon-toggle) {
-  background:linear-gradient(158deg,rgb(255 255 255 / 46%),transparent 44%),linear-gradient(180deg,rgb(var(--device-key-rgb) / 22%),rgb(var(--device-key-rgb) / 12%));
-  color:var(--bsl-text);border:1px solid color-mix(in srgb,var(--device-key) 55%,rgb(255 255 255 / 60%));
-  --device-key-shadow:inset 0 1px 1px rgb(255 255 255 / 70%),inset -1px -1px 2px rgb(15 35 43 / 23%),0 1px 0 var(--device-side),0 2px 0 var(--device-side),0 3px 0 var(--device-side),0 4px 0 var(--device-side),0 5px 3px rgb(5 20 29 / 28%);
-  box-shadow:var(--device-key-shadow);
-  transform:translateY(-2px);transition:filter 120ms ease;
-}
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell button:hover:not(:disabled) {filter:brightness(1.1);}
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell :is(.control-button,.titlebar-button,.add-timer-button,.tab-scroll-button,.date-countdown-scroll-button,.add-date-countdown-button,.date-countdown-ribbon-toggle):active:not(:disabled) {
-  transform:translateY(-2px);box-shadow:var(--device-key-shadow);
-}
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .titlebar-button[aria-pressed="true"] {border-color:var(--theme-color);outline:1px solid var(--theme-color);outline-offset:-3px;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .close-button:hover {background:#c42b3a;color:white;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .date-countdown-ribbon {margin:0 1.75rem 1rem;background:transparent;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .timer-status {margin:.1rem 0 .15rem;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .device-display-module {position:relative;flex:none;width:100%;}
-:root[data-glass-device][data-appearance="glass"] .device-display-module::before {
-  content:"";position:absolute;inset:.05rem -.25rem .12rem;border-radius:.55rem;pointer-events:none;
-  background:rgb(20 41 48 / 22%);border:1px solid rgb(26 49 56 / 65%);
-  box-shadow:inset 0 2px 3px rgb(0 15 23 / 55%),0 1px 1px rgb(236 253 255 / 65%);
-}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .timer-status {
   position:absolute;z-index:2;top:.48rem;right:.65rem;height:.8rem;margin:0;
   display:flex;align-items:center;gap:.35rem;font-size:.63rem;line-height:1;
@@ -122,42 +106,12 @@
   box-shadow:inset 0 1px 2px rgb(0 0 0 / 60%);
 }
 
-/* Two offscreen WebView captures: controls without labels, then glyph coverage.
-   The native compositor keeps the last complete pair visible during these passes. */
-:root[data-glass-device][data-device-text-pass] #app :is(.app-title,.timer-tab-label,.timer-tab-close,.duration-field>span,.duration-separator,.control-button,.device-scale,.date-countdown-name,:is(#settings-btn,#date-countdowns-btn,#about-btn,#minimize-btn,#close-btn,#add-timer-btn)>span) {
-  color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
-}
-:root[data-glass-device][data-device-text-pass="mask"] *,
-:root[data-glass-device][data-device-text-pass="mask"] {
-  color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
-  background:transparent!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;
-}
-:root[data-glass-device][data-device-text-pass="mask"] *::before,
-:root[data-glass-device][data-device-text-pass="mask"] *::after {
-  visibility:hidden!important;
-}
-:root[data-glass-device][data-device-text-pass="mask"] :is(.device-tooltip,#timer-display,#timer-status,input,img,svg,canvas) {visibility:hidden!important;}
-:root[data-glass-device][data-device-text-pass="mask"] #app :is(.app-title,.timer-tab-label,.timer-tab-close,.duration-field>span,.duration-separator,.control-button,.device-scale,.date-countdown-name,:is(#settings-btn,#date-countdowns-btn,#about-btn,#minimize-btn,#close-btn,#add-timer-btn)>span) {
-  color:var(--device-key)!important;-webkit-text-fill-color:var(--device-key)!important;text-shadow:none!important;
-}
-:root[data-glass-device][data-device-text-pass="mask"] #app :is(.app-title,.duration-field>span) {
-  color:#000!important;-webkit-text-fill-color:#000!important;
-}
-
 /* The editable values are individual LCD modules, seated like the main readout. */
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .duration-field {position:relative;}
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .duration-field::after {
-  content:"";position:absolute;z-index:0;left:-.2rem;right:-.2rem;bottom:-.15rem;height:calc(2.15rem + .3rem);
-  border-radius:.5rem;background:rgb(20 41 48 / 22%);border:1px solid rgb(26 49 56 / 65%);pointer-events:none;
-  box-shadow:inset 0 2px 3px rgb(0 15 23 / 55%),0 1px 1px rgb(236 253 255 / 65%);
-}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .duration-field :is(span,input) {position:relative;z-index:1;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .duration-field input {
-  padding:0 .2rem;border:1px solid rgb(165 187 192 / 84%);border-radius:.3rem;
-  background:linear-gradient(165deg,rgb(186 216 224 / 18%),transparent 45%),rgb(40 59 68 / 88%);
-  box-shadow:inset 0 2px 4px rgb(0 0 0 / 40%),inset 0 -1px rgb(234 248 250 / 25%);
+  padding:0 .2rem;border-radius:.3rem;
   font-family:'DSEG7 Classic',monospace;font-size:.85rem;font-weight:700;letter-spacing:.03em;
-  color:color-mix(in srgb,var(--device-key) 28%,#f4f9fb);-webkit-text-fill-color:currentColor;text-shadow:none;
 }
 :root[data-glass-device] .device-alarm-lit .device-alarm-led {
   background:#ff3338;border-color:#ffb0ab;
@@ -177,26 +131,11 @@
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .titlebar-actions {min-width:0;flex-shrink:1;}
 :root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell .titlebar-button {min-width:0;flex:0 0 1.9rem;}
 
-/* Shared restrained material for every mechanical key in this study. */
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell :is(.titlebar-actions,.timer-controls,.timer-tabs-bar,.date-countdown-ribbon) :is(.control-button,.titlebar-button,.add-timer-button,.tab-scroll-button,.date-countdown-scroll-button,.add-date-countdown-button,.date-countdown-ribbon-toggle) {
-  background:linear-gradient(158deg,rgb(255 255 255 / 46%),transparent 44%),linear-gradient(180deg,rgb(var(--device-key-rgb) / 22%),rgb(var(--device-key-rgb) / 12%));
-  border-color:color-mix(in srgb,var(--device-key) 30%,rgb(225 240 243 / 60%));
-}
-:root[data-glass-device][data-appearance="glass"][data-theme][data-glow] .app-shell :is(.titlebar-actions,.timer-controls,.timer-tabs-bar,.date-countdown-ribbon) button:disabled {
-  --device-side:#465157;
-  background:linear-gradient(158deg,rgb(255 255 255 / 20%),transparent 44%),linear-gradient(180deg,rgb(132 145 150 / 22%),rgb(86 100 108 / 16%));
-  border-color:rgb(161 174 180 / 38%);color:#a6afb3;
-  filter:grayscale(1);text-shadow:none;opacity:.72;
-  box-shadow:inset 0 1px 1px rgb(255 255 255 / 25%),inset -1px -1px 2px rgb(15 25 30 / 20%),0 1px 0 var(--device-side),0 2px 0 var(--device-side),0 3px 0 var(--device-side),0 4px 0 var(--device-side),0 5px 3px rgb(5 20 29 / 20%);
-}
-
-
+/* Common mechanical and LCD paint is provided by desktop-core/glass.css. */
 /* Monochrome icon glyphs share the adaptive ink mask, including the info ring. */
 :root[data-glass-device][data-appearance="glass"] #about-btn .about-titlebar-icon {
   background:transparent;border:1px solid currentColor;box-sizing:border-box;text-shadow:none;
 }
-:root[data-glass-device][data-device-text-pass="base"] #about-btn .about-titlebar-icon {border-color:transparent!important;}
-:root[data-glass-device][data-device-text-pass="mask"] #about-btn .about-titlebar-icon {border-color:var(--device-key)!important;}
 :root .device-tooltip {
   position:absolute;z-index:30;pointer-events:none;visibility:hidden;
   max-width:calc(100% - 1rem);padding:.35rem .5rem;border-radius:.3rem;
@@ -205,4 +144,3 @@
 }
 :root .device-tooltip.is-visible {visibility:visible;}
 
-:root[data-glass-device][data-device-text-pass="mask"] #app {clip-path:var(--device-ink-clip,none);}

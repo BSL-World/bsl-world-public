@@ -1,0 +1,128 @@
+/* Local instrument study: no changes to desktop-core or auxiliary windows. */
+:root[data-appearance="glass"][data-theme] .app-shell {
+  --instrument-key-color: var(--theme-color);
+  --instrument-density: var(--bsl-glass-density, 1);
+  --instrument-key-depth: color-mix(in srgb, var(--instrument-key-color) 48%, #15252c);
+  background:
+    radial-gradient(ellipse at 18% 8%, rgb(255 255 255 / calc(28% * var(--instrument-density))), transparent 62%),
+    linear-gradient(116deg, rgb(215 234 240 / calc(13% * var(--instrument-density))) 8%, rgb(255 255 255 / calc(4% * var(--instrument-density))) 38%, rgb(104 139 153 / calc(13% * var(--instrument-density))) 66%, rgb(231 245 249 / calc(21% * var(--instrument-density))));
+  border-color: rgb(184 208 216 / 55%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 65%),
+    inset 3px 0 6px rgb(235 250 255 / 17%),
+    inset -4px -9px 8px rgb(35 57 67 / 36%),
+    inset 0 -11px 0 rgb(146 180 190 / 16%);
+}
+
+:root[data-appearance="glass"][data-theme="tan"] .app-shell {
+  --instrument-key-color: var(--theme-glow-color);
+}
+
+/* Retire the hollow bead masks: light now crosses the entire material. */
+:root[data-appearance="glass"] .app-shell[data-bsl-glass-relief]::before,
+:root[data-appearance="glass"] .app-shell[data-bsl-glass-relief]::after,
+:root[data-appearance="glass"] .app-shell .timer-panel[data-bsl-glass-relief]::before,
+:root[data-appearance="glass"] .app-shell .timer-panel[data-bsl-glass-relief]::after {
+  content: none;
+}
+
+:root[data-appearance="glass"][data-theme] .app-shell > .titlebar {
+  background: linear-gradient(180deg, rgb(237 248 255 / 18%), rgb(121 159 178 / 11%));
+}
+
+:root[data-appearance="glass"][data-theme][data-glow] .app-shell .timer-panel {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 26% 12%, rgb(255 255 255 / 20%), transparent 68%),
+    linear-gradient(128deg, rgb(224 241 245 / 12%), rgb(124 160 169 / 5%) 55%, rgb(224 246 250 / 18%));
+  border-color: rgb(192 215 220 / 34%);
+  box-shadow: inset 0 1px 2px rgb(255 255 255 / 42%), inset -2px -7px 8px rgb(28 53 61 / 21%);
+}
+
+.glass-electronics { display: none; }
+:root[data-appearance="glass"] .glass-electronics {
+  display: block !important;
+  position: absolute;
+  inset: .5rem .625rem .625rem;
+  z-index: -1;
+  width: calc(100% - 1.25rem);
+  height: calc(100% - 1.125rem);
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.glass-pcb { stroke: rgb(170 205 195 / 27%); stroke-width: 1; }
+.glass-traces { stroke: rgb(182 164 107 / 37%); stroke-width: .8; }
+.glass-ribbon { stroke: rgb(191 163 108 / 65%); stroke-width: 1.6; }
+.glass-wires { stroke: rgb(149 183 192 / 72%); stroke-width: 1.4; }
+.glass-chip, .glass-capacitors { opacity: .72; }
+
+:root[data-appearance="glass"][data-theme][data-glow="on"] .app-shell .timer-panel {
+  box-shadow: inset 0 1px 2px rgb(255 255 255 / 42%), inset -2px -7px 8px rgb(28 53 61 / 21%), inset 0 0 2rem rgb(var(--theme-glow-rgb) / calc(8% * var(--bsl-glass-glow-strength, 1)));
+}
+
+:root[data-appearance="glass"][data-theme][data-glow] .app-shell .timer-display {
+  border: 1px solid rgb(169 194 200 / 76%);
+  border-radius: .3rem;
+  background:
+    linear-gradient(165deg, rgb(228 244 247 / 18%), transparent 43%),
+    linear-gradient(180deg, rgb(12 29 35 / 68%), rgb(31 49 54 / 57%));
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 35%),
+    inset 0 -1px 0 rgb(223 247 250 / 14%),
+    0 3px 0 rgb(42 60 66 / 80%),
+    0 5px 5px rgb(5 22 28 / 23%);
+}
+
+:root[data-appearance="glass"][data-theme="tan"][data-glow] .app-shell .timer-display {
+  background: linear-gradient(165deg, rgb(255 245 210 / 65%), rgb(204 199 171 / 47%));
+}
+
+:root[data-appearance="glass"][data-theme][data-glow="on"] .app-shell .timer-display {
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 35%),
+    inset 0 0 .75rem rgb(var(--theme-glow-rgb) / calc(10% * var(--bsl-glass-glow-strength, 1))),
+    0 3px 0 rgb(42 60 66 / 80%),
+    0 5px 5px rgb(5 22 28 / 23%),
+    var(--bsl-glass-display-glow);
+}
+
+/* A continuous colored sidewall, attached to the cap, replaces the detached shadow. */
+:root[data-appearance="glass"][data-theme] .app-shell :is(.timer-controls .control-button, .titlebar-button, .add-timer-button, .tab-scroll-button, .date-countdown-scroll-button, .add-date-countdown-button, .date-countdown-ribbon-toggle) {
+  border-color: color-mix(in srgb, var(--instrument-key-color) 55%, rgb(255 255 255 / 65%));
+  background:
+    linear-gradient(164deg, rgb(255 255 255 / 48%), transparent 43%),
+    linear-gradient(180deg, color-mix(in srgb, var(--instrument-key-color) 54%, transparent), color-mix(in srgb, var(--instrument-key-color) 31%, transparent));
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 65%),
+    inset -1px -1px 2px rgb(20 40 49 / 25%),
+    0 1px 0 var(--instrument-key-depth),
+    0 2px 0 var(--instrument-key-depth),
+    0 3px 0 var(--instrument-key-depth),
+    0 4px 3px rgb(6 24 31 / 28%);
+  transform: translateY(-2px);
+  transition: transform 100ms cubic-bezier(.2,.8,.3,1.2), box-shadow 100ms ease, filter 120ms ease;
+}
+
+:root[data-appearance="glass"][data-theme] .app-shell :is(.timer-controls .control-button, .titlebar-button, .add-timer-button, .tab-scroll-button, .date-countdown-scroll-button, .add-date-countdown-button, .date-countdown-ribbon-toggle):hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+:root[data-appearance="glass"][data-theme] .app-shell :is(.timer-controls .control-button, .titlebar-button, .add-timer-button, .tab-scroll-button, .date-countdown-scroll-button, .add-date-countdown-button, .date-countdown-ribbon-toggle):active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgb(10 28 35 / 25%), inset 0 -1px 0 rgb(255 255 255 / 25%), 0 1px 0 var(--instrument-key-depth);
+  transition-duration: 45ms;
+}
+
+:root[data-appearance="glass"][data-theme] .app-shell .close-button:hover {
+  background: #c42b3a;
+}
+
+:root[data-appearance="glass"][data-theme] .app-shell .titlebar-button[aria-pressed="true"] {
+  box-shadow: inset 0 -2px 0 var(--theme-color), inset 0 1px 1px rgb(255 255 255 / 65%), 0 1px 0 var(--instrument-key-depth), 0 2px 0 var(--instrument-key-depth), 0 3px 0 var(--instrument-key-depth), 0 4px 3px rgb(6 24 31 / 28%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-appearance="glass"] .app-shell button { transition: none !important; }
+}

@@ -28,6 +28,7 @@ import {
 import {
   APPEARANCE_MODE_STORAGE_KEY,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   watchAppearanceMode
 } from './appearance-mode-settings.js';
 
@@ -115,7 +116,7 @@ window.addEventListener('storage', async (event) => {
   }
 
   if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
-    applyAppearanceMode(event.newValue);
+    applyCachedAppearanceMode();
   }
 
   if (event.key === 'bsl-timer.locale' && event.newValue) {

@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-04
+
+Native window companion: 0.8.1.
+
+- Cancel Glass capture passes on material changes, clear masks immediately and
+  serialize native configure/show/release operations across surface generations.
+- Bound frontend and WebView2 capture waits; discard late callbacks for retired
+  sessions and allow a fresh capture after recovery. Cover suspended masks,
+  timeouts, delayed configuration and press feedback with regression tests.
+
+## [0.7.0] - 2026-11-02
+
+- Add optional product-neutral Glass surface JS/CSS exports and native window
+  0.8.0 with the `glass-surface` feature. Keep the default material path unchanged.
+- Isolate native state per window and session, support up to 64 control mounts,
+  publish UI/ink pairs atomically, cache capture geometry and release owned state.
+- Add capture/disposal/ownership tests. Timer supplies the first consumer; a
+  second shipped application and native multi-window lifecycle are not certified.
+
 - Record the approved Glass/theme contract and BSL-Clock integration handoff,
   including intensity preview/persistence, native capture compatibility, and limits.
 

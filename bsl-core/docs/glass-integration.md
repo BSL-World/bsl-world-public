@@ -1,3 +1,7 @@
+> Historical legacy styling contract (2026-10-28). The optional renderer introduced
+> in JS 0.7.0/native window 0.8.0 has a separate [surface contract](glass-surface.md).
+> Existing default material behavior remains governed by this legacy contract.
+
 # Glass and theme integration handoff
 
 Updated 2026-10-28 after the user's visual approval in BSL-Timer.

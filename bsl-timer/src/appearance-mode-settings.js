@@ -18,6 +18,7 @@ import {
 
 export const APPEARANCE_MODE_SETTINGS_SECTION = 'appearance';
 export const APPEARANCE_MODE_STORAGE_KEY = 'bsl-world.appearance-mode';
+export const AUXILIARY_APPEARANCE_STORAGE_KEY = 'bsl-timer.auxiliary-appearance-mode';
 export const GLASS_TEXT_TONE_STORAGE_KEY = 'bsl-world.glass-text-tone';
 export const GLASS_GLOW_INTENSITY_STORAGE_KEY = 'bsl-world.glass-glow-intensity';
 export const APPEARANCE_MODE_SETTINGS_EVENT =
@@ -65,23 +66,60 @@ export function getCachedAppearanceMode(
   );
 }
 
+export function getCachedAuxiliaryAppearanceMode(storage = globalThis.localStorage ?? null) {
+  const mode = normalizeAppearanceMode(storage?.getItem(AUXILIARY_APPEARANCE_STORAGE_KEY));
+  return mode === 'glass' ? DEFAULT_APPEARANCE_MODE : mode;
+}
+
+function isAuxiliaryDocument(document) {
+  return Boolean(document?.body?.matches(
+    '.settings-body, .about-window-body, .whats-new-window-body, .date-countdown-editor-body'
+  ));
+}
+
 export function applyAppearanceMode(
   mode = getCachedAppearanceMode(),
   {
     document = globalThis.document ?? null,
     storage = globalThis.localStorage ?? null,
-    matchMedia = globalThis.matchMedia?.bind(globalThis) ?? null
+    matchMedia = globalThis.matchMedia?.bind(globalThis) ?? null,
+    auxiliaryMode,
+    persist = true
   } = {}
 ) {
+  // Keep the ordinary appearance independently of the main window's Glass material.
+  const ordinaryMode = normalizeAppearanceMode(auxiliaryMode ?? (
+    normalizeAppearanceMode(mode) === 'glass'
+      ? getCachedAuxiliaryAppearanceMode(storage)
+      : mode
+  ));
+  const retainedMode = ordinaryMode === 'glass' ? DEFAULT_APPEARANCE_MODE : ordinaryMode;
+  if (persist && storage?.getItem(AUXILIARY_APPEARANCE_STORAGE_KEY) !== retainedMode) {
+    storage?.setItem(AUXILIARY_APPEARANCE_STORAGE_KEY, retainedMode);
+  }
   const result = applyCoreAppearanceMode(mode, {
     document,
     matchMedia
   });
 
-  storage?.setItem(APPEARANCE_MODE_STORAGE_KEY, result.mode);
+  if (result.mode === 'glass' && isAuxiliaryDocument(document)) {
+    applyCoreAppearanceMode(retainedMode, { document, matchMedia });
+    document.documentElement.dataset.appearanceMode = result.mode;
+  }
+
+  if (persist) storage?.setItem(APPEARANCE_MODE_STORAGE_KEY, result.mode);
   applyCoreGlassTextTone(getCachedGlassTextTone(storage), document);
   applyCoreGlassGlowIntensity(getCachedGlassGlowIntensity(storage), document);
   return result;
+}
+
+// A storage notification is already committed. Read the latest selection and
+// apply it without publishing an older event value back to the other windows.
+export function applyCachedAppearanceMode(options = {}) {
+  const { storage = globalThis.localStorage ?? null } = options;
+  return applyAppearanceMode(getCachedAppearanceMode(storage), {
+    ...options, storage, persist: false
+  });
 }
 
 export function watchAppearanceMode({
@@ -90,16 +128,23 @@ export function watchAppearanceMode({
   matchMedia = globalThis.matchMedia?.bind(globalThis) ?? null
 } = {}) {
   const onStorage = event => {
-    if (event.key === GLASS_GLOW_INTENSITY_STORAGE_KEY) applyCoreGlassGlowIntensity(event.newValue, document);
+    if (event.key === AUXILIARY_APPEARANCE_STORAGE_KEY) {
+      applyCachedAppearanceMode({ document, storage, matchMedia });
+    }
+    if (event.key === GLASS_GLOW_INTENSITY_STORAGE_KEY) applyCoreGlassGlowIntensity(getCachedGlassGlowIntensity(storage), document);
     if (event.key === GLASS_TEXT_TONE_STORAGE_KEY) {
-      applyCoreGlassTextTone(event.newValue, document);
+      applyCoreGlassTextTone(getCachedGlassTextTone(storage), document);
     }
   };
   const window = document?.defaultView;
   window?.addEventListener('storage', onStorage);
   const stopSystemWatch = watchSystemAppearance(() => {
-    if (getCachedAppearanceMode(storage) === DEFAULT_APPEARANCE_MODE) {
-      applyAppearanceMode(DEFAULT_APPEARANCE_MODE, {
+    const mode = getCachedAppearanceMode(storage);
+    if (mode === DEFAULT_APPEARANCE_MODE || (
+      mode === 'glass' && isAuxiliaryDocument(document)
+      && getCachedAuxiliaryAppearanceMode(storage) === DEFAULT_APPEARANCE_MODE
+    )) {
+      applyCachedAppearanceMode({
         document,
         storage,
         matchMedia

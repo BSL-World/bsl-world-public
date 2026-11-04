@@ -89,6 +89,20 @@ export class SignalPlayer {
     });
   }
 
+  async prepareTabBeep() {
+    this.tabBeepPath ??= await this.invoke('prepare_tab_beep');
+  }
+
+  async playTabBeep() {
+    const stopState = this.captureStopState('tab-beep');
+    await this.prepareTabBeep();
+    if (this.wasStopped('tab-beep', stopState)) return true;
+    return this.playNative('tab-beep', {
+      signal: NativeAudioSignal.FILE,
+      path: this.tabBeepPath
+    });
+  }
+
   stop(sequenceId = null) {
     if (sequenceId === null) {
       this.stopGeneration += 1;

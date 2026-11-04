@@ -1,5 +1,6 @@
 import { fitScaledWindow } from './scaled-window.js';
 import './action-button-layout.js';
+import { TabAlarm } from './tab-alarm.js';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
 import {
@@ -106,6 +107,7 @@ import {
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   applyGlassTextTone,
   loadAppearanceModeSettings,
   watchAppearanceMode
@@ -268,6 +270,15 @@ const warningSignalController = new WarningSignalController({
 });
 
 const timerTabList = document.getElementById('timer-tab-list');
+const tabBeepPlayer = new SignalPlayer({
+  outputDeviceId: initialAudioPreferences.outputDeviceId,
+  onOutputDeviceFallback: handleOutputDeviceFallback
+});
+const tabAlarm = new TabAlarm({
+  play: () => tabBeepPlayer.playTabBeep(),
+  stop: () => tabBeepPlayer.stop(),
+  isSignalPlaying: id => endSignalPlayer.activePlaybackIds.has(id)
+});
 const addTimerButton = document.getElementById('add-timer-btn');
 const scrollTabsLeftButton =
   document.getElementById('scroll-tabs-left-btn');
@@ -714,6 +725,9 @@ function applyAudioPreferences(preferences, { force = false } = {}) {
     ),
     warningSignalPlayer.setOutputDevice(
       normalizedPreferences.outputDeviceId
+    ),
+    tabBeepPlayer.setOutputDevice(
+      normalizedPreferences.outputDeviceId
     )
   ]).catch((error) => {
     console.error('Failed to update the audio output device:', error);
@@ -829,6 +843,7 @@ function renderTimer(snapshot) {
       timerStatus.classList.remove('device-alarm-lit');
     }
   }
+  updateAlarmIndicators();
 
   timerDisplay.textContent = isOverdue
     ? millisecondsToClock(snapshot.overdueMs)
@@ -932,6 +947,7 @@ function getDefaultTimerName() {
 }
 
 function updateTabState(eventId, snapshot) {
+  tabAlarm.update(eventId, snapshot.state);
   const tab = timerTabList.querySelector(
     `[data-event-id="${CSS.escape(eventId)}"]`
   );
@@ -944,6 +960,17 @@ function updateTabState(eventId, snapshot) {
 }
 
 function updateTabStateClasses(tab, snapshot) {
+  tabAlarm.update(tab.dataset.eventId, snapshot.state);
+  const mute = tab.querySelector('.timer-tab-mute');
+  if (mute) {
+    mute.hidden = snapshot.state !== TimerState.OVERDUE;
+    const muted = tabAlarm.isMuted(tab.dataset.eventId);
+    mute.setAttribute('aria-pressed', String(muted));
+    mute.title = t(muted ? 'tabs.unmuteBeep' : 'tabs.muteBeep');
+    mute.setAttribute('aria-label', mute.title);
+    const icon = muted ? '🔇' : '🔊';
+    if (mute.textContent !== icon) mute.textContent = icon;
+  }
   tab.classList.toggle(
     'is-running',
     snapshot.state === TimerState.RUNNING
@@ -956,7 +983,33 @@ function updateTabStateClasses(tab, snapshot) {
     'is-overdue',
     snapshot.state === TimerState.OVERDUE
   );
+  tab.classList.toggle(
+    'is-overdue-pulse',
+    snapshot.state === TimerState.OVERDUE && tabAlarm.lit
+  );
 }
+
+function getTabAlarmEpoch() {
+  const active = workspace.getActiveEngine()?.getSnapshot();
+  if (active?.state === TimerState.OVERDUE) return active.endTimestamp;
+  for (const event of workspace.getEvents()) {
+    const snapshot = workspace.getEngine(event.id)?.getSnapshot();
+    if (snapshot?.state === TimerState.OVERDUE) return snapshot.endTimestamp;
+  }
+  return 0;
+}
+
+// Publish the same phase to the display and every overdue tab in one callback.
+// DOM phases also reach native Glass captures, unlike a CSS-only animation.
+function updateAlarmIndicators(now = Date.now()) {
+  const lit = tabAlarm.tick(now, getTabAlarmEpoch());
+  timerTabList.querySelectorAll('.timer-tab.is-overdue').forEach(tab => {
+    tab.classList.toggle('is-overdue-pulse', lit);
+  });
+  timerStatus.classList.toggle('device-alarm-lit',
+    timerPanel.classList.contains('is-overdue') && lit);
+}
+const overdueTabPulseInterval = window.setInterval(updateAlarmIndicators, 25);
 
 function createTabEditor(eventInstance) {
   const input = document.createElement('input');
@@ -1066,6 +1119,16 @@ function createTimerTab(eventInstance, canClose) {
 
     tab.append(selectButton);
   }
+
+  const muteButton = document.createElement('button');
+  muteButton.className = 'timer-tab-mute';
+  muteButton.type = 'button';
+  muteButton.addEventListener('click', event => {
+    event.stopPropagation();
+    tabAlarm.toggleMute(eventInstance.id);
+    updateTabStateClasses(tab, workspace.getEngine(eventInstance.id).getSnapshot());
+  });
+  tab.append(muteButton);
 
   if (canClose) {
     const closeButton = document.createElement('button');
@@ -1334,6 +1397,7 @@ async function closeTimerTab(eventId) {
   stopWarningSignals(eventId);
   warningSignalController.reset(eventId);
   workspace.removeEvent(eventId);
+  tabAlarm.remove(eventId);
   applyActiveVisualSettings();
   renderTabs();
   renderActiveTimer();
@@ -1608,6 +1672,7 @@ async function requestApplicationClose({
   endSignalService.cancelAll();
 
   try {
+    tabAlarm.dispose();
     await invoke('exit_application');
   } catch (error) {
     isClosingApplication = false;
@@ -2114,7 +2179,7 @@ window.addEventListener('storage', (event) => {
     event.key === APPEARANCE_MODE_STORAGE_KEY
     && event.newValue
   ) {
-    applyAppearanceMode(event.newValue);
+    applyCachedAppearanceMode();
   }
 
   if (
@@ -2140,6 +2205,8 @@ window.addEventListener('storage', (event) => {
 });
 
 window.addEventListener('beforeunload', () => {
+  window.clearInterval(overdueTabPulseInterval);
+  tabAlarm.dispose();
   window.clearInterval(dateCountdownRefreshId);
   workspace.save();
   workspace.destroy();
@@ -2248,7 +2315,7 @@ await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
 });
 
 await listen(APPEARANCE_MODE_SETTINGS_EVENT, (event) => {
-  applyAppearanceMode(event.payload?.mode);
+  applyCachedAppearanceMode();
   applyGlassTextTone(event.payload?.glassTextTone);
 });
 

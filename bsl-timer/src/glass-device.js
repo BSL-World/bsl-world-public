@@ -1,9 +1,13 @@
 import {invoke} from '@tauri-apps/api/core';
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {t} from './i18n.js';
+import {createGlassSurface} from '@bsl-world/desktop-core/glass';
+import '@bsl-world/desktop-core/glass.css';
 import {fitScaledWindow} from './scaled-window.js';
 
 const app=document.querySelector('#app');
+const appWindow=getCurrentWindow();
+let surface;
 const display=document.querySelector('#timer-display');
 const inputs=document.querySelector('#duration-inputs');
 const controls=document.querySelector('.timer-controls');
@@ -19,7 +23,7 @@ function applyDeviceSize(value){
   const size=Object.hasOwn(deviceSizes,value)?value:'normal';deviceScale=deviceSizes[size];sizeSelect.value=size;
   document.documentElement.style.setProperty('--device-scale',deviceScale);
   localStorage.setItem('bsl-timer.glass-device-size',size);
-  lastInternal='';if(layout)void layout().then(scheduleGeometry);else scheduleGeometry();
+  surface?.invalidate({interior:true});if(layout)void layout().then(scheduleGeometry);else scheduleGeometry();
 }
 sizeSelect.addEventListener('change',()=>applyDeviceSize(sizeSelect.value));
 let layout=()=>{
@@ -28,26 +32,7 @@ let layout=()=>{
   return request.result??fitScaledWindow(appWindow,{width:360,page:app,requireAllContent:true});
 };
 void import('./main.js').then(module=>{layout=module.setMainWindowLayout;void layout();scheduleGeometry();});
-let geometryTimer,uiTimer,capturing=false,uiDirty=false,initialized=false,materialVersion=0;
-let lastInternal='';
-let lastTextMask='';
-let lastGeometry=null,pressedButton=null;
-const controlRect=element=>{const r=element.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};
-function pressParameters(){return {pressedRect:pressedButton?.isConnected&&!pressedButton.disabled?controlRect(pressedButton):null,pressedTravel:pressedButton&&!pressedButton.disabled?3*deviceScale:0};}
-function showPress(button){
-  pressedButton=button;if(!lastGeometry||document.documentElement.dataset.appearance!=='glass')return;
-  const start=performance.now();
-  void invoke('set_glass_optics',{...lastGeometry,...pressParameters()}).then(()=>{
-    app.dataset.devicePressLatency=(performance.now()-start).toFixed(1);app.dataset.devicePressState=button?'down':'up';
-  }).catch(error=>console.error('Glass native press:',error));
-}
-app.addEventListener('pointerdown',event=>{const button=event.target.closest('button');if(event.button===0&&button&&!button.disabled)showPress(button);},{capture:true,passive:true});
-window.addEventListener('pointerup',()=>{if(pressedButton)showPress(null);},{capture:true,passive:true});
-window.addEventListener('pointercancel',()=>{if(pressedButton)showPress(null);},{passive:true});
-window.addEventListener('blur',()=>{if(pressedButton)showPress(null);});
-app.addEventListener('keydown',event=>{const button=event.target.closest('button');if(!event.repeat&&['Space','Enter'].includes(event.code)&&button&&!button.disabled)showPress(button);},{capture:true});
-app.addEventListener('keyup',event=>{if(['Space','Enter'].includes(event.code)&&pressedButton)showPress(null);},{capture:true});
-const adaptiveSelector='.app-title,.timer-tab-label,.timer-tab-close,.duration-field>span,.duration-separator,.control-button,.device-scale,.date-countdown-name,:is(#settings-btn,#date-countdowns-btn,#about-btn,#minimize-btn,#close-btn,#add-timer-btn)>span';
+const adaptiveSelector='.app-title,.timer-tab:not(.is-running):not(.is-overdue) :is(.timer-tab-label,.timer-tab-close),.duration-field>span,.duration-separator,.control-button,.device-scale,.date-countdown-name,:is(#settings-btn,#date-countdowns-btn,#about-btn,#minimize-btn,#close-btn,#add-timer-btn)>span';
 // A WebView tooltip is captured with the UI; native title popups sit behind the composition surface.
 const eventButton=document.querySelector('#date-countdowns-btn');
 const eventTooltip=document.createElement('div');
@@ -75,46 +60,6 @@ window.addEventListener('blur',hideEventTooltip);
 window.addEventListener('resize',hideEventTooltip);
 app.addEventListener('keydown',event=>{if(event.key==='Escape')hideEventTooltip();});
 new MutationObserver(()=>{eventTooltip.textContent=t('toolbar.dateCountdowns');}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-const paintFrame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
-async function captureAdaptiveUi(version){
-  const signature=JSON.stringify([innerWidth,innerHeight,app.style.getPropertyValue('--device-ink-clip'),getComputedStyle(app).getPropertyValue('--device-key-rgb'),...[...app.querySelectorAll(adaptiveSelector)].map(element=>{
-    const r=element.getBoundingClientRect(),s=getComputedStyle(element);
-    return [element.textContent,element.value,element.hidden,element.matches(':disabled'),r.x,r.y,r.width,r.height,s.font,s.letterSpacing,s.opacity];
-  })]);
-  const updateMask=signature!==lastTextMask;
-  try{
-    document.documentElement.dataset.deviceTextPass='base';await paintFrame();
-    if(version!==materialVersion||document.documentElement.dataset.appearance!=='glass')return false;
-    const capture=await invoke('capture_glass_device_ui',{layer:updateMask?3:4});
-    app.dataset.deviceCaptureSize=capture.width+'x'+capture.height;
-    if(version!==materialVersion)return false;
-    if(updateMask){
-      document.documentElement.dataset.deviceTextPass='mask';await paintFrame();
-      if(version!==materialVersion)return false;
-      await invoke('capture_glass_device_ui',{layer:2});lastTextMask=signature;
-    }
-    return version===materialVersion;
-  }finally{delete document.documentElement.dataset.deviceTextPass;}
-}
-const appWindow=getCurrentWindow();
-
-function captureUi(){
-  uiDirty=true;if(capturing)return;
-  clearTimeout(uiTimer);uiTimer=setTimeout(async()=>{
-    if(!initialized||document.documentElement.dataset.appearance!=='glass')return;
-    capturing=true;uiDirty=false;
-    const version=materialVersion;
-    try{
-      if(await captureAdaptiveUi(version)){
-        await invoke('set_glass_device_visible',{visible:true});
-        if(version===materialVersion)app.dataset.deviceUi='ready';
-      }
-    }
-    catch(error){console.error('Glass UI composition:',error);}
-    finally{capturing=false;if(uiDirty)captureUi();}
-  },0);
-}
-
 function svgLayer(width,height){
   const bounds=element=>Object.fromEntries(['x','y','width','height','top','bottom','left','right'].map(key=>[key,element.getBoundingClientRect()[key]/deviceScale]));
   const rect=bounds(display);const field=bounds(inputs);
@@ -189,70 +134,38 @@ function svgLayer(width,height){
   ${capacitors}</g></svg>`;
 }
 
-async function internalLayer(scale){
-  const width=innerWidth,height=innerHeight;
-  const svg=svgLayer(width,height);
-  const signature=`${width}:${height}:${scale}:${svg}`;
-  if(signature===lastInternal)return;
-  const image=new Image();const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
-  try{
-    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=url;});
-    const canvas=document.createElement('canvas');canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
-    canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-    await invoke('set_glass_device_internal',{png:Array.from(new Uint8Array(await blob.arrayBuffer()))});
-    lastInternal=signature;
-  }finally{URL.revokeObjectURL(url);}
-}
-
-async function updateGeometry(){
-  if(document.documentElement.dataset.appearance!=='glass'){
-    initialized=false;await invoke('set_glass_device_visible',{visible:false});return;
-  }
-  const version=materialVersion,r=app.getBoundingClientRect();
+function scheduleGeometry(){surface?.invalidate();}
+const mechanicalSelector='.control-button,.titlebar-button,.add-timer-button,.tab-scroll-button,.date-countdown-scroll-button,.add-date-countdown-button,.date-countdown-ribbon-toggle';
+surface=createGlassSurface({
+ host:app,
+ native:{
+  configure:geometry=>invoke('set_glass_optics',geometry),
+  captureUi:(layer,session)=>invoke('capture_glass_device_ui',{layer,session}),
+  setInterior:(png,session)=>invoke('set_glass_device_internal',{png,session}),
+  setVisible:(visible,session)=>invoke('set_glass_device_visible',{visible,session}),
+  release:session=>invoke('release_glass_device',{session})
+ },
+ ink:{selector:adaptiveSelector,engravedSelector:'.app-title,.duration-field>span',frameSelector:'.about-titlebar-icon',excludeSelector:'.device-tooltip,#timer-display,#timer-status,input,img,svg,canvas',tint:'var(--device-key)',passAttribute:'data-device-text-pass',clipProperty:'--device-ink-clip',getPaletteSignature:()=>getComputedStyle(app).getPropertyValue('--device-key-rgb')},
+ roles:{mechanical:mechanicalSelector,lcd:'.duration-field input','lcd-frame':'.duration-field','display-frame':'.device-display-module'},
+ getGeometry:()=>{
+  const r=app.getBoundingClientRect();
+  const buttonRects=[...controls.querySelectorAll('button')].filter(button=>!button.hidden).map(button=>{const b=button.getBoundingClientRect();return [b.x,b.y,b.width,b.height];}).filter(b=>b[2]>0&&b[3]>0).slice(0,3);
   const density=Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bsl-glass-density'))||1;
-  const buttonRects=[...controls.querySelectorAll('button')].filter(button=>!button.hidden).map(controlRect).filter(rect=>rect[2]>0&&rect[3]>0).slice(0,3);
   const surfaceTint=getComputedStyle(app).getPropertyValue('--device-key-rgb').trim().split(/\s+/).map(value=>Number(value)/255);
-  lastGeometry={x:r.x,y:r.y,width:r.width,height:r.height,radius:25*deviceScale,depth:12*deviceScale,enabled:true,rounded:true,viewportWidth:innerWidth,density,buttonRects,surfaceTint};
-  const info=await invoke('set_glass_optics',{...lastGeometry,...pressParameters()});
-  app.dataset.deviceHwnd=String(info.hwnd);
-  if(version!==materialVersion)return;
-  await internalLayer(info.dpi);
-  if(version!==materialVersion)return;
-  initialized=true;captureUi();
-}
-function scheduleGeometry(){clearTimeout(geometryTimer);geometryTimer=setTimeout(()=>{void updateGeometry().catch(error=>console.error('Glass device geometry:',error));},70);}
-new ResizeObserver(scheduleGeometry).observe(app);
-new MutationObserver(records=>{
-  captureUi();
-  if(records.some(record=>record.type==='attributes'&&record.attributeName==='hidden'))scheduleGeometry();
-}).observe(app,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','class','aria-pressed','disabled','value']});
-new MutationObserver(records=>{
-  records=records.filter(record=>record.oldValue!==record.target.getAttribute(record.attributeName));
-  if(!records.length)return;
-  if(records.some(record=>record.attributeName==='data-appearance')){
-    hideEventTooltip();
-    materialVersion++;initialized=false;lastTextMask='';lastInternal='';app.dataset.deviceUi='pending';
-    void invoke('set_glass_device_visible',{visible:false}).catch(error=>console.error('Glass switch:',error));
-  }
-  captureUi();scheduleGeometry();
-  if(records.some(record=>record.attributeName!=='style'))lastInternal='';
-  // Material is a coating choice, not a request to resize the instrument.
-  if(records.some(record=>record.attributeName==='data-font-size')&&layout)void layout();
-}).observe(document.documentElement,{attributes:true,attributeOldValue:true,attributeFilter:['style','data-theme','data-glow','data-glass-text-tone','data-font-size','data-appearance']});
-let interactionUntil=0;
-function interaction(){interactionUntil=performance.now()+190;captureUi();}
-for(const event of ['pointerdown','pointerup','pointermove','pointerleave','focusin','focusout','input','keydown','keyup'])app.addEventListener(event,interaction,{passive:true});
-setInterval(()=>{if(performance.now()<interactionUntil)captureUi();},16);
-window.addEventListener('resize',scheduleGeometry);
+  return {x:r.x,y:r.y,width:r.width,height:r.height,radius:25*deviceScale,depth:12*deviceScale,enabled:true,rounded:true,viewportWidth:innerWidth,density,buttonRects,surfaceTint};
+ },
+ getInterior:()=>svgLayer(innerWidth,innerHeight),getPressTravel:()=>3*deviceScale,
+ onMaterialChange:hideEventTooltip,onFontChange:()=>{if(layout)void layout();},
+ onState:(type,data)=>{
+  if(type==='geometry'){app.dataset.deviceHwnd=String(data.hwnd);app.dataset.deviceSession=String(data.session);}
+  if(type==='capture')app.dataset.deviceCaptureSize=data.width+'x'+data.height;
+  if(type==='ready'||type==='pending')app.dataset.deviceUi=type;
+  if(type==='press'){app.dataset.devicePressLatency=data.milliseconds.toFixed(1);app.dataset.devicePressState=data.state;}
+ }
+});
+window.addEventListener('beforeunload',()=>{void surface.dispose();});
 
-// Half a second on, half a second off, aligned with the overdue timer.
-setInterval(()=>{
-  const status=document.querySelector('#timer-status');
-  const epoch=Number(status.dataset.deviceAlarmEpoch);
-  const lit=Number.isFinite(epoch)&&(Date.now()-epoch)%1000<500;
-  if(status.classList.contains('device-alarm-lit')!==lit)status.classList.toggle('device-alarm-lit',lit);
-},25);
+// The main controller drives the display and tab lamps from one shared phase.
 
 new MutationObserver(sizeLabels).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 sizeLabels();applyDeviceSize(localStorage.getItem('bsl-timer.glass-device-size'));

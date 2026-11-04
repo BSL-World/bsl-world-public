@@ -1,0 +1,40 @@
+/* Optional Glass primitives. Products own layout, labels, fonts and commands. */
+[data-bsl-glass-surface] {
+ --bsl-glass-accent:var(--theme-color,#7fc7dd);--bsl-glass-accent-rgb:var(--theme-rgb,127 199 221);
+ --bsl-glass-side:color-mix(in srgb,var(--bsl-glass-accent) 42%,#1b323b);
+ --bsl-glass-pressed-color:var(--theme-color,var(--bsl-glass-accent));
+}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical] {
+ background:linear-gradient(158deg,rgb(255 255 255 / 46%),transparent 44%),linear-gradient(180deg,rgb(var(--bsl-glass-accent-rgb) / 22%),rgb(var(--bsl-glass-accent-rgb) / 12%));
+ color:var(--bsl-text);border:1px solid color-mix(in srgb,var(--bsl-glass-accent) 30%,rgb(225 240 243 / 60%));
+ --bsl-glass-key-shadow:inset 0 1px 1px rgb(255 255 255 / 70%),inset -1px -1px 2px rgb(15 35 43 / 23%),0 1px 0 var(--bsl-glass-side),0 2px 0 var(--bsl-glass-side),0 3px 0 var(--bsl-glass-side),0 4px 0 var(--bsl-glass-side),0 5px 3px rgb(5 20 29 / 28%);
+ box-shadow:var(--bsl-glass-key-shadow);transform:translateY(-2px);transition:filter 120ms ease;
+}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical]:hover:not(:disabled) {filter:brightness(1.1);}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical]:active:not(:disabled) {transform:translateY(-2px);box-shadow:var(--bsl-glass-key-shadow);}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical][aria-pressed="true"] {outline:1px solid var(--bsl-glass-pressed-color);outline-offset:-3px;}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical][data-bsl-glass-danger]:hover {background:#c42b3a;color:white;}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-mechanical]:disabled {
+ --bsl-glass-side:#465157;
+ background:linear-gradient(158deg,rgb(255 255 255 / 20%),transparent 44%),linear-gradient(180deg,rgb(132 145 150 / 22%),rgb(86 100 108 / 16%));
+ border-color:rgb(161 174 180 / 38%);color:#a6afb3;filter:grayscale(1);text-shadow:none;opacity:.72;
+ box-shadow:inset 0 1px 1px rgb(255 255 255 / 25%),inset -1px -1px 2px rgb(15 25 30 / 20%),0 1px 0 var(--bsl-glass-side),0 2px 0 var(--bsl-glass-side),0 3px 0 var(--bsl-glass-side),0 4px 0 var(--bsl-glass-side),0 5px 3px rgb(5 20 29 / 20%);
+}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-lcd] {
+ border:1px solid rgb(165 187 192 / 84%);
+ background:linear-gradient(165deg,rgb(186 216 224 / 18%),transparent 45%),rgb(40 59 68 / 88%);
+ box-shadow:inset 0 2px 4px rgb(0 0 0 / 40%),inset 0 -1px rgb(234 248 250 / 25%);
+ color:color-mix(in srgb,var(--bsl-glass-accent) 28%,#f4f9fb);-webkit-text-fill-color:currentColor;text-shadow:none;
+}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-lcd-frame] {position:relative;}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-lcd-frame]::after {
+ content:"";position:absolute;z-index:0;left:-.2rem;right:-.2rem;bottom:-.15rem;height:calc(var(--bsl-glass-lcd-height,2rem) + .3rem);
+ border-radius:.5rem;background:rgb(20 41 48 / 22%);border:1px solid rgb(26 49 56 / 65%);pointer-events:none;
+ box-shadow:inset 0 2px 3px rgb(0 15 23 / 55%),0 1px 1px rgb(236 253 255 / 65%);
+}
+:root[data-appearance="glass"][data-theme][data-glow] [data-bsl-glass-surface][data-bsl-glass-surface][data-bsl-glass-surface] [data-bsl-glass-display-frame]::before {
+ content:"";position:absolute;inset:.05rem -.25rem .12rem;border-radius:.55rem;pointer-events:none;
+ background:rgb(20 41 48 / 22%);border:1px solid rgb(26 49 56 / 65%);
+ box-shadow:inset 0 2px 3px rgb(0 15 23 / 55%),0 1px 1px rgb(236 253 255 / 65%);
+}
+:root[data-appearance="glass"] [data-bsl-glass-surface][aria-hidden="true"][inert] [data-bsl-glass-display-frame]::before {content:none!important;}

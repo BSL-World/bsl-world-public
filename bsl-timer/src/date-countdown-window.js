@@ -35,6 +35,7 @@ import {
   APPEARANCE_MODE_SETTINGS_EVENT,
   APPEARANCE_MODE_STORAGE_KEY,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   loadAppearanceModeSettings,
   watchAppearanceMode
 } from './appearance-mode-settings.js';
@@ -738,7 +739,7 @@ window.addEventListener('storage', (event) => {
   }
 
   if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
-    applyAppearanceMode(event.newValue);
+    applyCachedAppearanceMode();
   }
 
   if (event.key === 'bsl-timer.locale' && event.newValue) {
@@ -775,7 +776,7 @@ await listen(FONT_SIZE_SETTINGS_EVENT, (event) => {
 });
 
 await listen(APPEARANCE_MODE_SETTINGS_EVENT, (event) => {
-  applyAppearanceMode(event.payload?.mode);
+  applyCachedAppearanceMode();
 });
 
 applyTheme();

@@ -14,6 +14,10 @@ pub fn apply_window_appearance<R: Runtime>(
         #[cfg(feature = "composition-preview")]
         {
             let handle = window.hwnd().map_err(|e| e.to_string())?.0;
+            #[cfg(feature = "glass-surface")]
+            if mode == "glass" && unsafe { glass::is_attached(handle) } {
+                return window_vibrancy::clear_blur(window).map_err(|e|e.to_string());
+            }
             if mode == "glass" {
                 window_vibrancy::clear_blur(window).map_err(|e| e.to_string())?;
                 let sigma = std::env::var("BSL_GLASS_BLUR_SIGMA").ok()
@@ -53,3 +57,6 @@ extern "C" {
     fn bsl_composition_apply(handle: *mut std::ffi::c_void, sigma: f32) -> i32;
     fn bsl_composition_clear(handle: *mut std::ffi::c_void) -> i32;
 }
+
+#[cfg(all(windows, feature = "glass-surface"))]
+pub mod glass;

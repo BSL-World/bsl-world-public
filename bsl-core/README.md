@@ -15,7 +15,9 @@ Available modules:
   the operating-system default output.
 - The native companion crate in `native/window` applies clear Glass or the
   existing blurred window background on Windows. Products supply a window,
-  appearance mode, and transparency; no capture or background analysis is used.
+  appearance mode, and transparency; the default path uses no capture or background analysis.
+  The optional `glass-surface` feature adds independent per-window D3D11 surfaces
+  with desktop refraction and WebView layers; it does not change the default path.
 - `window` owns monitor selection, independent X/Y correction, margins, and
   reusable window-position persistence.
 - `theme` owns canonical accent-theme identifiers, normalization, glow
@@ -66,3 +68,9 @@ The original handoff described uncommitted runtime changes. Their preserved
 source is recorded in repository history on 2026-10-30; this recovery does not
 create an installer or publish a package.
 The native Composition backend remains opt-in (`composition-preview`).
+
+## Optional Glass surface (JS 0.7.0 / native window 0.8.0)
+
+Import `glass` and `glass.css` and opt in to the native `glass-surface` feature.
+Products own IPC policy, geometry, content and labels; Core owns rendering,
+layer capture, press feedback and disposal. See [the surface contract](docs/glass-surface.md).

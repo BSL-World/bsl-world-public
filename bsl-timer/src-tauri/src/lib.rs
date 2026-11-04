@@ -95,6 +95,18 @@ async fn play_audio_signal(
 }
 
 #[tauri::command]
+fn prepare_tab_beep(app: tauri::AppHandle) -> Result<String, String> {
+    let directory = app.path().app_cache_dir().map_err(|error| error.to_string())?;
+    std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
+    let path = directory.join("tab-beep-v1.wav");
+    let bytes = include_bytes!("../sounds/tab-beep.wav");
+    if std::fs::read(&path).ok().as_deref() != Some(bytes.as_slice()) {
+        std::fs::write(&path, bytes).map_err(|error| error.to_string())?;
+    }
+    Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
 fn stop_audio_playback(
     audio_engine: tauri::State<'_, AudioEngine>,
     playback_ids: Vec<String>,
@@ -1247,6 +1259,8 @@ pub fn run() {
             glass_optics::set_glass_device_internal,
             #[cfg(all(windows, feature = "glass-device"))]
             glass_optics::set_glass_device_visible,
+            #[cfg(all(windows, feature = "glass-device"))]
+            glass_optics::release_glass_device,
             informer_diagnostics_enabled,
             log_informer_diagnostic,
             greet,
@@ -1268,6 +1282,7 @@ pub fn run() {
             open_settings_window,
             open_whats_new_window,
             play_audio_signal,
+            prepare_tab_beep,
             remove_application_desktop_settings_section,
             save_application_desktop_settings_section,
             save_shared_desktop_settings_section,

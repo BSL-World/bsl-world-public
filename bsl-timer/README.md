@@ -1,8 +1,18 @@
 # BSL-Timer
 
-Version 1.1.3 packages the accepted Timer-local Glass instrument with live desktop
-refraction, mechanical buttons, adaptive label/icon contrast and three device
-sizes. Core remains unchanged. See [1.1.3 handoff and validation](docs/release-1.1.3.md).
+Version 1.1.8 was published to the website updater on 4 November 2026 as a focused stability update: incoming appearance
+notifications no longer echo between windows, and leaving Glass cancels unfinished
+captures, clears masks and retires old rendering sessions. See
+[1.1.8 handoff and validation](docs/release-1.1.8.md).
+
+Version 1.1.7 preserves the preceding ordinary appearance of auxiliary windows
+when enabling Glass and restores cumulative RU/EN release notes with Glass first.
+See [1.1.7 handoff and validation](docs/release-1.1.7.md).
+
+Version 1.1.6 adds state-colored timer tabs, display-synchronized overdue lamps
+and beeps, and a per-tab Mute button. Idle tabs retain a paler theme color.
+The accepted Glass instrument now uses the shared optional desktop-core Glass
+surface. See [1.1.6 handoff and validation](docs/release-1.1.6.md).
 Local packages do not imply publication or an updated production updater manifest.
 
 Release preparation and the explanation of intermediate version numbers:
@@ -93,7 +103,7 @@ These candidates are not yet a new public stable release.
 Version 1.0.5 restores live countdown and overdue updates in informers.
 Version 1.0.4 corrected zero-valued overdue reminders but left their time static.
 
-The current public stable release is BSL-Timer 1.0.3 Free. A separate Pro build
+The current public stable release is BSL-Timer 1.1.7 Free. A separate Pro build
 is maintained for private testing and controlled distribution.
 
 Version 0.7.0 introduced the signed automatic update system. Version 0.7.1

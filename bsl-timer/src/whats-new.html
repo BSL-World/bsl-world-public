@@ -15,9 +15,12 @@
         const appearanceMode =
             localStorage.getItem('bsl-world.appearance-mode') || 'system';
         document.documentElement.dataset.appearanceMode = appearanceMode;
-        document.documentElement.dataset.appearance = appearanceMode === 'system'
-            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        const auxiliaryMode = appearanceMode === 'glass'
+            ? (localStorage.getItem('bsl-timer.auxiliary-appearance-mode') || 'system')
             : appearanceMode;
+        document.documentElement.dataset.appearance = ['light', 'dark'].includes(auxiliaryMode)
+            ? auxiliaryMode
+            : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     </script>
     <link rel="stylesheet" href="/styles.css">
 </head>
@@ -27,8 +30,11 @@
         <h1 id="whats-new-title"></h1>
 
         <ul class="whats-new-list">
-            <li data-i18n="whatsNew.glassBody"></li>
             <li data-i18n="whatsNew.glassPreview"></li>
+            <li data-i18n="whatsNew.appearanceStability"></li>
+            <li data-i18n="whatsNew.glassCaptureRecovery"></li>
+            <li data-i18n="whatsNew.glassBody"></li>
+            <li data-i18n="whatsNew.tabAlarmSummary"></li>
             <li data-i18n="whatsNew.overdueInformer"></li>
         </ul>
 

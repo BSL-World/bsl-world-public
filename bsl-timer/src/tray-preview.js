@@ -22,6 +22,7 @@ import {
 import {
   APPEARANCE_MODE_STORAGE_KEY,
   applyAppearanceMode,
+  applyCachedAppearanceMode,
   watchAppearanceMode
 } from './appearance-mode-settings.js';
 
@@ -190,7 +191,7 @@ window.addEventListener('storage', (event) => {
   }
 
   if (event.key === APPEARANCE_MODE_STORAGE_KEY && event.newValue) {
-    applyAppearanceMode(event.newValue);
+    applyCachedAppearanceMode();
   }
 });
 
