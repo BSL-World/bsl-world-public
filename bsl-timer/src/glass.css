@@ -1,3 +1,10 @@
+/* Keep the rename editor focusable while excluding it from the Glass ink mask.
+   visibility:hidden drops keyboard focus during recurring capture passes. */
+:root[data-device-text-pass="mask"] #app .timer-tab-name-input {
+  visibility: visible !important;
+  opacity: 0 !important;
+}
+
 /* First material preview: main window and informer. Geometry stays in styles.css. */
 :root[data-appearance="glass"][data-theme] .app-shell,
 :root[data-appearance="glass"][data-theme] .tray-preview-card {

@@ -229,6 +229,8 @@
     "whatsNew": "What’s New"
   },
   "whatsNew": {
+    "compactGlass": "A shorter Glass instrument: the chip and capacitors tuck behind the readout, leaving their lower edges visible. The device-size selector is wider and flatter.",
+    "tabRenameFocus": "Timer names remain editable during Glass updates, including while a timer runs or becomes overdue. Enter saves the name; Escape cancels the change.",
     "appearanceStability": "Fixed repeated appearance changes: windows use the latest selection without sending obsolete settings back to one another.",
     "glassCaptureRecovery": "Leaving Glass cancels unfinished captures and clears the temporary mask. Frame waits are bounded; late frames cannot restore the previous appearance.",
     "tabAlarmSummary": "Running tabs use the theme color, idle tabs are paler and overdue tabs stay red. Lamps and short beeps share a 500 ms on/off rhythm. Per-tab Mute silences the beep while retaining visual indication.",

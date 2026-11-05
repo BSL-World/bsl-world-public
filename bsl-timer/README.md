@@ -1,5 +1,11 @@
 # BSL-Timer
 
+Version 1.1.10 was published to the website updater on 5 November 2026. It
+shortens the Glass instrument, tucks board components behind the readout,
+widens the device-size selector and includes the timer-tab rename focus fix.
+The user accepted the new geometry. Intermittent Glass darkening on the host
+remains unresolved. See [1.1.10 validation and publication](docs/release-1.1.10.md).
+
 Version 1.1.8 was published to the website updater on 4 November 2026 as a focused stability update: incoming appearance
 notifications no longer echo between windows, and leaving Glass cancels unfinished
 captures, clears masks and retires old rendering sessions. See

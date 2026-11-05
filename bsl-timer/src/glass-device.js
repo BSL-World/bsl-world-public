@@ -66,9 +66,8 @@ function svgLayer(width,height){
   const body=bounds(app);
   const minutes=bounds(inputs.querySelectorAll('input')[1]);
   const cx=minutes.x+minutes.width*.5;
-  const labelTop=bounds(inputs.querySelector('.duration-field')).top;
-  const freeHeight=Math.max(40,labelTop-rect.bottom);
-  const cy=rect.bottom+freeHeight*.48;
+  // Packages sit behind the readout, with only their lower edges exposed.
+  const cy=rect.bottom-10;
   const left=body.x+26,right=body.right-26,top=rect.top+14,bottom=body.bottom-18;
   const chipW=42,chipH=32;
   // All routes terminate at these same exposed package pins.
@@ -102,7 +101,7 @@ function svgLayer(width,height){
       wires+=`<path d="M ${sourceX} ${cy+23} V ${cy+29+i*4+pair*2} H ${terminal} V ${y}" stroke="${pair?'#a7b8bd':'#698792'}"/><circle cx="${terminal}" cy="${y}" r="1.5" fill="#b6c2b8"/>`;
     }
   });
-  const capX=cx-125,capY=cy-6;
+  const capX=cx-125,capY=cy-1;
   let capacitors='',traces='';
   for(let i=0;i<3;i++){
     const x=capX+i*23,y=capY+i*3;
@@ -117,7 +116,11 @@ function svgLayer(width,height){
     <linearGradient id="board" x2=".7" y2="1"><stop stop-color="#a9c9c1" stop-opacity=".22"/><stop offset=".6" stop-color="#396e68" stop-opacity=".12"/><stop offset="1" stop-color="#9fbeb5" stop-opacity=".25"/></linearGradient>
     <linearGradient id="package" x2=".8" y2="1"><stop stop-color="#596d72"/><stop offset=".45" stop-color="#34474d"/><stop offset="1" stop-color="#203139"/></linearGradient>
     <linearGradient id="capacitor"><stop stop-color="#273f4a"/><stop offset=".3" stop-color="#839ca5"/><stop offset=".58" stop-color="#55717d"/><stop offset="1" stop-color="#263e49"/></linearGradient>
-  </defs><g transform="scale(${deviceScale})">
+    <mask id="display-occlusion" maskUnits="userSpaceOnUse" x="0" y="0" width="${width/deviceScale}" height="${height/deviceScale}">
+      <rect width="${width/deviceScale}" height="${height/deviceScale}" fill="white"/>
+      <rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" rx="4" fill="black"/>
+    </mask>
+  </defs><g transform="scale(${deviceScale})" mask="url(#display-occlusion)">
   <rect x="${left+2}" y="${top+4}" width="${right-left}" height="${bottom-top}" rx="10" fill="#183a3d" opacity=".10"/>
   <rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}" rx="10" fill="url(#board)" stroke="#90b5ac" stroke-opacity=".36"/>
   <g fill="none" stroke="#b9a46e" stroke-opacity=".8" stroke-width="1.1">${traces}</g>

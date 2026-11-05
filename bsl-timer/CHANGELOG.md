@@ -7,6 +7,24 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.10] - 2026-11-05
+
+### Changed
+
+- Reduce the Glass instrument height, tuck the chip and capacitors behind the
+  readout, and widen and flatten the device-size selector.
+- Стеклянный прибор стал ниже; чип и конденсаторы слегка выглядывают из-под
+  циферблата, не просвечивая сквозь него. Список масштаба стал шире и ниже.
+
+## [1.1.9] - 2026-11-05
+
+### Fixed
+
+- Keep timer-tab name editing focused during recurring Glass ink captures.
+  Add a browser regression check for editing while the countdown runs and expires.
+- При обновлении стеклянного оформления поле имени таймера сохраняет фокус.
+  Добавлена браузерная проверка переименования во время отсчёта и перехода в просрочку.
+
 ## [1.1.8] - 2026-11-04
 
 ### Fixed
