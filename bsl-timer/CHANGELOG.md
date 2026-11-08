@@ -7,6 +7,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.11] - 2026-11-08
+
+### Fixed
+
+- Keep the live Glass window visible in GDI (ShareX) and Windows Graphics
+  Capture recordings by excluding it only from its Desktop Duplication backdrop
+  source. DDA-based recording still requires a different capture backend.
+- Окно Glass с живым преломлением видно в записи через GDI (ShareX) и Windows
+  Graphics Capture. Исключение ограничено источником фона Desktop Duplication;
+  для записи через DDA требуется другой способ захвата.
+- Preserve the cumulative RU/EN What’s New list and append the capture fix.
+
 ## [1.1.10] - 2026-11-05
 
 ### Changed

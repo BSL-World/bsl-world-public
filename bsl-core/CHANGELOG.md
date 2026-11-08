@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-11-08
+
+Native window companion: 0.8.2.
+
+- Restrict Glass backdrop exclusion to Desktop Duplication, keeping the finished
+  surface visible in GDI and Windows Graphics Capture recordings. Restore the
+  preceding DDA exclusion on release; retain screenshot freeze/resume behavior.
+- DDA-based recording still requires a different capture backend for live Glass.
+
 ## [0.7.1] - 2026-11-04
 
 Native window companion: 0.8.1.

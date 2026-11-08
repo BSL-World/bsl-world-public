@@ -1,5 +1,10 @@
 # BSL-Timer
 
+Version 1.1.11 was published to the website updater on 8 November 2026 as a focused fix for live Glass recording through GDI
+(ShareX) and Windows Graphics Capture, retaining the cumulative RU/EN What’s New
+list. DDA-based recording requires another capture backend. Validation, signing
+and publication status: [1.1.11 release record](docs/release-1.1.11.md).
+
 Version 1.1.10 was published to the website updater on 5 November 2026. It
 shortens the Glass instrument, tucks board components behind the readout,
 widens the device-size selector and includes the timer-tab rename focus fix.

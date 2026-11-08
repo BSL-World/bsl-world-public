@@ -25,7 +25,24 @@ using namespace Windows::UI::Composition;
 namespace {
 constexpr UINT_PTR timer_id=0x42534C4F;
 constexpr UINT capture_pause=WM_APP+0x170,capture_resume=WM_APP+0x171;
-constexpr DWORD exclude_capture=0x11;
+// Exclude only our backdrop source (DDA), not GDI or Windows Graphics Capture.
+// Global display affinity also hides the finished Glass window from recordings.
+struct CompositionAttribute { int attribute;void* data;SIZE_T size; };
+constexpr int excluded_from_dda=24;
+BOOL setBackdropExclusion(HWND window,BOOL excluded){
+ using Setter=BOOL(WINAPI*)(HWND,CompositionAttribute*);
+ static auto setter=reinterpret_cast<Setter>(GetProcAddress(GetModuleHandleW(L"user32.dll"),"SetWindowCompositionAttribute"));
+ if(!setter){SetLastError(ERROR_CALL_NOT_IMPLEMENTED);return FALSE;}
+ CompositionAttribute value{excluded_from_dda,&excluded,sizeof(excluded)};
+ return setter(window,&value);
+}
+BOOL getBackdropExclusion(HWND window,BOOL* excluded){
+ using Getter=BOOL(WINAPI*)(HWND,CompositionAttribute*);
+ static auto getter=reinterpret_cast<Getter>(GetProcAddress(GetModuleHandleW(L"user32.dll"),"GetWindowCompositionAttribute"));
+ if(!getter){SetLastError(ERROR_CALL_NOT_IMPLEMENTED);return FALSE;}
+ CompositionAttribute value{excluded_from_dda,excluded,sizeof(*excluded)};
+ return getter(window,&value);
+}
 const char shader[]=R"HLSL(
 cbuffer Parameters:register(b0){float2 lens;float2 capture;float2 origin;float radius;float depth;float enabled;float rounded;float2 padding;float2 uiSize;float2 uiOrigin;float2 internalSize;float2 layerPadding;float4 surfaceTint;};
 cbuffer ControlParameters:register(b1){float4 buttonRects[64];float4 pressedRect;float4 interaction;};
@@ -178,7 +195,7 @@ thread_local unsigned long long next_session=1;
 void releaseSurface(HWND window);
 struct Optics {
  unsigned long long session=next_session++;
- HWND window{};LONG_PTR original_style=0;DWORD original_affinity=0;
+ HWND window{};LONG_PTR original_style=0;BOOL original_dda_exclusion=FALSE;
  
  Compositor compositor{nullptr};
  Windows::UI::Composition::Desktop::DesktopWindowTarget target{nullptr};
@@ -209,8 +226,8 @@ struct Optics {
  DWORD screenshot_clipboard=0;ULONGLONG screenshot_deadline=0;
  void screenshotMode(bool active){
   if(active==screenshot_mode)return;
-  if(active){paused=true;check_bool(SetWindowDisplayAffinity(window,0));DwmFlush();screenshot_clipboard=GetClipboardSequenceNumber();screenshot_deadline=GetTickCount64()+60000;}
-  else{check_bool(SetWindowDisplayAffinity(window,exclude_capture));DwmFlush();duplication=nullptr;check_hresult(capture_output->DuplicateOutput(device.get(),duplication.put()));has_frame=false;paused=false;paused_until=GetTickCount64()+150;dirty=true;}
+  if(active){paused=true;check_bool(setBackdropExclusion(window,FALSE));DwmFlush();screenshot_clipboard=GetClipboardSequenceNumber();screenshot_deadline=GetTickCount64()+60000;}
+  else{check_bool(setBackdropExclusion(window,TRUE));DwmFlush();duplication=nullptr;check_hresult(capture_output->DuplicateOutput(device.get(),duplication.put()));has_frame=false;paused=false;paused_until=GetTickCount64()+150;dirty=true;}
   screenshot_mode=active;
  }
  void screenshotKeys(){
@@ -223,7 +240,7 @@ struct Optics {
   if(screenshot_mode&&((GetAsyncKeyState(VK_ESCAPE)&0x8000)||GetTickCount64()>screenshot_deadline||GetClipboardSequenceNumber()!=screenshot_clipboard))screenshotMode(false);
  }
  explicit Optics(HWND hwnd):window(hwnd){
-  original_style=GetWindowLongPtrW(window,GWL_EXSTYLE);GetWindowDisplayAffinity(window,&original_affinity);
+  original_style=GetWindowLongPtrW(window,GWL_EXSTYLE);check_bool(getBackdropExclusion(window,&original_dda_exclusion));
   if(!Windows::System::DispatcherQueue::GetForCurrentThread()){
    DispatcherQueueOptions options{sizeof(options),DQTYPE_THREAD_CURRENT,DQTAT_COM_STA};
    check_hresult(CreateDispatcherQueueController(options,reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(put_abi(shared_queue))));
@@ -235,13 +252,13 @@ struct Optics {
   pane=compositor.CreateSpriteVisual();root.Children().InsertAtTop(pane);
   clip=compositor.CreateRoundedRectangleGeometry();pane.Clip(compositor.CreateGeometricClip(clip));
   createDevice();compileShaders();
-  check_bool(SetWindowDisplayAffinity(window,exclude_capture));DwmFlush();
+  check_bool(setBackdropExclusion(window,TRUE));DwmFlush();
   duplication=nullptr;check_hresult(capture_output->DuplicateOutput(device.get(),duplication.put()));
   check_bool(SetWindowSubclass(window,windowProc,timer_id,reinterpret_cast<DWORD_PTR>(this)));
   check_bool(SetTimer(window,timer_id,16,nullptr)!=0);
  }
  ~Optics() noexcept {try{
-  if(IsWindow(window)){KillTimer(window,timer_id);RemoveWindowSubclass(window,windowProc,timer_id);SetWindowDisplayAffinity(window,original_affinity);SetWindowLongPtrW(window,GWL_EXSTYLE,(GetWindowLongPtrW(window,GWL_EXSTYLE)&~WS_EX_NOREDIRECTIONBITMAP)|(original_style&WS_EX_NOREDIRECTIONBITMAP));}
+  if(IsWindow(window)){KillTimer(window,timer_id);RemoveWindowSubclass(window,windowProc,timer_id);setBackdropExclusion(window,original_dda_exclusion);SetWindowLongPtrW(window,GWL_EXSTYLE,(GetWindowLongPtrW(window,GWL_EXSTYLE)&~WS_EX_NOREDIRECTIONBITMAP)|(original_style&WS_EX_NOREDIRECTIONBITMAP));}
   if(target)target.Root(nullptr);
  }catch(...){} }
  void createDevice(){
@@ -344,8 +361,8 @@ struct Optics {
   try{
    if(message==WM_TIMER&&wparam==timer_id){if(self->visible)self->screenshotKeys();self->render();return 0;}
    if(message==WM_MOVE){self->dirty=true;self->render();}
-   if(message==capture_pause){self->paused=true;SetWindowDisplayAffinity(hwnd,0);DwmFlush();return 0;}
-   if(message==capture_resume){SetWindowDisplayAffinity(hwnd,exclude_capture);DwmFlush();self->duplication=nullptr;check_hresult(self->capture_output->DuplicateOutput(self->device.get(),self->duplication.put()));self->has_frame=false;self->paused=false;self->paused_until=GetTickCount64()+150;self->dirty=true;return 0;}
+   if(message==capture_pause){self->paused=true;setBackdropExclusion(hwnd,FALSE);DwmFlush();return 0;}
+   if(message==capture_resume){setBackdropExclusion(hwnd,TRUE);DwmFlush();self->duplication=nullptr;check_hresult(self->capture_output->DuplicateOutput(self->device.get(),self->duplication.put()));self->has_frame=false;self->paused=false;self->paused_until=GetTickCount64()+150;self->dirty=true;return 0;}
    if(message==WM_NCDESTROY){KillTimer(hwnd,timer_id);RemoveWindowSubclass(hwnd,windowProc,timer_id);self->window=nullptr;auto result=DefSubclassProc(hwnd,message,wparam,lparam);releaseSurface(hwnd);return result;}
   }catch(hresult_error const& error){self->needs_reset=true;self->retry_after=GetTickCount64()+1000;std::cerr<<"Optics frame: "<<to_string(error.message())<<"\n";}
   return DefSubclassProc(hwnd,message,wparam,lparam);
@@ -375,9 +392,9 @@ extern "C" HRESULT bsl_glass_surface_visible(void* handle,unsigned long long exp
  try{
   auto* optics=findSurface(static_cast<HWND>(handle));if(!optics)return S_OK;if(expected_session&&optics->session!=expected_session)return E_ABORT;
   auto& s=*optics;
-  if(!visible){s.visible=false;s.show_after_frame=false;s.pane.Opacity(0);s.screenshot_mode=false;s.paused=false;check_bool(SetWindowDisplayAffinity(s.window,0));return S_OK;}
+  if(!visible){s.visible=false;s.show_after_frame=false;s.pane.Opacity(0);s.screenshot_mode=false;s.paused=false;check_bool(setBackdropExclusion(s.window,FALSE));return S_OK;}
   if(!s.visible){
-   check_bool(SetWindowDisplayAffinity(s.window,exclude_capture));DwmFlush();
+   check_bool(setBackdropExclusion(s.window,TRUE));DwmFlush();
    s.duplication=nullptr;check_hresult(s.capture_output->DuplicateOutput(s.device.get(),s.duplication.put()));s.has_frame=false;
    s.show_after_frame=true;s.pane.Opacity(0);
   }
@@ -390,8 +407,8 @@ extern "C" HRESULT bsl_glass_surface_apply(void* handle,float x,float y,float w,
   HWND window=static_cast<HWND>(handle);if(!IsWindow(window))return E_INVALIDARG;
   if(button_count>64||!pressed||!tint||(button_count&&!buttons))return E_INVALIDARG;
   auto& optics=surfaces[window];if(!optics){
-   auto old_style=GetWindowLongPtrW(window,GWL_EXSTYLE);DWORD old_affinity=0;GetWindowDisplayAffinity(window,&old_affinity);
-   try{optics=std::make_unique<Optics>(window);}catch(...){SetWindowLongPtrW(window,GWL_EXSTYLE,old_style);SetWindowDisplayAffinity(window,old_affinity);surfaces.erase(window);throw;}
+   auto old_style=GetWindowLongPtrW(window,GWL_EXSTYLE);BOOL old_dda_exclusion=FALSE;getBackdropExclusion(window,&old_dda_exclusion);
+   try{optics=std::make_unique<Optics>(window);}catch(...){SetWindowLongPtrW(window,GWL_EXSTYLE,old_style);setBackdropExclusion(window,old_dda_exclusion);surfaces.erase(window);throw;}
   }
   auto& state=*optics;state.x=x;state.y=y;state.w=w;state.h=h;state.radius=radius;state.depth=depth;state.enabled=enabled;state.rounded=rounded;state.density=density;state.dirty=true;
   std::copy(tint,tint+3,state.surface_tint);
